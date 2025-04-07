@@ -220,28 +220,55 @@ def get_total_value_of_sales_excluding_vat(company, from_date, to_date, cost_cen
     return invoice_total - credit_note_total
 
 def get_total_value_of_purchases_excluding_vat(company, from_date, to_date, cost_center):
-	conditions = [
-		"company = %s",
-		"posting_date >= %s",
-		"posting_date <= %s",
-		"status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"docstatus = 1"
-	]
-	values = [company, from_date, to_date]
-
-	if cost_center:
-		conditions.append("cost_center = %s")
-		values.append(cost_center)
-
-	query = """
-		SELECT SUM(base_net_total) as total_net_amount
-		FROM `tabPurchase Invoice`
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
-
-	result = frappe.db.sql(query, values, as_dict=True)
-	total_net_amount = result[0].get('total_net_amount') if result and result[0].get('total_net_amount') is not None else 0
-	return total_net_amount
+    # Purchase Invoices
+    invoice_conditions = [
+        "company = %s",
+        "posting_date >= %s",
+        "posting_date <= %s",
+        "status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "docstatus = 1",
+        "is_return = 0"  # Ensure we're only getting regular invoices, not returns
+    ]
+    
+    # Purchase Returns (to subtract from purchase total)
+    return_conditions = [
+        "company = %s",
+        "posting_date >= %s",
+        "posting_date <= %s",
+        "status NOT IN ('Cancelled', 'Draft')",
+        "docstatus = 1",
+        "is_return = 1"  # Returns/credit notes
+    ]
+    
+    values = [company, from_date, to_date]
+    
+    if cost_center:
+        invoice_conditions.append("cost_center = %s")
+        return_conditions.append("cost_center = %s")
+        values.append(cost_center)
+    
+    # Get total purchases from invoices
+    invoice_query = """
+        SELECT SUM(base_net_total) as total_net_amount
+        FROM `tabPurchase Invoice`
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(invoice_conditions))
+    
+    invoice_result = frappe.db.sql(invoice_query, values, as_dict=True)
+    invoice_total = invoice_result[0].get('total_net_amount') if invoice_result and invoice_result[0].get('total_net_amount') is not None else 0
+    
+    # Get total from returns to subtract
+    return_query = """
+        SELECT SUM(base_net_total) as total_net_amount
+        FROM `tabPurchase Invoice`
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(return_conditions))
+    
+    return_result = frappe.db.sql(return_query, values, as_dict=True)
+    return_total = return_result[0].get('total_net_amount') if return_result and return_result[0].get('total_net_amount') is not None else 0
+    
+    # Net purchases is invoices minus returns
+    return invoice_total - return_total
 
 def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost_center):
 	conditions = [
