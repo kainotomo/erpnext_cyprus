@@ -39,54 +39,32 @@ def get_columns():
 	return columns
 
 def get_vat_due_on_sales(company, from_date, to_date, cost_center, cyprus_vat_output_account):
-    # Get credits from Sales Invoices (VAT collected)
-    credit_conditions = [
+    conditions = [
         "company = %s",
         "posting_date >= %s",
         "posting_date <= %s",
         "is_cancelled = 0",
         "account = %s",
-        "credit > 0",
-        "voucher_type IN ('Sales Invoice', 'Journal Entry')"
-    ]
-    
-    # Get debits that reduce VAT liability (like from credit notes)
-    debit_conditions = [
-        "company = %s",
-        "posting_date >= %s",
-        "posting_date <= %s",
-        "is_cancelled = 0",
-        "account = %s",
-        "debit > 0",
         "voucher_type IN ('Sales Invoice', 'Credit Note', 'Journal Entry')"
     ]
     
     values = [company, from_date, to_date, cyprus_vat_output_account]
     
     if cost_center:
-        credit_conditions.append("cost_center = %s")
-        debit_conditions.append("cost_center = %s")
+        conditions.append("cost_center = %s")
         values.append(cost_center)
     
-    # Get total credits (VAT collected)
-    credit_query = """
-        SELECT SUM(credit) as total_credit
+    query = """
+        SELECT 
+            SUM(CASE WHEN credit > 0 THEN credit ELSE 0 END) AS total_credit,
+            SUM(CASE WHEN debit > 0 THEN debit ELSE 0 END) AS total_debit
         FROM `tabGL Entry`
         WHERE {conditions}
-    """.format(conditions=" AND ".join(credit_conditions))
+    """.format(conditions=" AND ".join(conditions))
     
-    credit_result = frappe.db.sql(credit_query, values, as_dict=True)
-    total_credit = credit_result[0].get('total_credit') if credit_result and credit_result[0].get('total_credit') is not None else 0
-    
-    # Get total debits (VAT reductions)
-    debit_query = """
-        SELECT SUM(debit) as total_debit
-        FROM `tabGL Entry`
-        WHERE {conditions}
-    """.format(conditions=" AND ".join(debit_conditions))
-    
-    debit_result = frappe.db.sql(debit_query, values, as_dict=True)
-    total_debit = debit_result[0].get('total_debit') if debit_result and debit_result[0].get('total_debit') is not None else 0
+    result = frappe.db.sql(query, values, as_dict=True)
+    total_credit = result[0].get('total_credit') if result and result[0].get('total_credit') is not None else 0
+    total_debit = result[0].get('total_debit') if result and result[0].get('total_debit') is not None else 0
     
     # Net VAT due is credits minus debits
     return total_credit - total_debit
