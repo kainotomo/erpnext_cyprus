@@ -116,28 +116,37 @@ def get_vat_reclaimed_on_purchases(company, from_date, to_date, cost_center, cyp
 	return total_debit
 
 def get_total_value_of_sales_excluding_vat(company, from_date, to_date, cost_center):
-	conditions = [
-		"company = %s",
-		"posting_date >= %s",
-		"posting_date <= %s",
-		"status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"docstatus = 1"
-	]
-	values = [company, from_date, to_date]
+    conditions = [
+        "company = %s",
+        "posting_date >= %s",
+        "posting_date <= %s",
+        "status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "docstatus = 1"
+    ]
+    values = [company, from_date, to_date]
 
-	if cost_center:
-		conditions.append("cost_center = %s")
-		values.append(cost_center)
+    if cost_center:
+        conditions.append("cost_center = %s")
+        values.append(cost_center)
 
-	query = """
-		SELECT SUM(base_net_total) as total_net_amount
-		FROM `tabSales Invoice`
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
+    # Query for regular invoices
+    query = """
+        SELECT 
+            SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE 0 END) as invoice_amount,
+            SUM(CASE WHEN is_return = 1 THEN base_net_total ELSE 0 END) as return_amount
+        FROM `tabSales Invoice`
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(conditions))
 
-	result = frappe.db.sql(query, values, as_dict=True)
-	total_net_amount = result[0].get('total_net_amount') if result and result[0].get('total_net_amount') is not None else 0
-	return total_net_amount
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    invoice_amount = result[0].get('invoice_amount') if result and result[0].get('invoice_amount') is not None else 0
+    return_amount = result[0].get('return_amount') if result and result[0].get('return_amount') is not None else 0
+    
+    # Return invoices already have negative base_net_total, so we add to get the net effect
+    total_net_amount = invoice_amount + return_amount
+    
+    return total_net_amount
 
 def get_total_value_of_purchases_excluding_vat(company, from_date, to_date, cost_center):
 	conditions = [
