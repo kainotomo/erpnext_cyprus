@@ -271,30 +271,65 @@ def get_total_value_of_purchases_excluding_vat(company, from_date, to_date, cost
     return invoice_total - return_total
 
 def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost_center):
-	conditions = [
-		"company = %s",
-		"posting_date >= %s",
-		"posting_date <= %s",
-		"status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"docstatus = 1",
-		"total_taxes_and_charges = 0",
-		"tax_id IS NOT NULL AND tax_id != ''"
-	]
-	values = [company, from_date, to_date]
-
-	if cost_center:
-		conditions.append("cost_center = %s")
-		values.append(cost_center)
-
-	query = """
-		SELECT SUM(base_net_total) as total_net_amount
-		FROM `tabSales Invoice`
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
-
-	result = frappe.db.sql(query, values, as_dict=True)
-	total_net_amount = result[0].get('total_net_amount') if result and result[0].get('total_net_amount') is not None else 0
-	return total_net_amount
+    # Sales Invoices of services to EU
+    invoice_conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "si.docstatus = 1",
+        "si.total_taxes_and_charges = 0",  # Zero-rated EU supplies
+        "si.tax_id IS NOT NULL AND si.tax_id != ''",  # Has EU VAT number
+        "si.is_return = 0",
+        "i.custom_is_service = 1"  # Is a service (not a physical good)
+    ]
+    
+    # Credit Notes (to subtract)
+    credit_note_conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft')",
+        "si.docstatus = 1",
+        "si.total_taxes_and_charges = 0",  # Zero-rated EU supplies
+        "si.tax_id IS NOT NULL AND si.tax_id != ''",  # Has EU VAT number
+        "si.is_return = 1",
+        "i.custom_is_service = 1"  # Is a service (not a physical good)
+    ]
+    
+    values = [company, from_date, to_date]
+    
+    if cost_center:
+        invoice_conditions.append("si.cost_center = %s")
+        credit_note_conditions.append("si.cost_center = %s")
+        values.append(cost_center)
+    
+    # Get total sales of services from invoices
+    invoice_query = """
+        SELECT SUM(sii.base_net_amount) as total_net_amount
+        FROM `tabSales Invoice` si
+        INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+        INNER JOIN `tabItem` i ON sii.item_code = i.name
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(invoice_conditions))
+    
+    invoice_result = frappe.db.sql(invoice_query, values, as_dict=True)
+    invoice_total = invoice_result[0].get('total_net_amount') if invoice_result and invoice_result[0].get('total_net_amount') is not None else 0
+    
+    # Get total from credit notes to subtract
+    credit_note_query = """
+        SELECT SUM(sii.base_net_amount) as total_net_amount
+        FROM `tabSales Invoice` si
+        INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+        INNER JOIN `tabItem` i ON sii.item_code = i.name
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(credit_note_conditions))
+    
+    credit_note_result = frappe.db.sql(credit_note_query, values, as_dict=True)
+    credit_note_total = credit_note_result[0].get('total_net_amount') if credit_note_result and credit_note_result[0].get('total_net_amount') is not None else 0
+    
+    # Net EU services sales is invoices minus credit notes
+    return invoice_total - credit_note_total
 
 def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center):
 	conditions = [
@@ -321,6 +356,67 @@ def get_total_value_of_services_received_excluding_vat(company, from_date, to_da
 	result = frappe.db.sql(query, values, as_dict=True)
 	total_net_amount = result[0].get('total_net_amount') if result and result[0].get('total_net_amount') is not None else 0
 	return total_net_amount
+
+def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_center):
+    # Sales Invoices of goods to EU
+    invoice_conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "si.docstatus = 1",
+        "si.total_taxes_and_charges = 0",  # Zero-rated EU supplies
+        "si.tax_id IS NOT NULL AND si.tax_id != ''",  # Has EU VAT number
+        "si.is_return = 0",
+        "i.custom_is_service = 0"  # Not a service (physical good)
+    ]
+    
+    # Credit Notes (to subtract)
+    credit_note_conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft')",
+        "si.docstatus = 1",
+        "si.total_taxes_and_charges = 0",  # Zero-rated EU supplies
+        "si.tax_id IS NOT NULL AND si.tax_id != ''",  # Has EU VAT number
+        "si.is_return = 1",
+        "i.custom_is_service = 0"  # Not a service (physical good)
+    ]
+    
+    values = [company, from_date, to_date]
+    
+    if cost_center:
+        invoice_conditions.append("si.cost_center = %s")
+        credit_note_conditions.append("si.cost_center = %s")
+        values.append(cost_center)
+    
+    # Get total sales of goods from invoices
+    invoice_query = """
+        SELECT SUM(sii.base_net_amount) as total_net_amount
+        FROM `tabSales Invoice` si
+        INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+        INNER JOIN `tabItem` i ON sii.item_code = i.name
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(invoice_conditions))
+    
+    invoice_result = frappe.db.sql(invoice_query, values, as_dict=True)
+    invoice_total = invoice_result[0].get('total_net_amount') if invoice_result and invoice_result[0].get('total_net_amount') is not None else 0
+    
+    # Get total from credit notes to subtract
+    credit_note_query = """
+        SELECT SUM(sii.base_net_amount) as total_net_amount
+        FROM `tabSales Invoice` si
+        INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+        INNER JOIN `tabItem` i ON sii.item_code = i.name
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(credit_note_conditions))
+    
+    credit_note_result = frappe.db.sql(credit_note_query, values, as_dict=True)
+    credit_note_total = credit_note_result[0].get('total_net_amount') if credit_note_result and credit_note_result[0].get('total_net_amount') is not None else 0
+    
+    # Net EU goods sales is invoices minus credit notes
+    return invoice_total - credit_note_total
 
 def execute(filters=None):
 	columns = get_columns()
@@ -355,7 +451,7 @@ def execute(filters=None):
 	row = {"description": "Total value of purchases and other inputs excluding any VAT (including the amounts in box 11A and 11B)", "desc_id": "7", "amount": total_value_of_purchases_excluding_vat}
 	data.append(row)
 
-	total_value_of_supply_of_goods_and_services_to_eu = 0
+	total_value_of_supply_of_goods_and_services_to_eu = get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_center)
 	row = {"description": "Total value of supply of goods and related services (excluding VAT) to other Member States", "desc_id": "8A", "amount": total_value_of_supply_of_goods_and_services_to_eu}
 	data.append(row)
 
