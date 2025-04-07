@@ -39,30 +39,30 @@ def get_columns():
 	return columns
 
 def get_vat_due_on_sales(company, from_date, to_date, cost_center, cyprus_vat_output_account):
-	conditions = [
-		"company = %s",
-		"posting_date >= %s",
-		"posting_date <= %s",
-		"is_cancelled = 0",
-		"credit > 0",
-		"account = %s",
-		"voucher_type != 'Purchase Invoice'"
-	]
-	values = [company, from_date, to_date, cyprus_vat_output_account]
+    conditions = [
+        "company = %s",
+        "posting_date >= %s",
+        "posting_date <= %s",
+        "is_cancelled = 0",
+        "credit > 0",
+        "account = %s",
+        "voucher_type != 'Purchase Invoice'"
+    ]
+    values = [company, from_date, to_date, cyprus_vat_output_account]
 
-	if cost_center:
-		conditions.append("cost_center = %s")
-		values.append(cost_center)
+    if cost_center:
+        conditions.append("cost_center = %s")
+        values.append(cost_center)
 
-	query = """
-		SELECT SUM(credit) as total_credit
-		FROM `tabGL Entry`
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
+    query = """
+        SELECT SUM(credit) as total_credit
+        FROM `tabGL Entry`
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(conditions))
 
-	result = frappe.db.sql(query, values, as_dict=True)
-	total_credit = result[0].get('total_credit') if result and result[0].get('total_credit') is not None else 0
-	return total_credit
+    result = frappe.db.sql(query, values, as_dict=True)
+    total_credit = result[0].get('total_credit') if result and result[0].get('total_credit') is not None else 0
+    return total_credit
 
 def get_vat_due_on_acquisitions_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
 	conditions = [
