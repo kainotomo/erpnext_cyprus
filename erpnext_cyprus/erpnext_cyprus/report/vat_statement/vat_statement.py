@@ -118,29 +118,57 @@ def get_vat_due_on_acquisitions_eu(company, from_date, to_date, cost_center, cyp
 	return total_credit
 
 def get_vat_reclaimed_on_purchases(company, from_date, to_date, cost_center, cyprus_vat_input_account):
-	conditions = [
-		"company = %s",
-		"posting_date >= %s",
-		"posting_date <= %s",
-		"is_cancelled = 0",
-		"debit > 0",
-		"account = %s"
-	]
-	values = [company, from_date, to_date, cyprus_vat_input_account]
-
-	if cost_center:
-		conditions.append("cost_center = %s")
-		values.append(cost_center)
-
-	query = """
-		SELECT SUM(debit) as total_debit
-		FROM `tabGL Entry`
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
-
-	result = frappe.db.sql(query, values, as_dict=True)
-	total_debit = result[0].get('total_debit') if result and result[0].get('total_debit') is not None else 0
-	return total_debit
+    # Get debits (VAT paid that can be reclaimed)
+    debit_conditions = [
+        "company = %s",
+        "posting_date >= %s",
+        "posting_date <= %s",
+        "is_cancelled = 0",
+        "account = %s",
+        "debit > 0",
+        "voucher_type IN ('Purchase Invoice', 'Journal Entry')"
+    ]
+    
+    # Get credits that reduce VAT reclaimed (like from purchase returns/credit notes)
+    credit_conditions = [
+        "company = %s",
+        "posting_date >= %s",
+        "posting_date <= %s",
+        "is_cancelled = 0", 
+        "account = %s",
+        "credit > 0",
+        "voucher_type IN ('Purchase Invoice', 'Debit Note', 'Journal Entry')"
+    ]
+    
+    values = [company, from_date, to_date, cyprus_vat_input_account]
+    
+    if cost_center:
+        debit_conditions.append("cost_center = %s")
+        credit_conditions.append("cost_center = %s")
+        values.append(cost_center)
+    
+    # Get total debits (VAT paid that can be reclaimed)
+    debit_query = """
+        SELECT SUM(debit) as total_debit
+        FROM `tabGL Entry` 
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(debit_conditions))
+    
+    debit_result = frappe.db.sql(debit_query, values, as_dict=True)
+    total_debit = debit_result[0].get('total_debit') if debit_result and debit_result[0].get('total_debit') is not None else 0
+    
+    # Get total credits (reductions to VAT reclaimed)
+    credit_query = """
+        SELECT SUM(credit) as total_credit
+        FROM `tabGL Entry`
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(credit_conditions))
+    
+    credit_result = frappe.db.sql(credit_query, values, as_dict=True)
+    total_credit = credit_result[0].get('total_credit') if credit_result and credit_result[0].get('total_credit') is not None else 0
+    
+    # Net VAT reclaimed is debits minus credits
+    return total_debit - total_credit
 
 def get_total_value_of_sales_excluding_vat(company, from_date, to_date, cost_center):
 	conditions = [
