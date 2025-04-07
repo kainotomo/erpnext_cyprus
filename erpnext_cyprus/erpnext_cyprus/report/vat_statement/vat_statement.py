@@ -46,7 +46,7 @@ def get_vat_due_on_sales(company, from_date, to_date, cost_center, cyprus_vat_ou
 		"is_cancelled = 0",
 		"credit > 0",
 		"account = %s",
-		"voucher_type != 'Purchase Invoice'"
+		"voucher_type = 'Sales Invoice'"
 	]
 	values = [company, from_date, to_date, cyprus_vat_output_account]
 
