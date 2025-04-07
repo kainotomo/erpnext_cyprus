@@ -39,30 +39,37 @@ def get_columns():
 	return columns
 
 def get_vat_due_on_sales(company, from_date, to_date, cost_center, cyprus_vat_output_account):
-	conditions = [
-		"company = %s",
-		"posting_date >= %s",
-		"posting_date <= %s",
-		"is_cancelled = 0",
-		"credit > 0",
-		"account = %s",
-		"voucher_type = 'Sales Invoice'"
-	]
-	values = [company, from_date, to_date, cyprus_vat_output_account]
+    conditions = [
+        "company = %s",
+        "posting_date >= %s",
+        "posting_date <= %s",
+        "is_cancelled = 0",
+        "account = %s"
+    ]
+    values = [company, from_date, to_date, cyprus_vat_output_account]
 
-	if cost_center:
-		conditions.append("cost_center = %s")
-		values.append(cost_center)
+    if cost_center:
+        conditions.append("cost_center = %s")
+        values.append(cost_center)
 
-	query = """
-		SELECT SUM(credit) as total_credit
-		FROM `tabGL Entry`
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
+    # Separate credit and debit for regular and return invoices
+    query = """
+        SELECT 
+            SUM(CASE WHEN voucher_type = 'Sales Invoice' AND credit > 0 THEN credit ELSE 0 END) as regular_credit,
+            SUM(CASE WHEN voucher_type = 'Sales Invoice' AND debit > 0 THEN debit ELSE 0 END) as return_debit
+        FROM `tabGL Entry`
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(conditions))
 
-	result = frappe.db.sql(query, values, as_dict=True)
-	total_credit = result[0].get('total_credit') if result and result[0].get('total_credit') is not None else 0
-	return total_credit
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    regular_credit = result[0].get('regular_credit') if result and result[0].get('regular_credit') is not None else 0
+    return_debit = result[0].get('return_debit') if result and result[0].get('return_debit') is not None else 0
+    
+    # Return VAT appears as debit entries, so subtract from regular credits
+    total_vat_due = regular_credit - return_debit
+    
+    return total_vat_due
 
 def get_vat_due_on_acquisitions_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
 	conditions = [
