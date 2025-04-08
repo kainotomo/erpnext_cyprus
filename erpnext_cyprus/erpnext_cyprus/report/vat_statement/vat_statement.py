@@ -246,6 +246,30 @@ def get_total_value_of_sales_excluding_vat(company, from_date, to_date, cost_cen
 	return total_net_amount
 
 def get_total_value_of_purchases_excluding_vat(company, from_date, to_date, cost_center):
+	"""
+	Calculate the total value of purchases excluding VAT for the VAT return period.
+	
+	This function queries the Purchase Invoice table to get the net total (excluding VAT)
+	of all purchase transactions within the period. It handles both regular purchase invoices
+	and return invoices separately to ensure accurate calculation.
+	
+	The function:
+	1. Filters Purchase Invoices by company, date range, and valid document status
+	2. Separates regular purchases and return purchases for proper accounting
+	3. Returns the total net amount of all purchases excluding VAT
+	
+	Note: Return invoices already have negative base_net_total values, so they are
+	added to get the correct net effect.
+	
+	Parameters:
+	- company (str): The company for which to calculate purchases
+	- from_date (date): Start date of the VAT period
+	- to_date (date): End date of the VAT period
+	- cost_center (str, optional): Cost center to filter transactions
+	
+	Returns:
+	- float: The total value of purchases excluding VAT for the period
+	"""
 	conditions = [
 		"company = %s",
 		"posting_date >= %s",
