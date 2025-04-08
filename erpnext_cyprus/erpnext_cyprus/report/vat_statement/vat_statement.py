@@ -291,6 +291,45 @@ def get_total_value_of_zero_rated_supplies(company, from_date, to_date, cost_cen
     
     return total_zero_rated_amount
 
+def get_total_value_of_out_of_scope_sales(company, from_date, to_date, cost_center):
+    conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "si.docstatus = 1",
+        # Zero tax (out of scope)
+        "(si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)",
+        # Not already counted in other boxes
+        "NOT EXISTS (SELECT 1 FROM `tabCustomer` c WHERE c.name = si.customer AND c.tax_id IS NOT NULL AND c.tax_id != '')"
+    ]
+    values = [company, from_date, to_date]
+
+    if cost_center:
+        conditions.append("si.cost_center = %s")
+        values.append(cost_center)
+
+    query = """
+        SELECT 
+            si.name,
+            si.is_return,
+            si.base_net_total
+        FROM `tabSales Invoice` si
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(conditions))
+
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    # Sum with proper return handling
+    total_out_of_scope = 0
+    for row in result:
+        amount = row.get('base_net_total') if row.get('base_net_total') is not None else 0
+        if row.get('is_return') and amount > 0:
+            amount = -amount
+        total_out_of_scope += amount
+    
+    return total_out_of_scope
+
 def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center):
 	conditions = [
 		"company = %s",
@@ -435,7 +474,7 @@ def execute(filters=None):
 	row = {"description": "Total value of outputs on zero-rated supplies (other than those included in box 8A)", "desc_id": "9", "amount": total_value_of_zero_rated_supplies}
 	data.append(row)
 
-	total_value_of_out_of_scope_sales = total_value_of_sales_excluding_vat - total_value_of_services_supplied_to_eu
+	total_value_of_out_of_scope_sales = get_total_value_of_out_of_scope_sales(company, from_date, to_date, cost_center)
 	row = {"description": "Total value of out of scope sales, with right of deduction of input tax (other than those included in box 8B)", "desc_id": "10", "amount": total_value_of_out_of_scope_sales}
 	data.append(row)
 
