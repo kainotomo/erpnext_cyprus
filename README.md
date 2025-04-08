@@ -21,10 +21,6 @@ bench --site your-site.local install-app erpnext_cyprus
 - Frappe Framework v15
 - ERPNext v15
 
-## Configuration
-
-After installation, navigate to ERPNext Cyprus Settings in your site to configure Cyprus-specific options.
-
 ## Documentation
 
 Available documentation:
