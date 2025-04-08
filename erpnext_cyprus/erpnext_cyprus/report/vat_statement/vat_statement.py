@@ -301,53 +301,167 @@ def get_total_value_of_purchases_excluding_vat(company, from_date, to_date, cost
 	
 	return total_net_amount
 
+def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
+    """
+    Calculate the total value of goods supplied to EU member states (Box 8A).
+    
+    This function queries Sales Invoices to find sales of goods (not services) made to
+    customers in other EU countries. It identifies these transactions by looking for either:
+    1. Customers with tax_id starting with EU country codes (except Cyprus), with zero tax, OR
+    2. Sales that use a special VAT account different from the standard Cyprus VAT output account
+    
+    The function:
+    1. Filters Sales Invoices by company, date range, and valid document status
+    2. Identifies EU transactions using the conditions mentioned above
+    3. Identifies items that are goods (not services) by checking custom_is_service flag
+    4. Sums the net amount of all goods sold to EU customers
+    
+    Parameters:
+    - company (str): The company for which to calculate EU goods exports
+    - from_date (date): Start date of the VAT period
+    - to_date (date): End date of the VAT period
+    - cost_center (str, optional): Cost center to filter transactions
+    - cyprus_vat_output_account (str): The standard VAT output account to exclude
+    
+    Returns:
+    - float: The total value of goods supplied to EU member states excluding VAT
+    """
+    # Build list of tax_id prefixes to match (EU country codes except Cyprus)
+    tax_id_inclusions = []
+    for country_code in vies_countries:
+        if country_code != "CY":  # Exclude Cyprus
+            tax_id_inclusions.append(f"LEFT(c.tax_id, 2) = '{country_code}'")
+    
+    # Join the inclusions with OR since we want to match any EU country code
+    eu_tax_id_condition = " OR ".join(tax_id_inclusions)
+    
+    conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "si.docstatus = 1",
+        # Either:
+        # 1. Customer has tax_id starting with EU country code (except Cyprus) and no/zero tax, OR
+        # 2. VAT account used is not cyprus_vat_output_account
+        f"((c.tax_id IS NOT NULL AND c.tax_id != '' AND ({eu_tax_id_condition}) AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)) OR EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s))"
+    ]
+    values = [company, from_date, to_date, cyprus_vat_output_account]
+
+    if cost_center:
+        conditions.append("si.cost_center = %s")
+        values.append(cost_center)
+
+    query = """
+        SELECT 
+            si.name as invoice_name,
+            si.is_return,
+            SUM(CASE 
+                WHEN i.custom_is_service = 0 OR i.custom_is_service IS NULL 
+                THEN sii.base_net_amount 
+                ELSE 0 
+            END) as goods_amount
+        FROM `tabSales Invoice` si
+        JOIN `tabCustomer` c ON si.customer = c.name
+        LEFT JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+        LEFT JOIN `tabItem` i ON sii.item_code = i.name
+        WHERE {conditions}
+        GROUP BY si.name, si.is_return
+    """.format(conditions=" AND ".join(conditions))
+
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    # Sum up all goods amounts, properly handling returns
+    total_goods_amount = 0
+    for row in result:
+        amount = row.get('goods_amount') if row.get('goods_amount') is not None else 0
+        # Adjust amounts for returns - if it's a return and the amount is positive, make it negative
+        if row.get('is_return') and amount > 0:
+            amount = -amount
+        total_goods_amount += amount
+    
+    return total_goods_amount
+
 def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
-	conditions = [
-		"si.company = %s",
-		"si.posting_date >= %s",
-		"si.posting_date <= %s",
-		"si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"si.docstatus = 1",
-		# Either:
-		# 1. VAT account used is not cyprus_vat_output_account OR
-		# 2. Customer has tax_id and no tax is applied
-		"((EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s) OR si.taxes_and_charges IS NULL) OR (c.tax_id IS NOT NULL AND c.tax_id != '' AND si.total_taxes_and_charges = 0))"
-	]
-	values = [company, from_date, to_date, cyprus_vat_output_account]
+    """
+    Calculate the total value of services supplied to EU member states (Box 8B).
+    
+    This function queries Sales Invoices to find sales of services (not goods) made to
+    customers in other EU countries. It identifies these transactions by looking for either:
+    1. Customers with tax_id starting with EU country codes (except Cyprus), with zero tax, OR
+    2. Sales that use a special VAT account different from the standard Cyprus VAT output account
+    
+    The function:
+    1. Filters Sales Invoices by company, date range, and valid document status
+    2. Identifies EU transactions using the conditions mentioned above
+    3. Identifies items that are services (not goods) by checking custom_is_service flag
+    4. Sums the net amount of all services sold to EU customers
+    
+    Parameters:
+    - company (str): The company for which to calculate EU services exports
+    - from_date (date): Start date of the VAT period
+    - to_date (date): End date of the VAT period
+    - cost_center (str, optional): Cost center to filter transactions
+    - cyprus_vat_output_account (str): The standard VAT output account to exclude
+    
+    Returns:
+    - float: The total value of services supplied to EU member states excluding VAT
+    """
+    # Build list of tax_id prefixes to match (EU country codes except Cyprus)
+    tax_id_inclusions = []
+    for country_code in vies_countries:
+        if country_code != "CY":  # Exclude Cyprus
+            tax_id_inclusions.append(f"LEFT(c.tax_id, 2) = '{country_code}'")
+    
+    # Join the inclusions with OR since we want to match any EU country code
+    eu_tax_id_condition = " OR ".join(tax_id_inclusions)
+    
+    conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "si.docstatus = 1",
+        # Either:
+        # 1. Customer has tax_id starting with EU country code (except Cyprus) and no/zero tax, OR
+        # 2. VAT account used is not cyprus_vat_output_account
+        f"((c.tax_id IS NOT NULL AND c.tax_id != '' AND ({eu_tax_id_condition}) AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)) OR EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s))"
+    ]
+    values = [company, from_date, to_date, cyprus_vat_output_account]
 
-	if cost_center:
-		conditions.append("si.cost_center = %s")
-		values.append(cost_center)
+    if cost_center:
+        conditions.append("si.cost_center = %s")
+        values.append(cost_center)
 
-	query = """
-		SELECT 
-			si.name as invoice_name,
-			si.is_return,
-			SUM(CASE 
-				WHEN i.custom_is_service = 1 
-				THEN sii.base_net_amount 
-				ELSE 0 
-			END) as services_amount
-		FROM `tabSales Invoice` si
-		JOIN `tabCustomer` c ON si.customer = c.name
-		LEFT JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
-		LEFT JOIN `tabItem` i ON sii.item_code = i.name
-		WHERE {conditions}
-		GROUP BY si.name, si.is_return
-	""".format(conditions=" AND ".join(conditions))
+    query = """
+        SELECT 
+            si.name as invoice_name,
+            si.is_return,
+            SUM(CASE 
+                WHEN i.custom_is_service = 1 
+                THEN sii.base_net_amount 
+                ELSE 0 
+            END) as services_amount
+        FROM `tabSales Invoice` si
+        JOIN `tabCustomer` c ON si.customer = c.name
+        LEFT JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+        LEFT JOIN `tabItem` i ON sii.item_code = i.name
+        WHERE {conditions}
+        GROUP BY si.name, si.is_return
+    """.format(conditions=" AND ".join(conditions))
 
-	result = frappe.db.sql(query, values, as_dict=True)
-	
-	# Sum up all services amounts, properly handling returns
-	total_services_amount = 0
-	for row in result:
-		amount = row.get('services_amount') if row.get('services_amount') is not None else 0
-		# Adjust amounts for returns - if it's a return and the amount is positive, make it negative
-		if row.get('is_return') and amount > 0:
-			amount = -amount
-		total_services_amount += amount
-	
-	return total_services_amount
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    # Sum up all services amounts, properly handling returns
+    total_services_amount = 0
+    for row in result:
+        amount = row.get('services_amount') if row.get('services_amount') is not None else 0
+        # Adjust amounts for returns - if it's a return and the amount is positive, make it negative
+        if row.get('is_return') and amount > 0:
+            amount = -amount
+        total_services_amount += amount
+    
+    return total_services_amount
 
 def get_total_value_of_zero_rated_supplies(company, from_date, to_date, cost_center, vies_countries):
 	"""
@@ -554,49 +668,6 @@ def get_total_value_of_services_received_excluding_vat(company, from_date, to_da
 		total_services_amount += amount
 	
 	return total_services_amount
-
-def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
-	conditions = [
-		"si.company = %s",
-		"si.posting_date >= %s",
-		"si.posting_date <= %s",
-		"si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"si.docstatus = 1",
-		# Either:
-		# 1. VAT account used is not cyprus_vat_output_account OR
-		# 2. Customer has tax_id and no tax is applied
-		"((EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s) OR si.taxes_and_charges IS NULL) OR (c.tax_id IS NOT NULL AND c.tax_id != '' AND si.total_taxes_and_charges = 0))"
-	]
-	values = [company, from_date, to_date, cyprus_vat_output_account]
-
-	if cost_center:
-		conditions.append("si.cost_center = %s")
-		values.append(cost_center)
-
-	query = """
-		SELECT 
-			si.name as invoice_name,
-			SUM(CASE 
-				WHEN i.custom_is_service = 0 OR i.custom_is_service IS NULL 
-				THEN sii.base_net_amount 
-				ELSE 0 
-			END) as goods_amount
-		FROM `tabSales Invoice` si
-		JOIN `tabCustomer` c ON si.customer = c.name
-		LEFT JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
-		LEFT JOIN `tabItem` i ON sii.item_code = i.name
-		WHERE {conditions}
-		GROUP BY si.name
-	""".format(conditions=" AND ".join(conditions))
-
-	result = frappe.db.sql(query, values, as_dict=True)
-	
-	# Sum up all goods amounts
-	total_goods_amount = 0
-	for row in result:
-		total_goods_amount += row.get('goods_amount') if row.get('goods_amount') is not None else 0
-	
-	return total_goods_amount
 
 vies_countries = [
 	"AT",  # Austria
