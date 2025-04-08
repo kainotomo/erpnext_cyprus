@@ -142,53 +142,77 @@ def get_vat_due_on_acquisitions_eu(company, from_date, to_date, cost_center, cyp
 	return total_credit
 
 def get_vat_reclaimed_on_purchases(company, from_date, to_date, cost_center, cyprus_vat_input_account):
-    """
-    Calculate the total VAT reclaimed on purchases for the VAT return period.
-    
-    This function queries the GL Entries table to find all VAT paid on purchase transactions
-    that is eligible to be reclaimed as input tax. It looks at debit entries in the
-    specified VAT input account.
-    
-    The function:
-    1. Filters GL entries by company, date range, and the specified VAT input account
-    2. Only includes debit entries (which represent VAT paid that can be reclaimed)
-    3. Returns the total debit amount which represents reclaimable VAT
-    
-    Parameters:
-    - company (str): The company for which to calculate VAT
-    - from_date (date): Start date of the VAT period
-    - to_date (date): End date of the VAT period
-    - cost_center (str, optional): Cost center to filter transactions
-    - cyprus_vat_input_account (str): The VAT input account used for recording reclaimable VAT
-    
-    Returns:
-    - float: The total VAT amount reclaimable on purchases for the period
-    """
-    conditions = [
-        "company = %s",
-        "posting_date >= %s",
-        "posting_date <= %s",
-        "is_cancelled = 0",
-        "debit > 0",
-        "account = %s"
-    ]
-    values = [company, from_date, to_date, cyprus_vat_input_account]
+	"""
+	Calculate the total VAT reclaimed on purchases for the VAT return period.
+	
+	This function queries the GL Entries table to find all VAT paid on purchase transactions
+	that is eligible to be reclaimed as input tax. It looks at debit entries in the
+	specified VAT input account.
+	
+	The function:
+	1. Filters GL entries by company, date range, and the specified VAT input account
+	2. Only includes debit entries (which represent VAT paid that can be reclaimed)
+	3. Returns the total debit amount which represents reclaimable VAT
+	
+	Parameters:
+	- company (str): The company for which to calculate VAT
+	- from_date (date): Start date of the VAT period
+	- to_date (date): End date of the VAT period
+	- cost_center (str, optional): Cost center to filter transactions
+	- cyprus_vat_input_account (str): The VAT input account used for recording reclaimable VAT
+	
+	Returns:
+	- float: The total VAT amount reclaimable on purchases for the period
+	"""
+	conditions = [
+		"company = %s",
+		"posting_date >= %s",
+		"posting_date <= %s",
+		"is_cancelled = 0",
+		"debit > 0",
+		"account = %s"
+	]
+	values = [company, from_date, to_date, cyprus_vat_input_account]
 
-    if cost_center:
-        conditions.append("cost_center = %s")
-        values.append(cost_center)
+	if cost_center:
+		conditions.append("cost_center = %s")
+		values.append(cost_center)
 
-    query = """
-        SELECT SUM(debit) as total_debit
-        FROM `tabGL Entry`
-        WHERE {conditions}
-    """.format(conditions=" AND ".join(conditions))
+	query = """
+		SELECT SUM(debit) as total_debit
+		FROM `tabGL Entry`
+		WHERE {conditions}
+	""".format(conditions=" AND ".join(conditions))
 
-    result = frappe.db.sql(query, values, as_dict=True)
-    total_debit = result[0].get('total_debit') if result and result[0].get('total_debit') is not None else 0
-    return total_debit
+	result = frappe.db.sql(query, values, as_dict=True)
+	total_debit = result[0].get('total_debit') if result and result[0].get('total_debit') is not None else 0
+	return total_debit
 
 def get_total_value_of_sales_excluding_vat(company, from_date, to_date, cost_center):
+	"""
+	Calculate the total value of sales excluding VAT for the VAT return period.
+	
+	This function queries the Sales Invoice table to get the net total (excluding VAT)
+	of all sales transactions within the period. It handles both regular sales invoices
+	and return invoices separately to ensure accurate calculation.
+	
+	The function:
+	1. Filters Sales Invoices by company, date range, and valid document status
+	2. Separates regular sales and return sales for proper accounting
+	3. Returns the total net amount of all sales excluding VAT
+	
+	Note: Return invoices already have negative base_net_total values, so they are
+	added to get the correct net effect.
+	
+	Parameters:
+	- company (str): The company for which to calculate sales
+	- from_date (date): Start date of the VAT period
+	- to_date (date): End date of the VAT period
+	- cost_center (str, optional): Cost center to filter transactions
+	
+	Returns:
+	- float: The total value of sales excluding VAT for the period
+	"""
 	conditions = [
 		"company = %s",
 		"posting_date >= %s",
