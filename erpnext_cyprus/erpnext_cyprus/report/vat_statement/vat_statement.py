@@ -224,10 +224,14 @@ def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost
 
 	result = frappe.db.sql(query, values, as_dict=True)
 	
-	# Sum up all services amounts
+	# Sum up all services amounts, properly handling returns
 	total_services_amount = 0
 	for row in result:
-		total_services_amount += row.get('services_amount') if row.get('services_amount') is not None else 0
+		amount = row.get('services_amount') if row.get('services_amount') is not None else 0
+		# Adjust amounts for returns - if it's a return and the amount is positive, make it negative
+		if row.get('is_return') and amount > 0:
+			amount = -amount
+		total_services_amount += amount
 	
 	return total_services_amount
 
