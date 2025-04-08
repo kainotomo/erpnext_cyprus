@@ -94,6 +94,28 @@ def get_vat_due_on_sales(company, from_date, to_date, cost_center, cyprus_vat_ou
 	return total_vat_due
 
 def get_vat_due_on_acquisitions_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
+	"""
+	Calculate the total VAT due on acquisitions from EU member states.
+	
+	This function queries the GL Entries table to find VAT that is due on purchases
+	from other EU countries. In reverse charge scenarios, the VAT that would normally
+	be paid to suppliers is instead accounted for in the output tax account.
+	
+	The function:
+	1. Filters GL entries by company, date range, and the specified VAT output account
+	2. Only includes credit entries from Purchase Invoices (reverse charge entries)
+	3. Returns the total credit amount which represents VAT due on EU acquisitions
+	
+	Parameters:
+	- company (str): The company for which to calculate VAT
+	- from_date (date): Start date of the VAT period
+	- to_date (date): End date of the VAT period
+	- cost_center (str, optional): Cost center to filter transactions
+	- cyprus_vat_output_account (str): The VAT output account used for reverse charge
+	
+	Returns:
+	- float: The total VAT amount due on EU acquisitions for the period
+	"""
 	conditions = [
 		"company = %s",
 		"posting_date >= %s",
