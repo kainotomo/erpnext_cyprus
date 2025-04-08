@@ -604,7 +604,7 @@ def get_total_value_of_out_of_scope_sales(company, from_date, to_date, cost_cent
 	
 	return total_out_of_scope
 
-def get_total_value_of_acquisitions_from_eu(company, from_date, to_date, cost_center, vies_countries):
+def get_total_value_of_products_received_from_eu_excluding_vat(company, from_date, to_date, cost_center, vies_countries):
 	"""
 	Calculate the total value of acquisitions of goods from other EU member states (Box 11A).
 	
@@ -683,7 +683,7 @@ def get_total_value_of_acquisitions_from_eu(company, from_date, to_date, cost_ce
 	
 	return total_goods_amount
 
-def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center, vies_countries):
+def get_total_value_of_services_received_from_eu_excluding_vat(company, from_date, to_date, cost_center, vies_countries):
 	"""
 	Calculate the total value of services received from abroad (Box 11B).
 	
@@ -832,11 +832,11 @@ def execute(filters=None):
 	row = {"description": "Total value of out of scope sales, with right of deduction of input tax (other than those included in box 8B)", "desc_id": "10", "amount": total_value_of_out_of_scope_sales}
 	data.append(row)
 
-	total_value_of_acquisitions_from_eu = get_total_value_of_acquisitions_from_eu(company, from_date, to_date, cost_center, vies_countries)
+	total_value_of_acquisitions_from_eu = get_total_value_of_products_received_from_eu_excluding_vat(company, from_date, to_date, cost_center, vies_countries)
 	row = {"description": "Total value of all acquisitions of goods and related services (excluding any VAT) from other EU member States", "desc_id": "11A", "amount": total_value_of_acquisitions_from_eu}
 	data.append(row)
 
-	total_value_of_services_received_excluding_vat = get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center, vies_countries)
+	total_value_of_services_received_excluding_vat = get_total_value_of_services_received_from_eu_excluding_vat(company, from_date, to_date, cost_center, vies_countries)
 	row = {"description": "Total value of all services received (excluding any VAT)", "desc_id": "11B", "amount": total_value_of_services_received_excluding_vat}
 	data.append(row)
 
