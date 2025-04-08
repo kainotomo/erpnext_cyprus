@@ -685,38 +685,47 @@ def get_total_value_of_products_received_from_eu_excluding_vat(company, from_dat
 
 def get_total_value_of_services_received_from_eu_excluding_vat(company, from_date, to_date, cost_center, vies_countries):
 	"""
-	Calculate the total value of services received from abroad (Box 11B).
+	Calculate the total value of services received from other EU member states (Box 11B).
 	
 	This function identifies purchases of services (not goods) made from suppliers
-	in any country outside Cyprus. This is important for tracking services subject 
-	to reverse charge VAT.
+	in other EU countries. It's important for tracking intra-EU acquisitions of services
+	that are subject to reverse charge VAT.
 	
 	The function:
 	1. Filters Purchase Invoices by company, date range, and valid document status
-	2. Only considers suppliers with tax_id (identifying them as foreign entities)
+	2. Identifies EU suppliers by checking if their tax_id starts with an EU country code (except Cyprus)
 	3. Identifies items that are services (not goods) by checking custom_is_service flag
-	4. Sums the net amount of all services purchased from foreign suppliers
+	4. Sums the net amount of all services acquired from EU suppliers
 	5. Properly handles purchase returns to ensure accurate reporting
 	
 	Parameters:
-	- company (str): The company for which to calculate services received
+	- company (str): The company for which to calculate EU acquisitions of services
 	- from_date (date): Start date of the VAT period
 	- to_date (date): End date of the VAT period
 	- cost_center (str, optional): Cost center to filter transactions
-	- vies_countries (list): List of EU country codes (not directly used in query but needed for consistency)
+	- vies_countries (list): List of EU country codes to match against tax_ids
 	
 	Returns:
-	- float: The total value of services received from abroad excluding VAT
+	- float: The total value of services acquired from EU member states excluding VAT
 	"""
-	# Build list of tax_id prefixes to match (any country code)
+	# Build list of tax_id prefixes to match (EU country codes except Cyprus)
+	tax_id_inclusions = []
+	for country_code in vies_countries:
+		if country_code != "CY":  # Exclude Cyprus
+			tax_id_inclusions.append(f"LEFT(pi.tax_id, 2) = '{country_code}'")
+	
+	# Join the inclusions with OR since we want to match any EU country code
+	tax_id_condition = " OR ".join(tax_id_inclusions)
+	
 	conditions = [
 		"pi.company = %s",
 		"pi.posting_date >= %s",
 		"pi.posting_date <= %s",
 		"pi.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
 		"pi.docstatus = 1",
-		# Supplier must have tax_id 
-		"pi.tax_id IS NOT NULL AND pi.tax_id != ''"
+		# Supplier must have tax_id starting with EU country code (except Cyprus)
+		"pi.tax_id IS NOT NULL AND pi.tax_id != ''",
+		f"({tax_id_condition})"
 	]
 	values = [company, from_date, to_date]
 
