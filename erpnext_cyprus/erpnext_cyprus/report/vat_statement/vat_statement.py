@@ -330,6 +330,66 @@ def get_total_value_of_out_of_scope_sales(company, from_date, to_date, cost_cent
     
     return total_out_of_scope
 
+def get_total_value_of_acquisitions_from_eu(company, from_date, to_date, cost_center, vies_countries):
+    """
+    Calculate total value of acquisitions of goods from other EU member states (Box 11A)
+    This includes purchases with tax_id starting with EU country codes (except Cyprus)
+    and where the items are goods (not services)
+    """
+    # Build list of tax_id prefixes to match (EU country codes except Cyprus)
+    tax_id_inclusions = []
+    for country_code in vies_countries:
+        if country_code != "CY":  # Exclude Cyprus
+            tax_id_inclusions.append(f"LEFT(pi.tax_id, 2) = '{country_code}'")
+    
+    # Join the inclusions with OR since we want to match any EU country code
+    tax_id_condition = " OR ".join(tax_id_inclusions)
+    
+    conditions = [
+        "pi.company = %s",
+        "pi.posting_date >= %s",
+        "pi.posting_date <= %s",
+        "pi.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "pi.docstatus = 1",
+        # Supplier must have tax_id starting with EU country code (except Cyprus)
+        "pi.tax_id IS NOT NULL AND pi.tax_id != ''",
+        f"({tax_id_condition})"
+    ]
+    values = [company, from_date, to_date]
+
+    if cost_center:
+        conditions.append("pi.cost_center = %s")
+        values.append(cost_center)
+
+    query = """
+        SELECT 
+            pi.name as invoice_name,
+            pi.is_return,
+            SUM(CASE 
+                WHEN i.custom_is_service = 0 OR i.custom_is_service IS NULL 
+                THEN pii.base_net_amount 
+                ELSE 0 
+            END) as goods_amount
+        FROM `tabPurchase Invoice` pi
+        LEFT JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
+        LEFT JOIN `tabItem` i ON pii.item_code = i.name
+        WHERE {conditions}
+        GROUP BY pi.name, pi.is_return
+    """.format(conditions=" AND ".join(conditions))
+
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    # Sum up all goods amounts, handling returns properly
+    total_goods_amount = 0
+    for row in result:
+        amount = row.get('goods_amount') if row.get('goods_amount') is not None else 0
+        # Adjust amounts for returns - if it's a return and the amount is positive, make it negative
+        if row.get('is_return') and amount > 0:
+            amount = -amount
+        total_goods_amount += amount
+    
+    return total_goods_amount
+
 def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center):
 	conditions = [
 		"company = %s",
@@ -478,10 +538,10 @@ def execute(filters=None):
 	row = {"description": "Total value of out of scope sales, with right of deduction of input tax (other than those included in box 8B)", "desc_id": "10", "amount": total_value_of_out_of_scope_sales}
 	data.append(row)
 
-	total_value_of_acquisitions_from_eu = 0
+	total_value_of_acquisitions_from_eu = get_total_value_of_acquisitions_from_eu(company, from_date, to_date, cost_center, vies_countries)
 	row = {"description": "Total value of all acquisitions of goods and related services (excluding any VAT) from other EU member States", "desc_id": "11A", "amount": total_value_of_acquisitions_from_eu}
 	data.append(row)
-
+	
 	total_value_of_services_received_excluding_vat = get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center)
 	row = {"description": "Total value of all services receiving (excluding any VAT)", "desc_id": "11B", "amount": total_value_of_services_received_excluding_vat}
 	data.append(row)
