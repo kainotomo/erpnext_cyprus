@@ -5,13 +5,13 @@ import frappe
 from frappe import _
 
 def get_filters(filters):
-    company = filters.get("company")
-    date_range = filters.get("date_range")
-    from_date, to_date = date_range if date_range else (None, None)
-    cost_center = filters.get("cost_center")
-    cyprus_vat_output_account = filters.get("cyprus_vat_output_account")
-    cyprus_vat_input_account = filters.get("cyprus_vat_input_account")
-    return company, from_date, to_date, cost_center, cyprus_vat_output_account, cyprus_vat_input_account
+	company = filters.get("company")
+	date_range = filters.get("date_range")
+	from_date, to_date = date_range if date_range else (None, None)
+	cost_center = filters.get("cost_center")
+	cyprus_vat_output_account = filters.get("cyprus_vat_output_account")
+	cyprus_vat_input_account = filters.get("cyprus_vat_input_account")
+	return company, from_date, to_date, cost_center, cyprus_vat_output_account, cyprus_vat_input_account
 
 def get_columns():
 	columns = [
@@ -39,37 +39,37 @@ def get_columns():
 	return columns
 
 def get_vat_due_on_sales(company, from_date, to_date, cost_center, cyprus_vat_output_account):
-    conditions = [
-        "company = %s",
-        "posting_date >= %s",
-        "posting_date <= %s",
-        "is_cancelled = 0",
-        "account = %s"
-    ]
-    values = [company, from_date, to_date, cyprus_vat_output_account]
+	conditions = [
+		"company = %s",
+		"posting_date >= %s",
+		"posting_date <= %s",
+		"is_cancelled = 0",
+		"account = %s"
+	]
+	values = [company, from_date, to_date, cyprus_vat_output_account]
 
-    if cost_center:
-        conditions.append("cost_center = %s")
-        values.append(cost_center)
+	if cost_center:
+		conditions.append("cost_center = %s")
+		values.append(cost_center)
 
-    # Separate credit and debit for regular and return invoices
-    query = """
-        SELECT 
-            SUM(CASE WHEN voucher_type = 'Sales Invoice' AND credit > 0 THEN credit ELSE 0 END) as regular_credit,
-            SUM(CASE WHEN voucher_type = 'Sales Invoice' AND debit > 0 THEN debit ELSE 0 END) as return_debit
-        FROM `tabGL Entry`
-        WHERE {conditions}
-    """.format(conditions=" AND ".join(conditions))
+	# Separate credit and debit for regular and return invoices
+	query = """
+		SELECT 
+			SUM(CASE WHEN voucher_type = 'Sales Invoice' AND credit > 0 THEN credit ELSE 0 END) as regular_credit,
+			SUM(CASE WHEN voucher_type = 'Sales Invoice' AND debit > 0 THEN debit ELSE 0 END) as return_debit
+		FROM `tabGL Entry`
+		WHERE {conditions}
+	""".format(conditions=" AND ".join(conditions))
 
-    result = frappe.db.sql(query, values, as_dict=True)
-    
-    regular_credit = result[0].get('regular_credit') if result and result[0].get('regular_credit') is not None else 0
-    return_debit = result[0].get('return_debit') if result and result[0].get('return_debit') is not None else 0
-    
-    # Return VAT appears as debit entries, so subtract from regular credits
-    total_vat_due = regular_credit - return_debit
-    
-    return total_vat_due
+	result = frappe.db.sql(query, values, as_dict=True)
+	
+	regular_credit = result[0].get('regular_credit') if result and result[0].get('regular_credit') is not None else 0
+	return_debit = result[0].get('return_debit') if result and result[0].get('return_debit') is not None else 0
+	
+	# Return VAT appears as debit entries, so subtract from regular credits
+	total_vat_due = regular_credit - return_debit
+	
+	return total_vat_due
 
 def get_vat_due_on_acquisitions_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
 	conditions = [
@@ -123,79 +123,45 @@ def get_vat_reclaimed_on_purchases(company, from_date, to_date, cost_center, cyp
 	return total_debit
 
 def get_total_value_of_sales_excluding_vat(company, from_date, to_date, cost_center):
-    conditions = [
-        "company = %s",
-        "posting_date >= %s",
-        "posting_date <= %s",
-        "status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-        "docstatus = 1"
-    ]
-    values = [company, from_date, to_date]
-
-    if cost_center:
-        conditions.append("cost_center = %s")
-        values.append(cost_center)
-
-    # Query for regular invoices
-    query = """
-        SELECT 
-            SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE 0 END) as invoice_amount,
-            SUM(CASE WHEN is_return = 1 THEN base_net_total ELSE 0 END) as return_amount
-        FROM `tabSales Invoice`
-        WHERE {conditions}
-    """.format(conditions=" AND ".join(conditions))
-
-    result = frappe.db.sql(query, values, as_dict=True)
-    
-    invoice_amount = result[0].get('invoice_amount') if result and result[0].get('invoice_amount') is not None else 0
-    return_amount = result[0].get('return_amount') if result and result[0].get('return_amount') is not None else 0
-    
-    # Return invoices already have negative base_net_total, so we add to get the net effect
-    total_net_amount = invoice_amount + return_amount
-    
-    return total_net_amount
-
-def get_total_value_of_purchases_excluding_vat(company, from_date, to_date, cost_center):
-    conditions = [
-        "company = %s",
-        "posting_date >= %s",
-        "posting_date <= %s",
-        "status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-        "docstatus = 1"
-    ]
-    values = [company, from_date, to_date]
-
-    if cost_center:
-        conditions.append("cost_center = %s")
-        values.append(cost_center)
-
-    query = """
-        SELECT 
-            SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE 0 END) as invoice_amount,
-            SUM(CASE WHEN is_return = 1 THEN base_net_total ELSE 0 END) as return_amount
-        FROM `tabPurchase Invoice`
-        WHERE {conditions}
-    """.format(conditions=" AND ".join(conditions))
-
-    result = frappe.db.sql(query, values, as_dict=True)
-    
-    invoice_amount = result[0].get('invoice_amount') if result and result[0].get('invoice_amount') is not None else 0
-    return_amount = result[0].get('return_amount') if result and result[0].get('return_amount') is not None else 0
-    
-    # Return invoices already have negative base_net_total, so we add to get the net effect
-    total_net_amount = invoice_amount + return_amount
-    
-    return total_net_amount
-
-def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost_center):
 	conditions = [
 		"company = %s",
 		"posting_date >= %s",
 		"posting_date <= %s",
 		"status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"docstatus = 1",
-		"total_taxes_and_charges = 0",
-		"tax_id IS NOT NULL AND tax_id != ''"
+		"docstatus = 1"
+	]
+	values = [company, from_date, to_date]
+
+	if cost_center:
+		conditions.append("cost_center = %s")
+		values.append(cost_center)
+
+	# Query for regular invoices
+	query = """
+		SELECT 
+			SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE 0 END) as invoice_amount,
+			SUM(CASE WHEN is_return = 1 THEN base_net_total ELSE 0 END) as return_amount
+		FROM `tabSales Invoice`
+		WHERE {conditions}
+	""".format(conditions=" AND ".join(conditions))
+
+	result = frappe.db.sql(query, values, as_dict=True)
+	
+	invoice_amount = result[0].get('invoice_amount') if result and result[0].get('invoice_amount') is not None else 0
+	return_amount = result[0].get('return_amount') if result and result[0].get('return_amount') is not None else 0
+	
+	# Return invoices already have negative base_net_total, so we add to get the net effect
+	total_net_amount = invoice_amount + return_amount
+	
+	return total_net_amount
+
+def get_total_value_of_purchases_excluding_vat(company, from_date, to_date, cost_center):
+	conditions = [
+		"company = %s",
+		"posting_date >= %s",
+		"posting_date <= %s",
+		"status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+		"docstatus = 1"
 	]
 	values = [company, from_date, to_date]
 
@@ -204,14 +170,66 @@ def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost
 		values.append(cost_center)
 
 	query = """
-		SELECT SUM(base_net_total) as total_net_amount
-		FROM `tabSales Invoice`
+		SELECT 
+			SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE 0 END) as invoice_amount,
+			SUM(CASE WHEN is_return = 1 THEN base_net_total ELSE 0 END) as return_amount
+		FROM `tabPurchase Invoice`
 		WHERE {conditions}
 	""".format(conditions=" AND ".join(conditions))
 
 	result = frappe.db.sql(query, values, as_dict=True)
-	total_net_amount = result[0].get('total_net_amount') if result and result[0].get('total_net_amount') is not None else 0
+	
+	invoice_amount = result[0].get('invoice_amount') if result and result[0].get('invoice_amount') is not None else 0
+	return_amount = result[0].get('return_amount') if result and result[0].get('return_amount') is not None else 0
+	
+	# Return invoices already have negative base_net_total, so we add to get the net effect
+	total_net_amount = invoice_amount + return_amount
+	
 	return total_net_amount
+
+def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
+	conditions = [
+		"si.company = %s",
+		"si.posting_date >= %s",
+		"si.posting_date <= %s",
+		"si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+		"si.docstatus = 1",
+		# Either:
+		# 1. VAT account used is not cyprus_vat_output_account OR
+		# 2. Customer has tax_id and no tax is applied
+		"((EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s) OR si.taxes_and_charges IS NULL) OR (c.tax_id IS NOT NULL AND c.tax_id != '' AND si.total_taxes_and_charges = 0))"
+	]
+	values = [company, from_date, to_date, cyprus_vat_output_account]
+
+	if cost_center:
+		conditions.append("si.cost_center = %s")
+		values.append(cost_center)
+
+	query = """
+		SELECT 
+			si.name as invoice_name,
+			si.is_return,
+			SUM(CASE 
+				WHEN i.custom_is_service = 1 
+				THEN sii.base_net_amount 
+				ELSE 0 
+			END) as services_amount
+		FROM `tabSales Invoice` si
+		JOIN `tabCustomer` c ON si.customer = c.name
+		LEFT JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+		LEFT JOIN `tabItem` i ON sii.item_code = i.name
+		WHERE {conditions}
+		GROUP BY si.name, si.is_return
+	""".format(conditions=" AND ".join(conditions))
+
+	result = frappe.db.sql(query, values, as_dict=True)
+	
+	# Sum up all services amounts
+	total_services_amount = 0
+	for row in result:
+		total_services_amount += row.get('services_amount') if row.get('services_amount') is not None else 0
+	
+	return total_services_amount
 
 def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center):
 	conditions = [
@@ -238,6 +256,49 @@ def get_total_value_of_services_received_excluding_vat(company, from_date, to_da
 	result = frappe.db.sql(query, values, as_dict=True)
 	total_net_amount = result[0].get('total_net_amount') if result and result[0].get('total_net_amount') is not None else 0
 	return total_net_amount
+
+def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
+	conditions = [
+		"si.company = %s",
+		"si.posting_date >= %s",
+		"si.posting_date <= %s",
+		"si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+		"si.docstatus = 1",
+		# Either:
+		# 1. VAT account used is not cyprus_vat_output_account OR
+		# 2. Customer has tax_id and no tax is applied
+		"((EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s) OR si.taxes_and_charges IS NULL) OR (c.tax_id IS NOT NULL AND c.tax_id != '' AND si.total_taxes_and_charges = 0))"
+	]
+	values = [company, from_date, to_date, cyprus_vat_output_account]
+
+	if cost_center:
+		conditions.append("si.cost_center = %s")
+		values.append(cost_center)
+
+	query = """
+		SELECT 
+			si.name as invoice_name,
+			SUM(CASE 
+				WHEN i.custom_is_service = 0 OR i.custom_is_service IS NULL 
+				THEN sii.base_net_amount 
+				ELSE 0 
+			END) as goods_amount
+		FROM `tabSales Invoice` si
+		JOIN `tabCustomer` c ON si.customer = c.name
+		LEFT JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
+		LEFT JOIN `tabItem` i ON sii.item_code = i.name
+		WHERE {conditions}
+		GROUP BY si.name
+	""".format(conditions=" AND ".join(conditions))
+
+	result = frappe.db.sql(query, values, as_dict=True)
+	
+	# Sum up all goods amounts
+	total_goods_amount = 0
+	for row in result:
+		total_goods_amount += row.get('goods_amount') if row.get('goods_amount') is not None else 0
+	
+	return total_goods_amount
 
 def execute(filters=None):
 	columns = get_columns()
@@ -272,11 +333,11 @@ def execute(filters=None):
 	row = {"description": "Total value of purchases and other inputs excluding any VAT (including the amounts in box 11A and 11B)", "desc_id": "7", "amount": total_value_of_purchases_excluding_vat}
 	data.append(row)
 
-	total_value_of_supply_of_goods_and_services_to_eu = 0
+	total_value_of_supply_of_goods_and_services_to_eu = get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account)
 	row = {"description": "Total value of supply of goods and related services (excluding VAT) to other Member States", "desc_id": "8A", "amount": total_value_of_supply_of_goods_and_services_to_eu}
 	data.append(row)
 
-	total_value_of_services_supplied_to_eu = get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost_center)
+	total_value_of_services_supplied_to_eu = get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account)
 	row = {"description": "Total value of services supplied (excluding VAT) to other Member States", "desc_id": "8B", "amount": total_value_of_services_supplied_to_eu}
 	data.append(row)
 
