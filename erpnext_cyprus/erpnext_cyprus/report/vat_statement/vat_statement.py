@@ -306,9 +306,10 @@ def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_ce
     Calculate the total value of goods supplied to EU member states (Box 8A).
     
     This function queries Sales Invoices to find sales of goods (not services) made to
-    customers in other EU countries. It identifies these transactions by looking for either:
-    1. Customers with tax_id starting with EU country codes (except Cyprus), with zero tax, OR
-    2. Sales that use a special VAT account different from the standard Cyprus VAT output account
+    customers in other EU countries. It identifies these transactions by looking for any of:
+    1. Customers with tax_id starting with EU country codes (except Cyprus), with zero tax or empty tax, OR
+    2. Sales that use a special VAT account different from the standard Cyprus VAT output account, OR
+    3. Customers with no tax_id and zero tax or empty tax
     
     The function:
     1. Filters Sales Invoices by company, date range, and valid document status
@@ -341,10 +342,11 @@ def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_ce
         "si.posting_date <= %s",
         "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
         "si.docstatus = 1",
-        # Either:
-        # 1. Customer has tax_id starting with EU country code (except Cyprus) and no/zero tax, OR
-        # 2. VAT account used is not cyprus_vat_output_account
-        f"((c.tax_id IS NOT NULL AND c.tax_id != '' AND ({eu_tax_id_condition}) AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)) OR EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s))"
+        # Any of these conditions:
+        # 1. Customer has tax_id starting with EU country code (except Cyprus) with zero/empty tax, OR
+        # 2. VAT account used is not cyprus_vat_output_account, OR
+        # 3. Customer has no tax_id and zero/empty tax
+        f"((c.tax_id IS NOT NULL AND c.tax_id != '' AND ({eu_tax_id_condition}) AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)) OR EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s) OR (c.tax_id IS NULL AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)))"
     ]
     values = [company, from_date, to_date, cyprus_vat_output_account]
 
@@ -387,9 +389,10 @@ def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost
     Calculate the total value of services supplied to EU member states (Box 8B).
     
     This function queries Sales Invoices to find sales of services (not goods) made to
-    customers in other EU countries. It identifies these transactions by looking for either:
-    1. Customers with tax_id starting with EU country codes (except Cyprus), with zero tax, OR
-    2. Sales that use a special VAT account different from the standard Cyprus VAT output account
+    customers in other EU countries. It identifies these transactions by looking for any of:
+    1. Customers with tax_id starting with EU country codes (except Cyprus), with zero tax or empty tax, OR
+    2. Sales that use a special VAT account different from the standard Cyprus VAT output account, OR
+    3. Customers with no tax_id and zero tax or empty tax
     
     The function:
     1. Filters Sales Invoices by company, date range, and valid document status
@@ -422,10 +425,11 @@ def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost
         "si.posting_date <= %s",
         "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
         "si.docstatus = 1",
-        # Either:
-        # 1. Customer has tax_id starting with EU country code (except Cyprus) and no/zero tax, OR
-        # 2. VAT account used is not cyprus_vat_output_account
-        f"((c.tax_id IS NOT NULL AND c.tax_id != '' AND ({eu_tax_id_condition}) AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)) OR EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s))"
+        # Any of these conditions:
+        # 1. Customer has tax_id starting with EU country code (except Cyprus) with zero/empty tax, OR
+        # 2. VAT account used is not cyprus_vat_output_account, OR
+        # 3. Customer has no tax_id and zero/empty tax
+        f"((c.tax_id IS NOT NULL AND c.tax_id != '' AND ({eu_tax_id_condition}) AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)) OR EXISTS (SELECT 1 FROM `tabSales Taxes and Charges` stc WHERE stc.parent = si.name AND stc.account_head != %s) OR (c.tax_id IS NULL AND (si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)))"
     ]
     values = [company, from_date, to_date, cyprus_vat_output_account]
 
