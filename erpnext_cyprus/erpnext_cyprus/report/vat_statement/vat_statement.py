@@ -468,60 +468,79 @@ def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost
     return total_services_amount
 
 def get_total_value_of_zero_rated_supplies(company, from_date, to_date, cost_center, vies_countries):
-	"""
-	Calculate zero-rated supplies where:
-	1. Invoices have zero tax or no tax
-	2. Customer has a tax_id that doesn't start with any EU country code
-	"""
-	# Build a list of tax_id prefixes to exclude (EU country codes)
-	tax_id_conditions = []
-	for country_code in vies_countries:
-		tax_id_conditions.append(f"LEFT(c.tax_id, 2) != '{country_code}'")
-	
-	# Join the exclusions with AND to make sure all are satisfied
-	tax_id_condition = " AND ".join(tax_id_conditions)
-	
-	conditions = [
-		"si.company = %s",
-		"si.posting_date >= %s",
-		"si.posting_date <= %s",
-		"si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"si.docstatus = 1",
-		# Zero or no tax
-		"(si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)",
-		# Customer has tax_id
-		"c.tax_id IS NOT NULL AND c.tax_id != ''",
-		# Tax ID first two characters aren't in VIES countries
-		f"({tax_id_condition})"
-	]
-	values = [company, from_date, to_date]
+    """
+    Calculate the total value of zero-rated supplies (Box 9).
+    
+    This function identifies zero-rated supplies that are made to non-EU countries.
+    It looks for sales transactions that meet these criteria:
+    1. Invoices have zero tax or no tax applied
+    2. Customer has a tax_id that doesn't start with any EU country code
+    
+    The function:
+    1. Filters Sales Invoices by company, date range, and valid document status
+    2. Checks that no VAT was charged (zero-rated)
+    3. Ensures the customer has a tax_id not from EU countries (typically exports outside EU)
+    4. Sums all matching sales, properly handling returns
+    
+    Parameters:
+    - company (str): The company for which to calculate zero-rated supplies
+    - from_date (date): Start date of the VAT period
+    - to_date (date): End date of the VAT period
+    - cost_center (str, optional): Cost center to filter transactions
+    - vies_countries (list): List of EU country codes to exclude
+    
+    Returns:
+    - float: The total value of zero-rated supplies excluding VAT
+    """
+    # Build a list of tax_id prefixes to exclude (EU country codes)
+    tax_id_conditions = []
+    for country_code in vies_countries:
+        tax_id_conditions.append(f"LEFT(c.tax_id, 2) != '{country_code}'")
+    
+    # Join the exclusions with AND to make sure all are satisfied
+    tax_id_condition = " AND ".join(tax_id_conditions)
+    
+    conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "si.docstatus = 1",
+        # Zero or no tax
+        "(si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)",
+        # Customer has tax_id
+        "c.tax_id IS NOT NULL AND c.tax_id != ''",
+        # Tax ID first two characters aren't in VIES countries
+        f"({tax_id_condition})"
+    ]
+    values = [company, from_date, to_date]
 
-	if cost_center:
-		conditions.append("si.cost_center = %s")
-		values.append(cost_center)
+    if cost_center:
+        conditions.append("si.cost_center = %s")
+        values.append(cost_center)
 
-	query = """
-		SELECT 
-			si.name as invoice_name,
-			si.is_return,
-			si.base_net_total as net_amount
-		FROM `tabSales Invoice` si
-		JOIN `tabCustomer` c ON si.customer = c.name
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
+    query = """
+        SELECT 
+            si.name as invoice_name,
+            si.is_return,
+            si.base_net_total as net_amount
+        FROM `tabSales Invoice` si
+        JOIN `tabCustomer` c ON si.customer = c.name
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(conditions))
 
-	result = frappe.db.sql(query, values, as_dict=True)
-	
-	# Sum up all zero-rated amounts, handling returns properly
-	total_zero_rated_amount = 0
-	for row in result:
-		amount = row.get('net_amount') if row.get('net_amount') is not None else 0
-		# Adjust amounts for returns
-		if row.get('is_return') and amount > 0:
-			amount = -amount
-		total_zero_rated_amount += amount
-	
-	return total_zero_rated_amount
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    # Sum up all zero-rated amounts, handling returns properly
+    total_zero_rated_amount = 0
+    for row in result:
+        amount = row.get('net_amount') if row.get('net_amount') is not None else 0
+        # Adjust amounts for returns
+        if row.get('is_return') and amount > 0:
+            amount = -amount
+        total_zero_rated_amount += amount
+    
+    return total_zero_rated_amount
 
 def get_total_value_of_out_of_scope_sales(company, from_date, to_date, cost_center):
 	conditions = [
