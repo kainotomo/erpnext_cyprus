@@ -235,6 +235,62 @@ def get_total_value_of_services_supplied_to_eu(company, from_date, to_date, cost
 	
 	return total_services_amount
 
+def get_total_value_of_zero_rated_supplies(company, from_date, to_date, cost_center, vies_countries):
+    """
+    Calculate zero-rated supplies where:
+    1. Invoices have zero tax or no tax
+    2. Customer has a tax_id that doesn't start with any EU country code
+    """
+    # Build a list of tax_id prefixes to exclude (EU country codes)
+    tax_id_conditions = []
+    for country_code in vies_countries:
+        tax_id_conditions.append(f"LEFT(c.tax_id, 2) != '{country_code}'")
+    
+    # Join the exclusions with AND to make sure all are satisfied
+    tax_id_condition = " AND ".join(tax_id_conditions)
+    
+    conditions = [
+        "si.company = %s",
+        "si.posting_date >= %s",
+        "si.posting_date <= %s",
+        "si.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "si.docstatus = 1",
+        # Zero or no tax
+        "(si.total_taxes_and_charges = 0 OR si.taxes_and_charges IS NULL)",
+        # Customer has tax_id
+        "c.tax_id IS NOT NULL AND c.tax_id != ''",
+        # Tax ID first two characters aren't in VIES countries
+        f"({tax_id_condition})"
+    ]
+    values = [company, from_date, to_date]
+
+    if cost_center:
+        conditions.append("si.cost_center = %s")
+        values.append(cost_center)
+
+    query = """
+        SELECT 
+            si.name as invoice_name,
+            si.is_return,
+            si.base_net_total as net_amount
+        FROM `tabSales Invoice` si
+        JOIN `tabCustomer` c ON si.customer = c.name
+        WHERE {conditions}
+    """.format(conditions=" AND ".join(conditions))
+
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    # Sum up all zero-rated amounts, handling returns properly
+    total_zero_rated_amount = 0
+    for row in result:
+        amount = row.get('net_amount') if row.get('net_amount') is not None else 0
+        # Adjust amounts for returns
+        if row.get('is_return') and amount > 0:
+            amount = -amount
+        total_zero_rated_amount += amount
+    
+    return total_zero_rated_amount
+
 def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center):
 	conditions = [
 		"company = %s",
@@ -304,6 +360,36 @@ def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_ce
 	
 	return total_goods_amount
 
+vies_countries = [
+    "AT",  # Austria
+    "BE",  # Belgium
+    "BG",  # Bulgaria
+    "HR",  # Croatia
+    "CY",  # Cyprus
+    "CZ",  # Czech Republic
+    "DK",  # Denmark
+    "EE",  # Estonia
+    "FI",  # Finland
+    "FR",  # France
+    "DE",  # Germany
+    "GR",  # Greece
+    "HU",  # Hungary
+    "IE",  # Ireland
+    "IT",  # Italy
+    "LV",  # Latvia
+    "LT",  # Lithuania
+    "LU",  # Luxembourg
+    "MT",  # Malta
+    "NL",  # Netherlands
+    "PL",  # Poland
+    "PT",  # Portugal
+    "RO",  # Romania
+    "SK",  # Slovakia
+    "SI",  # Slovenia
+    "ES",  # Spain
+    "SE",  # Sweden
+]
+
 def execute(filters=None):
 	columns = get_columns()
 	company, from_date, to_date, cost_center, cyprus_vat_output_account, cyprus_vat_input_account = get_filters(filters)
@@ -345,7 +431,7 @@ def execute(filters=None):
 	row = {"description": "Total value of services supplied (excluding VAT) to other Member States", "desc_id": "8B", "amount": total_value_of_services_supplied_to_eu}
 	data.append(row)
 
-	total_value_of_zero_rated_supplies = 0
+	total_value_of_zero_rated_supplies = get_total_value_of_zero_rated_supplies(company, from_date, to_date, cost_center, vies_countries)
 	row = {"description": "Total value of outputs on zero-rated supplies (other than those included in box 8A)", "desc_id": "9", "amount": total_value_of_zero_rated_supplies}
 	data.append(row)
 
