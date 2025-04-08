@@ -390,31 +390,56 @@ def get_total_value_of_acquisitions_from_eu(company, from_date, to_date, cost_ce
     
     return total_goods_amount
 
-def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center):
-	conditions = [
-		"company = %s",
-		"posting_date >= %s",
-		"posting_date <= %s",
-		"status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
-		"docstatus = 1",
-		"total_taxes_and_charges = 0",
-		"tax_id IS NOT NULL AND tax_id != ''"
-	]
-	values = [company, from_date, to_date]
+def get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center, vies_countries):
+    """
+    Calculate total value of services received from abroad (Box 11B)
+    This includes purchases with tax_id starting with any country code
+    and where the items are services (custom_is_service = 1)
+    """
+    # Build list of tax_id prefixes to match (any country code)
+    conditions = [
+        "pi.company = %s",
+        "pi.posting_date >= %s",
+        "pi.posting_date <= %s",
+        "pi.status NOT IN ('Cancelled', 'Draft', 'Internal Transfer')",
+        "pi.docstatus = 1",
+        # Supplier must have tax_id 
+        "pi.tax_id IS NOT NULL AND pi.tax_id != ''"
+    ]
+    values = [company, from_date, to_date]
 
-	if cost_center:
-		conditions.append("cost_center = %s")
-		values.append(cost_center)
+    if cost_center:
+        conditions.append("pi.cost_center = %s")
+        values.append(cost_center)
 
-	query = """
-		SELECT SUM(base_net_total) as total_net_amount
-		FROM `tabPurchase Invoice`
-		WHERE {conditions}
-	""".format(conditions=" AND ".join(conditions))
+    query = """
+        SELECT 
+            pi.name as invoice_name,
+            pi.is_return,
+            SUM(CASE 
+                WHEN i.custom_is_service = 1
+                THEN pii.base_net_amount 
+                ELSE 0 
+            END) as services_amount
+        FROM `tabPurchase Invoice` pi
+        LEFT JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
+        LEFT JOIN `tabItem` i ON pii.item_code = i.name
+        WHERE {conditions}
+        GROUP BY pi.name, pi.is_return
+    """.format(conditions=" AND ".join(conditions))
 
-	result = frappe.db.sql(query, values, as_dict=True)
-	total_net_amount = result[0].get('total_net_amount') if result and result[0].get('total_net_amount') is not None else 0
-	return total_net_amount
+    result = frappe.db.sql(query, values, as_dict=True)
+    
+    # Sum up all services amounts, handling returns properly
+    total_services_amount = 0
+    for row in result:
+        amount = row.get('services_amount') if row.get('services_amount') is not None else 0
+        # Adjust amounts for returns - if it's a return and the amount is positive, make it negative
+        if row.get('is_return') and amount > 0:
+            amount = -amount
+        total_services_amount += amount
+    
+    return total_services_amount
 
 def get_total_value_of_goods_supplied_to_eu(company, from_date, to_date, cost_center, cyprus_vat_output_account):
 	conditions = [
@@ -541,9 +566,9 @@ def execute(filters=None):
 	total_value_of_acquisitions_from_eu = get_total_value_of_acquisitions_from_eu(company, from_date, to_date, cost_center, vies_countries)
 	row = {"description": "Total value of all acquisitions of goods and related services (excluding any VAT) from other EU member States", "desc_id": "11A", "amount": total_value_of_acquisitions_from_eu}
 	data.append(row)
-	
-	total_value_of_services_received_excluding_vat = get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center)
-	row = {"description": "Total value of all services receiving (excluding any VAT)", "desc_id": "11B", "amount": total_value_of_services_received_excluding_vat}
+
+	total_value_of_services_received_excluding_vat = get_total_value_of_services_received_excluding_vat(company, from_date, to_date, cost_center, vies_countries)
+	row = {"description": "Total value of all services received (excluding any VAT)", "desc_id": "11B", "amount": total_value_of_services_received_excluding_vat}
 	data.append(row)
 
 	return columns, data
