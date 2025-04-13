@@ -1,0 +1,112 @@
+{
+  "country": "Cyprus",
+  "name": "Standard Chart of Accounts",
+  "tree": {
+    "Assets CY": {
+      "Non-current Assets": {
+        "Fixed Assets": {
+          "Land and Buildings": {},
+          "Plants and Machinery": {},
+          "Office Equipment": {},
+          "Furniture and Fixtures": {},
+          "Motor Vehicles": {},
+          "Computer Equipment": {},
+          "Accumulated Depreciation": {}
+        },
+        "Intangible Assets": {
+          "Goodwill": {},
+          "Patents and Trademarks": {},
+          "Software": {}
+        },
+        "Investments": {
+          "Long-term Investments": {},
+          "Subsidiaries": {}
+        }
+      },
+      "Current Assets": {
+        "Bank": {
+          "account_type": "Bank",
+          "Bank Account - Current": {
+            "account_type": "Bank"
+          },
+          "Bank Account - Savings": {
+            "account_type": "Bank"
+          }
+        },
+        "Cash": {
+          "account_type": "Cash"
+        },
+        "Accounts Receivable": {
+          "account_type": "Receivable"
+        },
+        "Stock": {
+          "account_type": "Stock",
+          "Stores": {
+            "account_type": "Stock"
+          },
+          "Finished Goods": {
+            "account_type": "Stock"
+          },
+          "Work In Progress": {
+            "account_type": "Stock"
+          }
+        },
+        "Tax": {
+          "VAT Input": {},
+          "VAT Output": {},
+          "VAT MOSS": {}
+        },
+        "Prepayments": {}
+      },
+      "root_type": "Asset"
+    },
+    "Liabilities": {
+      "Non-current Liabilities": {
+        "Long-term Loans": {},
+        "Bonds": {},
+        "Deferred Tax Liabilities": {}
+      },
+      "Current Liabilities": {
+        "Accounts Payable": {
+          "account_type": "Payable"
+        },
+        "Short-term Loans": {},
+        "Accrued Expenses": {},
+        "Tax Payable": {},
+        "Dividends Payable": {}
+      },
+      "root_type": "Liability"
+    },
+    "Equity": {
+      "Share Capital": {},
+      "Retained Earnings": {},
+      "Reserves": {},
+      "root_type": "Equity"
+    },
+    "Income": {
+      "Sales": {},
+      "Service Income": {},
+      "Interest Income": {},
+      "Dividend Income": {},
+      "Other Income": {},
+      "root_type": "Income"
+    },
+    "Expenses": {
+      "Cost of Goods Sold": {},
+      "Salaries and Wages": {},
+      "Office Rent": {},
+      "Utilities": {},
+      "Advertising and Promotion": {},
+      "Travel Expenses": {},
+      "Depreciation": {},
+      "Maintenance": {},
+      "Interest Expense": {},
+      "Tax Expense": {},
+      "Miscellaneous Expenses": {},
+      "root_type": "Expense"
+    },
+    "Temporary": {
+      "root_type": "Asset"
+    }
+  }
+}

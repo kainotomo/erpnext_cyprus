@@ -82,14 +82,12 @@ app_license = "gpl-3.0"
 # Installation
 # ------------
 
-# before_install = "erpnext_cyprus.install.before_install"
-# after_install = "erpnext_cyprus.install.after_install"
+after_install = "erpnext_cyprus.setup.install.after_install"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "erpnext_cyprus.uninstall.before_uninstall"
-# after_uninstall = "erpnext_cyprus.uninstall.after_uninstall"
+before_uninstall = "erpnext_cyprus.setup.uninstall.before_uninstall"
 
 # Integration Setup
 # ------------------
@@ -241,4 +239,7 @@ app_license = "gpl-3.0"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+# Add Cyprus to the country list if it's not already included
+countries = ["Cyprus"]
 
