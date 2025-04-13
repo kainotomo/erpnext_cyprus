@@ -1,6 +1,6 @@
 {
   "country": "Cyprus",
-  "name": "Standard Chart of Accounts",
+  "name": "Cyprus Standard",
   "tree": {
     "Assets": {
       "Non-current Assets": {
@@ -16,12 +16,17 @@
         "Intangible Assets": {
           "Goodwill": {},
           "Patents and Trademarks": {},
-          "Software": {}
+          "Software": {},
+          "Development Costs": {},
+          "Licenses": {}
         },
         "Investments": {
           "Long-term Investments": {},
-          "Subsidiaries": {}
-        }
+          "Subsidiaries": {},
+          "Associates": {},
+          "Joint Ventures": {}
+        },
+        "Deferred Tax Assets": {}
       },
       "Current Assets": {
         "Bank": {
@@ -31,13 +36,37 @@
           },
           "Bank Account - Savings": {
             "account_type": "Bank"
+          },
+          "Foreign Currency Accounts": {
+            "account_type": "Bank",
+            "EUR Account": {
+              "account_type": "Bank"
+            },
+            "USD Account": {
+              "account_type": "Bank"
+            },
+            "GBP Account": {
+              "account_type": "Bank"
+            }
           }
         },
         "Cash": {
-          "account_type": "Cash"
+          "account_type": "Cash",
+          "Petty Cash": {
+            "account_type": "Cash"
+          }
         },
         "Accounts Receivable": {
-          "account_type": "Receivable"
+          "account_type": "Receivable",
+          "Domestic Customers": {
+            "account_type": "Receivable"
+          },
+          "EU Customers": {
+            "account_type": "Receivable"
+          },
+          "Non-EU Customers": {
+            "account_type": "Receivable"
+          }
         },
         "Stock": {
           "account_type": "Stock",
@@ -49,63 +78,289 @@
           },
           "Work In Progress": {
             "account_type": "Stock"
+          },
+          "Goods In Transit": {
+            "account_type": "Stock"
           }
         },
         "Tax": {
-          "VAT Input": {},
-          "VAT Output": {},
-          "VAT MOSS": {}
+          "VAT Input": {
+            "Cyprus Standard Rate VAT Input (19%)": {},
+            "Cyprus Reduced Rate VAT Input (9%)": {},
+            "Cyprus Reduced Rate VAT Input (5%)": {},
+            "EU Acquisition VAT Input": {},
+            "Import VAT Input": {}
+          },
+          "VAT Output": {
+            "Cyprus Standard Rate VAT Output (19%)": {},
+            "Cyprus Reduced Rate VAT Output (9%)": {},
+            "Cyprus Reduced Rate VAT Output (5%)": {},
+            "EU Reverse Charge VAT Output": {},
+            "Self-Supply VAT Output": {}
+          },
+          "VAT MOSS": {
+            "VAT MOSS AT (Austria)": {},
+            "VAT MOSS BE (Belgium)": {},
+            "VAT MOSS BG (Bulgaria)": {},
+            "VAT MOSS HR (Croatia)": {},
+            "VAT MOSS CZ (Czech Republic)": {},
+            "VAT MOSS DK (Denmark)": {},
+            "VAT MOSS EE (Estonia)": {},
+            "VAT MOSS FI (Finland)": {},
+            "VAT MOSS FR (France)": {},
+            "VAT MOSS DE (Germany)": {},
+            "VAT MOSS GR (Greece)": {},
+            "VAT MOSS HU (Hungary)": {},
+            "VAT MOSS IE (Ireland)": {},
+            "VAT MOSS IT (Italy)": {},
+            "VAT MOSS LV (Latvia)": {},
+            "VAT MOSS LT (Lithuania)": {},
+            "VAT MOSS LU (Luxembourg)": {},
+            "VAT MOSS MT (Malta)": {},
+            "VAT MOSS NL (Netherlands)": {},
+            "VAT MOSS PL (Poland)": {},
+            "VAT MOSS PT (Portugal)": {},
+            "VAT MOSS RO (Romania)": {},
+            "VAT MOSS SK (Slovakia)": {},
+            "VAT MOSS SI (Slovenia)": {},
+            "VAT MOSS ES (Spain)": {},
+            "VAT MOSS SE (Sweden)": {}
+          },
+          "VAT Control": {},
+          "VAT Payable": {}
         },
-        "Prepayments": {}
+        "Prepayments": {
+          "Prepaid Insurance": {},
+          "Prepaid Rent": {},
+          "Prepaid Subscriptions": {}
+        },
+        "EU Trade Tracking": {
+          "EU B2B Goods Supplied": {},
+          "EU B2B Services Supplied": {},
+          "EU B2B Goods Acquired": {},
+          "EU B2B Services Acquired": {}
+        },
+        "Other Current Assets": {
+          "Short-term Deposits": {},
+          "Staff Advances": {},
+          "Security Deposits": {}
+        }
       },
       "root_type": "Asset"
     },
     "Liabilities": {
       "Non-current Liabilities": {
-        "Long-term Loans": {},
+        "Long-term Loans": {
+          "Bank Loans": {},
+          "Director's Loans": {},
+          "Other Long-term Loans": {}
+        },
         "Bonds": {},
-        "Deferred Tax Liabilities": {}
+        "Deferred Tax Liabilities": {},
+        "Lease Liabilities - Non-current": {},
+        "Employee Benefit Obligations": {
+          "Pension Obligations": {},
+          "Other Long-term Benefits": {}
+        },
+        "Provisions - Non-current": {}
       },
       "Current Liabilities": {
         "Accounts Payable": {
-          "account_type": "Payable"
+          "account_type": "Payable",
+          "Domestic Suppliers": {
+            "account_type": "Payable"
+          },
+          "EU Suppliers": {
+            "account_type": "Payable"
+          },
+          "Non-EU Suppliers": {
+            "account_type": "Payable"
+          }
         },
-        "Short-term Loans": {},
-        "Accrued Expenses": {},
-        "Tax Payable": {},
-        "Dividends Payable": {}
+        "Short-term Loans": {
+          "Bank Overdrafts": {},
+          "Short-term Bank Loans": {}
+        },
+        "Accrued Expenses": {
+          "Accrued Salaries": {},
+          "Accrued Utilities": {},
+          "Other Accrued Expenses": {}
+        },
+        "Tax Payable": {
+          "Income Tax Payable": {},
+          "Social Insurance Payable": {},
+          "GESY Contributions Payable": {},
+          "Special Defense Contribution Payable": {},
+          "PAYE Payable": {}
+        },
+        "Dividends Payable": {},
+        "Lease Liabilities - Current": {},
+        "Deferred Revenue": {},
+        "Provisions - Current": {}
       },
       "root_type": "Liability"
     },
     "Equity": {
-      "Share Capital": {},
-      "Retained Earnings": {},
-      "Reserves": {},
+      "Share Capital": {
+        "Ordinary Shares": {},
+        "Preference Shares": {}
+      },
+      "Share Premium": {},
+      "Retained Earnings": {
+        "Prior Year Retained Earnings": {},
+        "Current Year Profit/Loss": {}
+      },
+      "Other Comprehensive Income": {
+        "Revaluation Surplus": {},
+        "Foreign Currency Translation Reserve": {},
+        "Fair Value Through OCI Reserve": {}
+      },
+      "Reserves": {
+        "Legal Reserve": {},
+        "Statutory Reserves": {},
+        "General Reserves": {}
+      },
+      "Treasury Shares": {},
       "root_type": "Equity"
     },
     "Income": {
-      "Sales": {},
-      "Service Income": {},
-      "Interest Income": {},
+      "Sales": {
+        "Domestic Sales": {
+          "Goods - Standard Rate (19%)": {},
+          "Goods - Reduced Rate (9%)": {},
+          "Goods - Reduced Rate (5%)": {},
+          "Goods - Zero Rate": {},
+          "Goods - Exempt": {}
+        },
+        "EU Sales": {
+          "EU Sales - Goods B2B": {},
+          "EU Sales - Goods B2C": {},
+          "EU Sales - Services B2B": {},
+          "EU Sales - Services B2C": {}
+        },
+        "Non-EU Sales": {
+          "Non-EU Exports - Goods": {},
+          "Non-EU Services": {}
+        },
+        "Digital Services - MOSS": {
+          "Digital Services - EU B2C": {}
+        },
+        "Sales Returns": {},
+        "Sales Discounts": {}
+      },
+      "Service Income": {
+        "Domestic Services": {
+          "Services - Standard Rate (19%)": {},
+          "Services - Reduced Rate (9%)": {},
+          "Services - Reduced Rate (5%)": {},
+          "Services - Zero Rate": {},
+          "Services - Exempt": {}
+        },
+        "EU Services": {},
+        "Non-EU Services": {}
+      },
+      "Interest Income": {
+        "Bank Interest Income": {},
+        "Loan Interest Income": {}
+      },
       "Dividend Income": {},
-      "Other Income": {},
+      "Rental Income": {},
+      "Foreign Exchange Gains": {},
+      "Other Income": {
+        "Government Grants": {},
+        "Profit on Sale of Assets": {},
+        "Miscellaneous Income": {}
+      },
       "root_type": "Income"
     },
     "Expenses": {
-      "Cost of Goods Sold": {},
-      "Salaries and Wages": {},
+      "Cost of Goods Sold": {
+        "Domestic COGS": {},
+        "EU Acquisitions COGS": {},
+        "Import COGS": {},
+        "Purchase Returns": {},
+        "Purchase Discounts": {}
+      },
+      "Salaries and Wages": {
+        "Basic Salaries": {},
+        "Overtime": {},
+        "Bonuses": {},
+        "Employer Social Insurance Contributions": {},
+        "Employer GESY Contributions": {},
+        "Other Employment Costs": {}
+      },
       "Office Rent": {},
-      "Utilities": {},
-      "Advertising and Promotion": {},
-      "Travel Expenses": {},
-      "Depreciation": {},
-      "Maintenance": {},
-      "Interest Expense": {},
-      "Tax Expense": {},
-      "Miscellaneous Expenses": {},
+      "Utilities": {
+        "Electricity": {},
+        "Water": {},
+        "Internet and Telecommunications": {},
+        "Gas": {}
+      },
+      "Advertising and Promotion": {
+        "Online Advertising": {},
+        "Print Media": {},
+        "Events and Exhibitions": {},
+        "Promotional Materials": {}
+      },
+      "Travel Expenses": {
+        "Domestic Travel": {},
+        "International Travel": {},
+        "Accommodation": {},
+        "Subsistence": {}
+      },
+      "Depreciation": {
+        "Depreciation of Buildings": {},
+        "Depreciation of Plant and Machinery": {},
+        "Depreciation of Motor Vehicles": {},
+        "Depreciation of Office Equipment": {},
+        "Depreciation of Computer Equipment": {}
+      },
+      "Amortization": {
+        "Amortization of Software": {},
+        "Amortization of Patents and Trademarks": {},
+        "Amortization of Goodwill": {}
+      },
+      "Maintenance": {
+        "Building Maintenance": {},
+        "Equipment Maintenance": {},
+        "Vehicle Maintenance": {},
+        "Software Maintenance": {}
+      },
+      "Interest Expense": {
+        "Bank Loan Interest": {},
+        "Overdraft Interest": {},
+        "Finance Lease Interest": {}
+      },
+      "Professional Fees": {
+        "Audit Fees": {},
+        "Legal Fees": {},
+        "Consulting Fees": {},
+        "Accounting Fees": {}
+      },
+      "Tax Expense": {
+        "Corporation Tax": {},
+        "Special Contribution": {},
+        "Deferred Tax": {}
+      },
+      "Foreign Exchange Losses": {},
+      "Impairment Losses": {
+        "Impairment of Receivables": {},
+        "Impairment of Investments": {},
+        "Impairment of Assets": {}
+      },
+      "Miscellaneous Expenses": {
+        "Bank Charges": {},
+        "Insurance": {},
+        "Staff Welfare": {},
+        "Subscriptions": {},
+        "General Office Expenses": {}
+      },
       "root_type": "Expense"
     },
     "Temporary": {
+      "Opening Balances Adjustments": {},
+      "Exchange Rate Adjustments": {},
+      "Closing Entries": {},
       "root_type": "Asset"
     }
   }
