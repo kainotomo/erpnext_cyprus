@@ -2,7 +2,7 @@
   "country": "Cyprus",
   "name": "Standard Chart of Accounts",
   "tree": {
-    "Assets CY": {
+    "Assets": {
       "Non-current Assets": {
         "Fixed Assets": {
           "Land and Buildings": {},
