@@ -71,6 +71,7 @@ Finished Goods,Stock,1242,124,0,Stock,Asset,EUR
 Work In Progress,Stock,1243,124,0,Stock,Asset,EUR
 Goods In Transit,Stock,1244,124,0,Stock,Asset,EUR
 Accounts Payable,Current Liabilities,221,22,1,Payable,Liability,EUR
+Tax Liabilities,Current Liabilities,225,22,1,,Liability,EUR
 Domestic Suppliers,Accounts Payable,2211,221,0,Payable,Liability,EUR
 EU Suppliers,Accounts Payable,2212,221,0,Payable,Liability,EUR
 Non-EU Suppliers,Accounts Payable,2213,221,0,Payable,Liability,EUR
