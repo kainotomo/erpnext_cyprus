@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from erpnext_cyprus.setup.install import create_cyprus_tax_templates
 
 @frappe.whitelist()
 def set_cyprus_default_accounts(company_name):
@@ -65,3 +66,27 @@ def find_account(account_name, company_name):
             account = accounts[0].name
 
     return account
+
+def setup_cyprus_company(company, args=None, complete_setup=False):
+    """Set up Cyprus-specific configurations for a new company"""
+    if not company:
+        return
+    
+    company_doc = frappe.get_doc("Company", company)
+    
+    # Only process for Cyprus companies
+    if company_doc.country != "Cyprus":
+        return
+    
+    frappe.msgprint(_("Setting up Cyprus tax configuration for {0}").format(company))
+    
+    # Create tax templates
+    create_cyprus_tax_templates(company)
+    
+    # Add additional Cyprus-specific setup here if needed
+    # Examples might include:
+    # - Setting default fiscal year
+    # - Configuring VIES reporting settings
+    # - Setting up default financial statements format for IFRS
+    
+    frappe.msgprint(_("Cyprus tax configuration completed for {0}").format(company))
