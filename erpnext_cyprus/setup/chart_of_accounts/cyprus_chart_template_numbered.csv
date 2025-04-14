@@ -1,0 +1,93 @@
+Account Name,Parent Account,Account Number,Parent Account Number,Is Group,Account Type,Root Type,Account Currency
+Assets,,1,,1,,Asset,EUR
+Liabilities,,2,,1,,Liability,EUR
+Equity,,3,,1,,Equity,EUR
+Income,,4,,1,,Income,EUR
+Expenses,,5,,1,,Expense,EUR
+Temporary,,9,,1,,Asset,EUR
+Non-current Assets,Assets,11,1,1,,Asset,EUR
+Current Assets,Assets,12,1,1,,Asset,EUR
+Non-current Liabilities,Liabilities,21,2,1,,Liability,EUR
+Current Liabilities,Liabilities,22,2,1,,Liability,EUR
+Share Capital,Equity,31,3,1,,Equity,EUR
+Share Premium,Equity,32,3,1,,Equity,EUR
+Retained Earnings,Equity,33,3,1,,Equity,EUR
+Other Comprehensive Income,Equity,34,3,1,,Equity,EUR
+Reserves,Equity,35,3,1,,Equity,EUR
+Treasury Shares,Equity,36,3,1,,Equity,EUR
+Sales,Income,41,4,1,,Income,EUR
+Service Income,Income,42,4,1,,Income,EUR
+Interest Income,Income,43,4,1,,Income,EUR
+Dividend Income,Income,44,4,1,,Income,EUR
+Rental Income,Income,45,4,1,,Income,EUR
+Foreign Exchange Gains,Income,46,4,1,,Income,EUR
+Other Income,Income,47,4,1,,Income,EUR
+Cost of Goods Sold,Expenses,51,5,1,Cost of Goods Sold,Expense,EUR
+Salaries and Wages,Expenses,52,5,1,,Expense,EUR
+Office Rent,Expenses,53,5,0,,Expense,EUR
+Utilities,Expenses,54,5,1,,Expense,EUR
+Advertising and Promotion,Expenses,55,5,1,,Expense,EUR
+Travel Expenses,Expenses,56,5,1,,Expense,EUR
+Depreciation,Expenses,57,5,1,Depreciation,Expense,EUR
+Amortization,Expenses,58,5,1,,Expense,EUR
+Maintenance,Expenses,59,5,1,,Expense,EUR
+Interest Expense,Expenses,60,5,1,,Expense,EUR
+Professional Fees,Expenses,61,5,1,,Expense,EUR
+Tax Expense,Expenses,62,5,1,,Expense,EUR
+Foreign Exchange Losses,Expenses,63,5,0,,Expense,EUR
+Impairment Losses,Expenses,64,5,1,,Expense,EUR
+Miscellaneous Expenses,Expenses,65,5,1,,Expense,EUR
+Opening Balances Adjustments,Temporary,9100,9,0,,Asset,EUR
+Exchange Rate Adjustments,Temporary,9200,9,0,,Asset,EUR
+Closing Entries,Temporary,9300,9,0,,Asset,EUR
+Fixed Assets,Non-current Assets,111,11,1,Fixed Asset,Asset,EUR
+Intangible Assets,Non-current Assets,112,11,1,,Asset,EUR
+Investments,Non-current Assets,113,11,1,,Asset,EUR
+Deferred Tax Assets,Non-current Assets,114,11,0,,Asset,EUR
+Bank,Current Assets,121,12,1,Bank,Asset,EUR
+Cash,Current Assets,122,12,1,Cash,Asset,EUR
+Accounts Receivable,Current Assets,123,12,1,Receivable,Asset,EUR
+Stock,Current Assets,124,12,1,Stock,Asset,EUR
+Tax,Current Assets,125,12,1,,Asset,EUR
+Prepayments,Current Assets,126,12,1,,Asset,EUR
+EU Trade Tracking,Current Assets,127,12,1,,Asset,EUR
+Other Current Assets,Current Assets,128,12,1,,Asset,EUR
+Land and Buildings,Fixed Assets,1111,111,0,Fixed Asset,Asset,EUR
+Plants and Machinery,Fixed Assets,1112,111,0,Fixed Asset,Asset,EUR
+Office Equipment,Fixed Assets,1113,111,0,Fixed Asset,Asset,EUR
+Furniture and Fixtures,Fixed Assets,1114,111,0,Fixed Asset,Asset,EUR
+Motor Vehicles,Fixed Assets,1115,111,0,Fixed Asset,Asset,EUR
+Computer Equipment,Fixed Assets,1116,111,0,Fixed Asset,Asset,EUR
+Accumulated Depreciation,Fixed Assets,1119,111,0,Accumulated Depreciation,Asset,EUR
+Bank Account - Current,Bank,1211,121,0,Bank,Asset,EUR
+Bank Account - Savings,Bank,1212,121,0,Bank,Asset,EUR
+Foreign Currency Accounts,Bank,1213,121,1,Bank,Asset,EUR
+Petty Cash,Cash,1221,122,0,Cash,Asset,EUR
+Domestic Customers,Accounts Receivable,1231,123,0,Receivable,Asset,EUR
+EU Customers,Accounts Receivable,1232,123,0,Receivable,Asset,EUR
+Non-EU Customers,Accounts Receivable,1233,123,0,Receivable,Asset,EUR
+Stores,Stock,1241,124,0,Stock,Asset,EUR
+Finished Goods,Stock,1242,124,0,Stock,Asset,EUR
+Work In Progress,Stock,1243,124,0,Stock,Asset,EUR
+Goods In Transit,Stock,1244,124,0,Stock,Asset,EUR
+Accounts Payable,Current Liabilities,221,22,1,Payable,Liability,EUR
+Domestic Suppliers,Accounts Payable,2211,221,0,Payable,Liability,EUR
+EU Suppliers,Accounts Payable,2212,221,0,Payable,Liability,EUR
+Non-EU Suppliers,Accounts Payable,2213,221,0,Payable,Liability,EUR
+EUR Account,Foreign Currency Accounts,12131,1213,0,Bank,Asset,EUR
+USD Account,Foreign Currency Accounts,12132,1213,0,Bank,Asset,EUR
+GBP Account,Foreign Currency Accounts,12133,1213,0,Bank,Asset,EUR
+VAT Input,Tax,1251,125,1,,Asset,EUR
+VAT Output,Tax,1252,125,1,,Asset,EUR
+VAT MOSS,Tax,1253,125,1,,Asset,EUR
+VAT Control,Tax,1254,125,0,,Asset,EUR
+VAT Payable,Tax,1255,125,0,,Asset,EUR
+Prepaid Insurance,Prepayments,1261,126,0,,Asset,EUR
+Prepaid Rent,Prepayments,1262,126,0,,Asset,EUR
+Prepaid Subscriptions,Prepayments,1263,126,0,,Asset,EUR
+Domestic Sales,Sales,411,41,1,,Income,EUR
+EU Sales,Sales,412,41,1,,Income,EUR
+Non-EU Sales,Sales,413,41,1,,Income,EUR
+Domestic COGS,Cost of Goods Sold,5110,51,0,Cost of Goods Sold,Expense,EUR
+EU Acquisitions COGS,Cost of Goods Sold,5120,51,0,Cost of Goods Sold,Expense,EUR
+Import COGS,Cost of Goods Sold,5130,51,0,Cost of Goods Sold,Expense,EUR

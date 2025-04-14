@@ -1,0 +1,116 @@
+Account Name,Parent Account,Account Number,Parent Account Number,Is Group,Account Type,Root Type,Account Currency
+Assets,,,,1,,Asset,EUR
+Liabilities,,,,1,,Liability,EUR
+Equity,,,,1,,Equity,EUR
+Income,,,,1,,Income,EUR
+Expenses,,,,1,,Expense,EUR
+Temporary,,,,1,,Asset,EUR
+Non-current Assets,Assets,,,1,,Asset,EUR
+Current Assets,Assets,,,1,,Asset,EUR
+Fixed Assets,Non-current Assets,,,1,Fixed Asset,Asset,EUR
+Intangible Assets,Non-current Assets,,,1,,Asset,EUR
+Investments,Non-current Assets,,,1,,Asset,EUR
+Deferred Tax Assets,Non-current Assets,,,0,,Asset,EUR
+Bank,Current Assets,,,1,Bank,Asset,EUR
+Cash,Current Assets,,,1,Cash,Asset,EUR
+Accounts Receivable,Current Assets,,,1,Receivable,Asset,EUR
+Stock,Current Assets,,,1,Stock,Asset,EUR
+Tax,Current Assets,,,1,,Asset,EUR
+Prepayments,Current Assets,,,1,,Asset,EUR
+EU Trade Tracking,Current Assets,,,1,,Asset,EUR
+Other Current Assets,Current Assets,,,1,,Asset,EUR
+Land and Buildings,Fixed Assets,,,0,Fixed Asset,Asset,EUR
+Plants and Machinery,Fixed Assets,,,0,Fixed Asset,Asset,EUR
+Office Equipment,Fixed Assets,,,0,Fixed Asset,Asset,EUR
+Furniture and Fixtures,Fixed Assets,,,0,Fixed Asset,Asset,EUR
+Motor Vehicles,Fixed Assets,,,0,Fixed Asset,Asset,EUR
+Computer Equipment,Fixed Assets,,,0,Fixed Asset,Asset,EUR
+Accumulated Depreciation,Fixed Assets,,,0,Accumulated Depreciation,Asset,EUR
+Goodwill,Intangible Assets,,,0,,Asset,EUR
+Patents and Trademarks,Intangible Assets,,,0,,Asset,EUR
+Software,Intangible Assets,,,0,,Asset,EUR
+Development Costs,Intangible Assets,,,0,,Asset,EUR
+Licenses,Intangible Assets,,,0,,Asset,EUR
+Long-term Investments,Investments,,,0,,Asset,EUR
+Subsidiaries,Investments,,,0,,Asset,EUR
+Associates,Investments,,,0,,Asset,EUR
+Joint Ventures,Investments,,,0,,Asset,EUR
+Bank Account - Current,Bank,,,0,Bank,Asset,EUR
+Bank Account - Savings,Bank,,,0,Bank,Asset,EUR
+Foreign Currency Accounts,Bank,,,1,Bank,Asset,EUR
+EUR Account,Foreign Currency Accounts,,,0,Bank,Asset,EUR
+USD Account,Foreign Currency Accounts,,,0,Bank,Asset,EUR
+GBP Account,Foreign Currency Accounts,,,0,Bank,Asset,EUR
+Petty Cash,Cash,,,0,Cash,Asset,EUR
+Domestic Customers,Accounts Receivable,,,0,Receivable,Asset,EUR
+EU Customers,Accounts Receivable,,,0,Receivable,Asset,EUR
+Non-EU Customers,Accounts Receivable,,,0,Receivable,Asset,EUR
+Stores,Stock,,,0,Stock,Asset,EUR
+Finished Goods,Stock,,,0,Stock,Asset,EUR
+Work In Progress,Stock,,,0,Stock,Asset,EUR
+Goods In Transit,Stock,,,0,Stock,Asset,EUR
+VAT Input,Tax,,,1,,Asset,EUR
+VAT Output,Tax,,,1,,Asset,EUR
+VAT MOSS,Tax,,,1,,Asset,EUR
+VAT Control,Tax,,,0,,Asset,EUR
+VAT Payable,Tax,,,0,,Asset,EUR
+Prepaid Insurance,Prepayments,,,0,,Asset,EUR
+Prepaid Rent,Prepayments,,,0,,Asset,EUR
+Prepaid Subscriptions,Prepayments,,,0,,Asset,EUR
+EU B2B Goods Supplied,EU Trade Tracking,,,0,,Asset,EUR
+EU B2B Services Supplied,EU Trade Tracking,,,0,,Asset,EUR
+EU B2B Goods Acquired,EU Trade Tracking,,,0,,Asset,EUR
+EU B2B Services Acquired,EU Trade Tracking,,,0,,Asset,EUR
+Short-term Deposits,Other Current Assets,,,0,,Asset,EUR
+Staff Advances,Other Current Assets,,,0,,Asset,EUR
+Security Deposits,Other Current Assets,,,0,,Asset,EUR
+Non-current Liabilities,Liabilities,,,1,,Liability,EUR
+Current Liabilities,Liabilities,,,1,,Liability,EUR
+Long-term Loans,Non-current Liabilities,,,1,,Liability,EUR
+Bonds,Non-current Liabilities,,,0,,Liability,EUR
+Deferred Tax Liabilities,Non-current Liabilities,,,0,,Liability,EUR
+Lease Liabilities - Non-current,Non-current Liabilities,,,0,,Liability,EUR
+Employee Benefit Obligations,Non-current Liabilities,,,1,,Liability,EUR
+Provisions - Non-current,Non-current Liabilities,,,0,,Liability,EUR
+Bank Loans,Long-term Loans,,,0,,Liability,EUR
+Director's Loans,Long-term Loans,,,0,,Liability,EUR
+Other Long-term Loans,Long-term Loans,,,0,,Liability,EUR
+Pension Obligations,Employee Benefit Obligations,,,0,,Liability,EUR
+Other Long-term Benefits,Employee Benefit Obligations,,,0,,Liability,EUR
+Accounts Payable,Current Liabilities,,,1,Payable,Liability,EUR
+Short-term Loans,Current Liabilities,,,1,,Liability,EUR
+Accrued Expenses,Current Liabilities,,,1,,Liability,EUR
+Tax Payable,Current Liabilities,,,1,,Liability,EUR
+Dividends Payable,Current Liabilities,,,0,,Liability,EUR
+Lease Liabilities - Current,Current Liabilities,,,0,,Liability,EUR
+Deferred Revenue,Current Liabilities,,,0,,Liability,EUR
+Provisions - Current,Current Liabilities,,,0,,Liability,EUR
+Domestic Suppliers,Accounts Payable,,,0,Payable,Liability,EUR
+EU Suppliers,Accounts Payable,,,0,Payable,Liability,EUR
+Non-EU Suppliers,Accounts Payable,,,0,Payable,Liability,EUR
+Bank Overdrafts,Short-term Loans,,,0,,Liability,EUR
+Short-term Bank Loans,Short-term Loans,,,0,,Liability,EUR
+Accrued Salaries,Accrued Expenses,,,0,,Liability,EUR
+Accrued Utilities,Accrued Expenses,,,0,,Liability,EUR
+Other Accrued Expenses,Accrued Expenses,,,0,,Liability,EUR
+Income Tax Payable,Tax Payable,,,0,,Liability,EUR
+Social Insurance Payable,Tax Payable,,,0,,Liability,EUR
+GESY Contributions Payable,Tax Payable,,,0,,Liability,EUR
+Special Defense Contribution Payable,Tax Payable,,,0,,Liability,EUR
+PAYE Payable,Tax Payable,,,0,,Liability,EUR
+Share Capital,Equity,,,1,,Equity,EUR
+Share Premium,Equity,,,0,,Equity,EUR
+Retained Earnings,Equity,,,1,,Equity,EUR
+Other Comprehensive Income,Equity,,,1,,Equity,EUR
+Reserves,Equity,,,1,,Equity,EUR
+Treasury Shares,Equity,,,0,,Equity,EUR
+Ordinary Shares,Share Capital,,,0,,Equity,EUR
+Preference Shares,Share Capital,,,0,,Equity,EUR
+Prior Year Retained Earnings,Retained Earnings,,,0,,Equity,EUR
+Current Year Profit/Loss,Retained Earnings,,,0,,Equity,EUR
+Revaluation Surplus,Other Comprehensive Income,,,0,,Equity,EUR
+Foreign Currency Translation Reserve,Other Comprehensive Income,,,0,,Equity,EUR
+Fair Value Through OCI Reserve,Other Comprehensive Income,,,0,,Equity,EUR
+Legal Reserve,Reserves,,,0,,Equity,EUR
+Statutory Reserves,Reserves,,,0,,Equity,EUR
+General Reserves,Reserves,,,0,,Equity,EUR
