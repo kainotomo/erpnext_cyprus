@@ -170,12 +170,11 @@ def create_cyprus_tax_templates(company):
                 "is_group": 0,
                 "account_type": ""
             },
-            # OSS Accounts (all EU member states)
+            # OSS Accounts (all EU member states except Cyprus)
             "oss_at": {"name": f"VAT OSS AT (Austria) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
             "oss_be": {"name": f"VAT OSS BE (Belgium) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
             "oss_bg": {"name": f"VAT OSS BG (Bulgaria) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
             "oss_hr": {"name": f"VAT OSS HR (Croatia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 25},
-            "oss_cy": {"name": f"VAT OSS CY (Cyprus) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 19},
             "oss_cz": {"name": f"VAT OSS CZ (Czech Republic) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
             "oss_dk": {"name": f"VAT OSS DK (Denmark) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 25},
             "oss_ee": {"name": f"VAT OSS EE (Estonia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
@@ -315,11 +314,11 @@ def create_cyprus_tax_templates(company):
             }
         ]
         
-        # Add OSS tax templates for all EU member states
+        # Add OSS tax templates for all EU member states except Cyprus
         oss_templates = []
         
         # OSS Tax Templates - Digital Services
-        for country_code in ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", 
+        for country_code in ["AT", "BE", "BG", "HR", "CZ", "DK", "EE", "FI", 
                              "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", 
                              "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"]:
             country_key = f"oss_{country_code.lower()}"
