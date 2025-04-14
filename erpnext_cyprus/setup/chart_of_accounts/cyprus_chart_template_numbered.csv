@@ -79,7 +79,7 @@ USD Account,Foreign Currency Accounts,12132,1213,0,Bank,Asset,EUR
 GBP Account,Foreign Currency Accounts,12133,1213,0,Bank,Asset,EUR
 VAT Input,Tax,1251,125,1,,Asset,EUR
 VAT Output,Tax Liabilities,2251,225,1,,Liability,EUR
-VAT MOSS,Tax Liabilities,2252,225,1,,Liability,EUR
+VAT OSS,Tax Liabilities,2252,225,1,,Liability,EUR
 VAT Control,Tax Liabilities,2253,225,0,,Liability,EUR
 VAT Payable,Tax Liabilities,2254,225,0,,Liability,EUR
 Prepaid Insurance,Prepayments,1261,126,0,,Asset,EUR

@@ -92,7 +92,7 @@ GESY Contributions Payable,Tax Payable,,,0,,Liability,EUR
 Special Defense Contribution Payable,Tax Payable,,,0,,Liability,EUR
 PAYE Payable,Tax Payable,,,0,,Liability,EUR
 VAT Output,Tax Liabilities,,,1,,Liability,EUR
-VAT MOSS,Tax Liabilities,,,1,,Liability,EUR
+VAT OSS,Tax Liabilities,,,1,,Liability,EUR
 VAT Control,Tax Liabilities,,,0,,Liability,EUR
 VAT Payable,Tax Liabilities,,,0,,Liability,EUR
 Share Capital,Equity,,,1,,Equity,EUR

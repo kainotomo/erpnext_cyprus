@@ -10,7 +10,7 @@ ERPNext extension for companies in Cyprus. This application extends ERPNext func
   - Automated tax calculations for local and EU transactions
 - Comprehensive VAT reporting
   - Standard VAT returns for Cyprus Tax Department
-  - MOSS VAT reporting for digital services
+  - OSS VAT reporting for digital services
   - VIES statement for EU B2B transactions
 - Localized accounting features
   - Cyprus-specific chart of accounts
@@ -58,7 +58,7 @@ The app adds Cyprus-specific functionality to your ERPNext installation:
 
 - Use the VAT Statement report for preparing VAT returns
 - Generate VIES statements for EU B2B transactions
-- Prepare MOSS VAT returns for digital services to EU consumers
+- Prepare OSS VAT returns for digital services to EU consumers
 - Access Cyprus-specific tax rates and account templates
 
 ## Documentation
@@ -66,7 +66,7 @@ The app adds Cyprus-specific functionality to your ERPNext installation:
 Available documentation:
 
 - [VAT Statement Guide](documentation/vat_statement.md) - How to properly mark transactions for accurate VAT reporting
-- [MOSS VAT Returns Guide](documentation/moss_vat_returns.md) - Guide for Mini One Stop Shop VAT reporting for digital services
+- [OSS VAT Returns Guide](documentation/moss_vat_returns.md) - Guide for One Stop Shop VAT reporting for digital services
 - [VIES Statement Guide](documentation/vies_statement.md) - How to properly record and report EU B2B transactions
 
 ## Support

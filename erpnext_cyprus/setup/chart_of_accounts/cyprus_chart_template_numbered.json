@@ -316,83 +316,83 @@
             },
             "account_number": "2251"
           },
-          "VAT MOSS": {
-            "VAT MOSS AT (Austria)": {
+          "VAT OSS": {
+            "VAT OSS AT (Austria)": {
               "account_number": "225201"
             },
-            "VAT MOSS BE (Belgium)": {
+            "VAT OSS BE (Belgium)": {
               "account_number": "225202"
             },
-            "VAT MOSS BG (Bulgaria)": {
+            "VAT OSS BG (Bulgaria)": {
               "account_number": "225203"
             },
-            "VAT MOSS HR (Croatia)": {
+            "VAT OSS HR (Croatia)": {
               "account_number": "225204"
             },
-            "VAT MOSS CZ (Czech Republic)": {
+            "VAT OSS CZ (Czech Republic)": {
               "account_number": "225205"
             },
-            "VAT MOSS DK (Denmark)": {
+            "VAT OSS DK (Denmark)": {
               "account_number": "225206"
             },
-            "VAT MOSS EE (Estonia)": {
+            "VAT OSS EE (Estonia)": {
               "account_number": "225207"
             },
-            "VAT MOSS FI (Finland)": {
+            "VAT OSS FI (Finland)": {
               "account_number": "225208"
             },
-            "VAT MOSS FR (France)": {
+            "VAT OSS FR (France)": {
               "account_number": "225209"
             },
-            "VAT MOSS DE (Germany)": {
+            "VAT OSS DE (Germany)": {
               "account_number": "225210"
             },
-            "VAT MOSS GR (Greece)": {
+            "VAT OSS GR (Greece)": {
               "account_number": "225211"
             },
-            "VAT MOSS HU (Hungary)": {
+            "VAT OSS HU (Hungary)": {
               "account_number": "225212"
             },
-            "VAT MOSS IE (Ireland)": {
+            "VAT OSS IE (Ireland)": {
               "account_number": "225213"
             },
-            "VAT MOSS IT (Italy)": {
+            "VAT OSS IT (Italy)": {
               "account_number": "225214"
             },
-            "VAT MOSS LV (Latvia)": {
+            "VAT OSS LV (Latvia)": {
               "account_number": "225215"
             },
-            "VAT MOSS LT (Lithuania)": {
+            "VAT OSS LT (Lithuania)": {
               "account_number": "225216"
             },
-            "VAT MOSS LU (Luxembourg)": {
+            "VAT OSS LU (Luxembourg)": {
               "account_number": "225217"
             },
-            "VAT MOSS MT (Malta)": {
+            "VAT OSS MT (Malta)": {
               "account_number": "225218"
             },
-            "VAT MOSS NL (Netherlands)": {
+            "VAT OSS NL (Netherlands)": {
               "account_number": "225219"
             },
-            "VAT MOSS PL (Poland)": {
+            "VAT OSS PL (Poland)": {
               "account_number": "225220"
             },
-            "VAT MOSS PT (Portugal)": {
+            "VAT OSS PT (Portugal)": {
               "account_number": "225221"
             },
-            "VAT MOSS RO (Romania)": {
+            "VAT OSS RO (Romania)": {
               "account_number": "225222"
             },
-            "VAT MOSS SK (Slovakia)": {
+            "VAT OSS SK (Slovakia)": {
               "account_number": "225223"
             },
-            "VAT MOSS SI (Slovenia)": {
+            "VAT OSS SI (Slovenia)": {
               "account_number": "225224"
             },
-            "VAT MOSS ES (Spain)": {
+            "VAT OSS ES (Spain)": {
               "account_number": "225225"
             },
-            "VAT MOSS SE (Sweden)": {
+            "VAT OSS SE (Sweden)": {
               "account_number": "225226"
             },
             "account_number": "2252"
@@ -518,7 +518,7 @@
           },
           "account_number": "413"
         },
-        "Digital Services - MOSS": {
+        "Digital Services - OSS": {
           "Digital Services - EU B2C": {
             "account_number": "4141"
           },

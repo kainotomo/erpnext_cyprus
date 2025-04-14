@@ -55,6 +55,7 @@ frappe.ui.form.on('Company', {
     country: function(frm) {
         if (frm.doc.country === 'Cyprus' && frm.doc.__islocal) {
             frm.set_value('chart_of_accounts', 'Cyprus Standard');
+            frm.set_value('default_currency', 'EUR');
             frm.refresh_field('chart_of_accounts');
             
             frappe.show_alert({
