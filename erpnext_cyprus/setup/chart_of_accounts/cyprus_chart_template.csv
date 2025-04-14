@@ -5,6 +5,7 @@ Equity,,,,1,,Equity,EUR
 Income,,,,1,,Income,EUR
 Expenses,,,,1,,Expense,EUR
 Temporary,,,,1,,Asset,EUR
+Reporting,,,,1,,Asset,EUR
 Non-current Assets,Assets,,,1,,Asset,EUR
 Current Assets,Assets,,,1,,Asset,EUR
 Fixed Assets,Non-current Assets,,,1,Fixed Asset,Asset,EUR
@@ -17,7 +18,6 @@ Accounts Receivable,Current Assets,,,1,Receivable,Asset,EUR
 Stock,Current Assets,,,1,Stock,Asset,EUR
 Tax,Current Assets,,,1,,Asset,EUR
 Prepayments,Current Assets,,,1,,Asset,EUR
-EU Trade Tracking,Current Assets,,,1,,Asset,EUR
 Other Current Assets,Current Assets,,,1,,Asset,EUR
 Land and Buildings,Fixed Assets,,,0,Fixed Asset,Asset,EUR
 Plants and Machinery,Fixed Assets,,,0,Fixed Asset,Asset,EUR
@@ -50,17 +50,9 @@ Finished Goods,Stock,,,0,Stock,Asset,EUR
 Work In Progress,Stock,,,0,Stock,Asset,EUR
 Goods In Transit,Stock,,,0,Stock,Asset,EUR
 VAT Input,Tax,,,1,,Asset,EUR
-VAT Output,Tax,,,1,,Asset,EUR
-VAT MOSS,Tax,,,1,,Asset,EUR
-VAT Control,Tax,,,0,,Asset,EUR
-VAT Payable,Tax,,,0,,Asset,EUR
 Prepaid Insurance,Prepayments,,,0,,Asset,EUR
 Prepaid Rent,Prepayments,,,0,,Asset,EUR
 Prepaid Subscriptions,Prepayments,,,0,,Asset,EUR
-EU B2B Goods Supplied,EU Trade Tracking,,,0,,Asset,EUR
-EU B2B Services Supplied,EU Trade Tracking,,,0,,Asset,EUR
-EU B2B Goods Acquired,EU Trade Tracking,,,0,,Asset,EUR
-EU B2B Services Acquired,EU Trade Tracking,,,0,,Asset,EUR
 Short-term Deposits,Other Current Assets,,,0,,Asset,EUR
 Staff Advances,Other Current Assets,,,0,,Asset,EUR
 Security Deposits,Other Current Assets,,,0,,Asset,EUR
@@ -81,6 +73,7 @@ Accounts Payable,Current Liabilities,,,1,Payable,Liability,EUR
 Short-term Loans,Current Liabilities,,,1,,Liability,EUR
 Accrued Expenses,Current Liabilities,,,1,,Liability,EUR
 Tax Payable,Current Liabilities,,,1,,Liability,EUR
+Tax Liabilities,Current Liabilities,,,1,,Liability,EUR
 Dividends Payable,Current Liabilities,,,0,,Liability,EUR
 Lease Liabilities - Current,Current Liabilities,,,0,,Liability,EUR
 Deferred Revenue,Current Liabilities,,,0,,Liability,EUR
@@ -98,6 +91,10 @@ Social Insurance Payable,Tax Payable,,,0,,Liability,EUR
 GESY Contributions Payable,Tax Payable,,,0,,Liability,EUR
 Special Defense Contribution Payable,Tax Payable,,,0,,Liability,EUR
 PAYE Payable,Tax Payable,,,0,,Liability,EUR
+VAT Output,Tax Liabilities,,,1,,Liability,EUR
+VAT MOSS,Tax Liabilities,,,1,,Liability,EUR
+VAT Control,Tax Liabilities,,,0,,Liability,EUR
+VAT Payable,Tax Liabilities,,,0,,Liability,EUR
 Share Capital,Equity,,,1,,Equity,EUR
 Share Premium,Equity,,,0,,Equity,EUR
 Retained Earnings,Equity,,,1,,Equity,EUR
@@ -114,3 +111,8 @@ Fair Value Through OCI Reserve,Other Comprehensive Income,,,0,,Equity,EUR
 Legal Reserve,Reserves,,,0,,Equity,EUR
 Statutory Reserves,Reserves,,,0,,Equity,EUR
 General Reserves,Reserves,,,0,,Equity,EUR
+EU Trade Tracking,Reporting,,,1,,Asset,EUR
+EU B2B Goods Supplied,EU Trade Tracking,,,0,,Asset,EUR
+EU B2B Services Supplied,EU Trade Tracking,,,0,,Asset,EUR
+EU B2B Goods Acquired,EU Trade Tracking,,,0,,Asset,EUR
+EU B2B Services Acquired,EU Trade Tracking,,,0,,Asset,EUR

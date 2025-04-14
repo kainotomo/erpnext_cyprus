@@ -90,55 +90,12 @@
             "Cyprus Reduced Rate VAT Input (5%)": {},
             "EU Acquisition VAT Input": {},
             "Import VAT Input": {}
-          },
-          "VAT Output": {
-            "Cyprus Standard Rate VAT Output (19%)": {},
-            "Cyprus Reduced Rate VAT Output (9%)": {},
-            "Cyprus Reduced Rate VAT Output (5%)": {},
-            "EU Reverse Charge VAT Output": {},
-            "Self-Supply VAT Output": {}
-          },
-          "VAT MOSS": {
-            "VAT MOSS AT (Austria)": {},
-            "VAT MOSS BE (Belgium)": {},
-            "VAT MOSS BG (Bulgaria)": {},
-            "VAT MOSS HR (Croatia)": {},
-            "VAT MOSS CZ (Czech Republic)": {},
-            "VAT MOSS DK (Denmark)": {},
-            "VAT MOSS EE (Estonia)": {},
-            "VAT MOSS FI (Finland)": {},
-            "VAT MOSS FR (France)": {},
-            "VAT MOSS DE (Germany)": {},
-            "VAT MOSS GR (Greece)": {},
-            "VAT MOSS HU (Hungary)": {},
-            "VAT MOSS IE (Ireland)": {},
-            "VAT MOSS IT (Italy)": {},
-            "VAT MOSS LV (Latvia)": {},
-            "VAT MOSS LT (Lithuania)": {},
-            "VAT MOSS LU (Luxembourg)": {},
-            "VAT MOSS MT (Malta)": {},
-            "VAT MOSS NL (Netherlands)": {},
-            "VAT MOSS PL (Poland)": {},
-            "VAT MOSS PT (Portugal)": {},
-            "VAT MOSS RO (Romania)": {},
-            "VAT MOSS SK (Slovakia)": {},
-            "VAT MOSS SI (Slovenia)": {},
-            "VAT MOSS ES (Spain)": {},
-            "VAT MOSS SE (Sweden)": {}
-          },
-          "VAT Control": {},
-          "VAT Payable": {}
+          }
         },
         "Prepayments": {
           "Prepaid Insurance": {},
           "Prepaid Rent": {},
           "Prepaid Subscriptions": {}
-        },
-        "EU Trade Tracking": {
-          "EU B2B Goods Supplied": {},
-          "EU B2B Services Supplied": {},
-          "EU B2B Goods Acquired": {},
-          "EU B2B Services Acquired": {}
         },
         "Other Current Assets": {
           "Short-term Deposits": {},
@@ -192,6 +149,45 @@
           "GESY Contributions Payable": {},
           "Special Defense Contribution Payable": {},
           "PAYE Payable": {}
+        },
+        "Tax Liabilities": {
+          "VAT Output": {
+            "Cyprus Standard Rate VAT Output (19%)": {},
+            "Cyprus Reduced Rate VAT Output (9%)": {},
+            "Cyprus Reduced Rate VAT Output (5%)": {},
+            "EU Reverse Charge VAT Output": {},
+            "Self-Supply VAT Output": {}
+          },
+          "VAT MOSS": {
+            "VAT MOSS AT (Austria)": {},
+            "VAT MOSS BE (Belgium)": {},
+            "VAT MOSS BG (Bulgaria)": {},
+            "VAT MOSS HR (Croatia)": {},
+            "VAT MOSS CZ (Czech Republic)": {},
+            "VAT MOSS DK (Denmark)": {},
+            "VAT MOSS EE (Estonia)": {},
+            "VAT MOSS FI (Finland)": {},
+            "VAT MOSS FR (France)": {},
+            "VAT MOSS DE (Germany)": {},
+            "VAT MOSS GR (Greece)": {},
+            "VAT MOSS HU (Hungary)": {},
+            "VAT MOSS IE (Ireland)": {},
+            "VAT MOSS IT (Italy)": {},
+            "VAT MOSS LV (Latvia)": {},
+            "VAT MOSS LT (Lithuania)": {},
+            "VAT MOSS LU (Luxembourg)": {},
+            "VAT MOSS MT (Malta)": {},
+            "VAT MOSS NL (Netherlands)": {},
+            "VAT MOSS PL (Poland)": {},
+            "VAT MOSS PT (Portugal)": {},
+            "VAT MOSS RO (Romania)": {},
+            "VAT MOSS SK (Slovakia)": {},
+            "VAT MOSS SI (Slovenia)": {},
+            "VAT MOSS ES (Spain)": {},
+            "VAT MOSS SE (Sweden)": {}
+          },
+          "VAT Control": {},
+          "VAT Payable": {}
         },
         "Dividends Payable": {},
         "Lease Liabilities - Current": {},
@@ -340,7 +336,8 @@
       "Tax Expense": {
         "Corporation Tax": {},
         "Special Contribution": {},
-        "Deferred Tax": {}
+        "Deferred Tax": {},
+        "Non-Deductible VAT": {}
       },
       "Foreign Exchange Losses": {},
       "Impairment Losses": {
@@ -361,6 +358,15 @@
       "Opening Balances Adjustments": {},
       "Exchange Rate Adjustments": {},
       "Closing Entries": {},
+      "root_type": "Asset"
+    },
+    "Reporting": {
+      "EU Trade Tracking": {
+        "EU B2B Goods Supplied": {},
+        "EU B2B Services Supplied": {},
+        "EU B2B Goods Acquired": {},
+        "EU B2B Services Acquired": {}
+      },
       "root_type": "Asset"
     }
   }

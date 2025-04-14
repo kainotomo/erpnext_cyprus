@@ -158,111 +158,6 @@
             },
             "account_number": "1251"
           },
-          "VAT Output": {
-            "Cyprus Standard Rate VAT Output (19%)": {
-              "account_number": "12521"
-            },
-            "Cyprus Reduced Rate VAT Output (9%)": {
-              "account_number": "12522"
-            },
-            "Cyprus Reduced Rate VAT Output (5%)": {
-              "account_number": "12523"
-            },
-            "EU Reverse Charge VAT Output": {
-              "account_number": "12524"
-            },
-            "Self-Supply VAT Output": {
-              "account_number": "12525"
-            },
-            "account_number": "1252"
-          },
-          "VAT MOSS": {
-            "VAT MOSS AT (Austria)": {
-              "account_number": "125301"
-            },
-            "VAT MOSS BE (Belgium)": {
-              "account_number": "125302"
-            },
-            "VAT MOSS BG (Bulgaria)": {
-              "account_number": "125303"
-            },
-            "VAT MOSS HR (Croatia)": {
-              "account_number": "125304"
-            },
-            "VAT MOSS CZ (Czech Republic)": {
-              "account_number": "125305"
-            },
-            "VAT MOSS DK (Denmark)": {
-              "account_number": "125306"
-            },
-            "VAT MOSS EE (Estonia)": {
-              "account_number": "125307"
-            },
-            "VAT MOSS FI (Finland)": {
-              "account_number": "125308"
-            },
-            "VAT MOSS FR (France)": {
-              "account_number": "125309"
-            },
-            "VAT MOSS DE (Germany)": {
-              "account_number": "125310"
-            },
-            "VAT MOSS GR (Greece)": {
-              "account_number": "125311"
-            },
-            "VAT MOSS HU (Hungary)": {
-              "account_number": "125312"
-            },
-            "VAT MOSS IE (Ireland)": {
-              "account_number": "125313"
-            },
-            "VAT MOSS IT (Italy)": {
-              "account_number": "125314"
-            },
-            "VAT MOSS LV (Latvia)": {
-              "account_number": "125315"
-            },
-            "VAT MOSS LT (Lithuania)": {
-              "account_number": "125316"
-            },
-            "VAT MOSS LU (Luxembourg)": {
-              "account_number": "125317"
-            },
-            "VAT MOSS MT (Malta)": {
-              "account_number": "125318"
-            },
-            "VAT MOSS NL (Netherlands)": {
-              "account_number": "125319"
-            },
-            "VAT MOSS PL (Poland)": {
-              "account_number": "125320"
-            },
-            "VAT MOSS PT (Portugal)": {
-              "account_number": "125321"
-            },
-            "VAT MOSS RO (Romania)": {
-              "account_number": "125322"
-            },
-            "VAT MOSS SK (Slovakia)": {
-              "account_number": "125323"
-            },
-            "VAT MOSS SI (Slovenia)": {
-              "account_number": "125324"
-            },
-            "VAT MOSS ES (Spain)": {
-              "account_number": "125325"
-            },
-            "VAT MOSS SE (Sweden)": {
-              "account_number": "125326"
-            },
-            "account_number": "1253"
-          },
-          "VAT Control": {
-            "account_number": "1254"
-          },
-          "VAT Payable": {
-            "account_number": "1255"
-          },
           "account_number": "125"
         },
         "Prepayments": {
@@ -401,6 +296,114 @@
             "account_number": "2245"
           },
           "account_number": "224"
+        },
+        "Tax Liabilities": {
+          "VAT Output": {
+            "Cyprus Standard Rate VAT Output (19%)": {
+              "account_number": "22511"
+            },
+            "Cyprus Reduced Rate VAT Output (9%)": {
+              "account_number": "22512"
+            },
+            "Cyprus Reduced Rate VAT Output (5%)": {
+              "account_number": "22513"
+            },
+            "EU Reverse Charge VAT Output": {
+              "account_number": "22514"
+            },
+            "Self-Supply VAT Output": {
+              "account_number": "22515"
+            },
+            "account_number": "2251"
+          },
+          "VAT MOSS": {
+            "VAT MOSS AT (Austria)": {
+              "account_number": "225201"
+            },
+            "VAT MOSS BE (Belgium)": {
+              "account_number": "225202"
+            },
+            "VAT MOSS BG (Bulgaria)": {
+              "account_number": "225203"
+            },
+            "VAT MOSS HR (Croatia)": {
+              "account_number": "225204"
+            },
+            "VAT MOSS CZ (Czech Republic)": {
+              "account_number": "225205"
+            },
+            "VAT MOSS DK (Denmark)": {
+              "account_number": "225206"
+            },
+            "VAT MOSS EE (Estonia)": {
+              "account_number": "225207"
+            },
+            "VAT MOSS FI (Finland)": {
+              "account_number": "225208"
+            },
+            "VAT MOSS FR (France)": {
+              "account_number": "225209"
+            },
+            "VAT MOSS DE (Germany)": {
+              "account_number": "225210"
+            },
+            "VAT MOSS GR (Greece)": {
+              "account_number": "225211"
+            },
+            "VAT MOSS HU (Hungary)": {
+              "account_number": "225212"
+            },
+            "VAT MOSS IE (Ireland)": {
+              "account_number": "225213"
+            },
+            "VAT MOSS IT (Italy)": {
+              "account_number": "225214"
+            },
+            "VAT MOSS LV (Latvia)": {
+              "account_number": "225215"
+            },
+            "VAT MOSS LT (Lithuania)": {
+              "account_number": "225216"
+            },
+            "VAT MOSS LU (Luxembourg)": {
+              "account_number": "225217"
+            },
+            "VAT MOSS MT (Malta)": {
+              "account_number": "225218"
+            },
+            "VAT MOSS NL (Netherlands)": {
+              "account_number": "225219"
+            },
+            "VAT MOSS PL (Poland)": {
+              "account_number": "225220"
+            },
+            "VAT MOSS PT (Portugal)": {
+              "account_number": "225221"
+            },
+            "VAT MOSS RO (Romania)": {
+              "account_number": "225222"
+            },
+            "VAT MOSS SK (Slovakia)": {
+              "account_number": "225223"
+            },
+            "VAT MOSS SI (Slovenia)": {
+              "account_number": "225224"
+            },
+            "VAT MOSS ES (Spain)": {
+              "account_number": "225225"
+            },
+            "VAT MOSS SE (Sweden)": {
+              "account_number": "225226"
+            },
+            "account_number": "2252"
+          },
+          "VAT Control": {
+            "account_number": "2253"
+          },
+          "VAT Payable": {
+            "account_number": "2254"
+          },
+          "account_number": "225"
         },
         "Dividends Payable": {
           "account_number": "225"
@@ -758,6 +761,9 @@
         },
         "Deferred Tax": {
           "account_number": "6230"
+        },
+        "Non-Deductible VAT": {
+          "account_number": "6240"
         },
         "account_number": "62"
       },
