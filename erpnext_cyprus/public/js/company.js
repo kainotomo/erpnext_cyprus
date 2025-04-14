@@ -1,7 +1,7 @@
 frappe.ui.form.on('Company', {
     refresh: function (frm) {
         // Add a button to trigger default account setup for Cyprus companies
-        if (frm.doc.country === "Cyprus") {
+        if (!frm.doc.__islocal && frm.doc.country === "Cyprus") {
             frm.add_custom_button(__('Set Default Accounts'), function () {
                 frappe.call({
                     method: "erpnext_cyprus.setup.company.set_cyprus_default_accounts",
