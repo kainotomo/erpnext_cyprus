@@ -9,6 +9,9 @@ def setup_cyprus_company(company=None):
     # Create purchase tax templates
     create_purchase_tax_templates(company)
 
+    # Create sales tax templates
+    create_sales_tax_templates(company)
+
     # Create tax rules
     create_cyprus_tax_rules(company)
 
@@ -337,6 +340,268 @@ def create_purchase_tax_template(company, template_data):
         return True
     except Exception as e:
         frappe.log_error(f"Error creating tax template {title}: {str(e)}", "ERPNext Cyprus Setup Error")
+        return False
+
+def create_sales_tax_templates(company):
+    """
+    Create sales tax templates for a Cyprus company.
+    
+    This function creates various tax templates required for sales transactions,
+    covering all possible tax scenarios for a Cyprus company.
+    
+    Args:
+        company (str): The name of the company
+    
+    Returns:
+        bool: True if templates were created, False otherwise
+    """
+    company_abbr = frappe.get_cached_value("Company", company, "abbr")
+    
+    # Ensure company is in Cyprus
+    if frappe.db.get_value("Company", company, "country") != "Cyprus":
+        frappe.msgprint(_("Sales tax templates can only be created for Cyprus companies."))
+        return False
+    
+    # Define EU country VAT rates and codes
+    eu_country_rates = {
+        "Austria": {"rate": 20, "code": "AT"},
+        "Belgium": {"rate": 21, "code": "BE"},
+        "Bulgaria": {"rate": 20, "code": "BG"},
+        "Croatia": {"rate": 25, "code": "HR"},
+        "Czech Republic": {"rate": 21, "code": "CZ"},
+        "Denmark": {"rate": 25, "code": "DK"},
+        "Estonia": {"rate": 20, "code": "EE"},
+        "Finland": {"rate": 24, "code": "FI"},
+        "France": {"rate": 20, "code": "FR"},
+        "Germany": {"rate": 19, "code": "DE"},
+        "Greece": {"rate": 24, "code": "GR"},
+        "Hungary": {"rate": 27, "code": "HU"},
+        "Ireland": {"rate": 23, "code": "IE"},
+        "Italy": {"rate": 22, "code": "IT"},
+        "Latvia": {"rate": 21, "code": "LV"},
+        "Lithuania": {"rate": 21, "code": "LT"},
+        "Luxembourg": {"rate": 17, "code": "LU"},
+        "Malta": {"rate": 18, "code": "MT"},
+        "Netherlands": {"rate": 21, "code": "NL"},
+        "Poland": {"rate": 23, "code": "PL"},
+        "Portugal": {"rate": 23, "code": "PT"},
+        "Romania": {"rate": 19, "code": "RO"},
+        "Slovakia": {"rate": 20, "code": "SK"},
+        "Slovenia": {"rate": 22, "code": "SI"},
+        "Spain": {"rate": 21, "code": "ES"},
+        "Sweden": {"rate": 25, "code": "SE"}
+    }
+    
+    # Define base templates (domestic and non-EU)
+    templates = [
+        # Domestic sales
+        {
+            "title": "Cyprus Sales VAT 19%",
+            "is_default": 1,
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Standard Rate VAT Output (19%) - {company_abbr}",
+                "description": "VAT 19%",
+                "add_deduct_tax": "Add",
+                "rate": 19
+            }]
+        },
+        {
+            "title": "Cyprus Sales VAT 9%",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Reduced Rate VAT Output (9%) - {company_abbr}",
+                "description": "VAT 9%",
+                "add_deduct_tax": "Add",
+                "rate": 9
+            }]
+        },
+        {
+            "title": "Cyprus Sales VAT 5%",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Reduced Rate VAT Output (5%) - {company_abbr}",
+                "description": "VAT 5%",
+                "add_deduct_tax": "Add",
+                "rate": 5
+            }]
+        },
+        {
+            "title": "Cyprus Sales VAT 0% (Zero Rated)",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Zero Rate",
+                "rate": 0
+            }]
+        },
+        {
+            "title": "Cyprus Sales VAT Exempt",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT Exempt",
+                "rate": 0
+            }]
+        },
+        
+        # EU B2B sales
+        {
+            "title": "EU B2B Goods - Zero Rated",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Reverse Charge - Art. 138 EU VAT Directive",
+                "rate": 0
+            }]
+        },
+        {
+            "title": "EU B2B Services - Zero Rated",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Reverse Charge - Art. 44 EU VAT Directive",
+                "rate": 0
+            }]
+        },
+        
+        # EU B2C threshold sales
+        {
+            "title": "EU B2C Goods - Below Threshold",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Standard Rate VAT Output (19%) - {company_abbr}",
+                "description": "Cyprus VAT 19% (Below Distance Selling Threshold)",
+                "add_deduct_tax": "Add",
+                "rate": 19
+            }]
+        },
+        
+        # Non-EU
+        {
+            "title": "Export of Goods - Zero Rated",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Export Outside EU",
+                "rate": 0
+            }]
+        },
+        {
+            "title": "Export of Services - Zero Rated",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Services to Non-EU Customers",
+                "rate": 0
+            }]
+        },
+        
+        # Special cases
+        {
+            "title": "Triangulation Sales",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Triangulation",
+                "rate": 0
+            }]
+        },
+        {
+            "title": "Margin Scheme Sales",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Standard Rate VAT Output (19%) - {company_abbr}",
+                "description": "VAT 19% on Margin",
+                "add_deduct_tax": "Add",
+                "rate": 19
+            }]
+        }
+    ]
+    
+    # Create EU B2C Digital Services templates for each country
+    for country, country_data in eu_country_rates.items():
+        rate = country_data["rate"]
+        code = country_data["code"]
+        
+        # Digital services template
+        templates.append({
+            "title": f"EU B2C Digital Services - {country}",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT OSS {code} ({country}) - {company_abbr}",
+                "description": f"{country} VAT {rate}% - OSS Digital Services",
+                "add_deduct_tax": "Add",
+                "rate": rate
+            }]
+        })
+        
+        # Goods template for OSS
+        templates.append({
+            "title": f"EU B2C Goods - {country}",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT OSS {code} ({country}) - {company_abbr}",
+                "description": f"{country} VAT {rate}% - OSS Goods",
+                "add_deduct_tax": "Add",
+                "rate": rate
+            }]
+        })
+    
+    # Create the tax templates
+    created_count = 0
+    for template in templates:
+        if create_sales_tax_template(company, template):
+            created_count += 1
+    
+    if created_count > 0:
+        return True
+    else:
+        return False
+
+def create_sales_tax_template(company, template_data):
+    """
+    Create a single sales tax template if it doesn't already exist.
+    
+    Args:
+        company (str): The company name
+        template_data (dict): Template data including title and taxes
+    
+    Returns:
+        bool: True if created, False if already exists
+    """
+    title = template_data["title"]
+    is_default = template_data.get("is_default", 0)
+    taxes = template_data["taxes"]
+    
+    # Check if template already exists
+    company_abbr = frappe.get_cached_value("Company", company, "abbr")
+    template_name = f"{title} - {company_abbr}"
+    
+    if frappe.db.exists("Sales Taxes and Charges Template", template_name):
+        return False
+        
+    # Create new template
+    doc = frappe.new_doc("Sales Taxes and Charges Template")
+    doc.title = title
+    doc.company = company
+    doc.is_default = is_default
+    
+    # Add tax entries
+    for tax_entry in taxes:
+        doc.append("taxes", {
+            "charge_type": tax_entry["charge_type"],
+            "account_head": tax_entry["account_head"],
+            "description": tax_entry["description"],
+            "rate": tax_entry["rate"],
+            "add_deduct_tax": tax_entry.get("add_deduct_tax", "Add")
+        })
+    
+    try:
+        doc.save()
+        return True
+    except Exception as e:
+        frappe.log_error(f"Error creating sales tax template {title}: {str(e)}", "ERPNext Cyprus Setup Error")
         return False
 
 def create_cyprus_tax_rules(company):
