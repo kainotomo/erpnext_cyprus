@@ -18,8 +18,6 @@ def setup_cyprus_company(company=None):
     # Create sales tax rules
     create_cyprus_sales_tax_rules(company)
 
-    frappe.msgprint(_("Setup completed for company: {0}").format(company))
-
 def set_cyprus_default_accounts(company_name):
     """
     Set default accounts for a Cyprus company when triggered by the user.
@@ -100,7 +98,6 @@ def create_purchase_tax_templates(company):
     
     # Ensure company is in Cyprus
     if frappe.db.get_value("Company", company, "country") != "Cyprus":
-        frappe.msgprint(_("Purchase tax templates can only be created for Cyprus companies."))
         return False
     
     # Define purchase tax templates
@@ -362,7 +359,6 @@ def create_sales_tax_templates(company):
     
     # Ensure company is in Cyprus
     if frappe.db.get_value("Company", company, "country") != "Cyprus":
-        frappe.msgprint(_("Sales tax templates can only be created for Cyprus companies."))
         return False
     
     # Define EU country VAT rates and codes
@@ -624,7 +620,6 @@ def create_cyprus_tax_rules(company):
     
     # Check if company is in Cyprus
     if frappe.db.get_value("Company", company, "country") != "Cyprus":
-        frappe.msgprint(_("Tax rules can only be created for Cyprus companies."))
         return False
     
     # Get EU country codes
@@ -860,7 +855,6 @@ def create_cyprus_sales_tax_rules(company):
     
     # Check if company is in Cyprus
     if frappe.db.get_value("Company", company, "country") != "Cyprus":
-        frappe.msgprint(_("Tax rules can only be created for Cyprus companies."))
         return False
     
     # Get EU country codes
