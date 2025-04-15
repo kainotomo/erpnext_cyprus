@@ -5,6 +5,18 @@ import json
 import shutil
 
 def after_install():
+    """Run after installation"""
+    
+    # Copy Cyprus Chart of Accounts
+    copy_chart_of_accounts()
+
+    # Ensure customer groups exist
+    ensure_customer_groups()
+
+    # Ensure item groups exist
+    ensure_item_groups()
+
+def copy_chart_of_accounts():
     """Add Cyprus Chart of Accounts"""
     
     # Add chart of accounts files to the expected location
@@ -48,6 +60,25 @@ def after_install():
             frappe.log_error(f"Source template file not found: {template['source']}", "ERPNext Cyprus Install Error")
     
     frappe.msgprint(_("Cyprus Chart of Accounts templates have been installed."))
+
+def ensure_customer_groups():
+    """Create 'Commercial' and 'Individual' customer groups if they don't exist."""
+    for group in ["Commercial", "Individual"]:
+        if not frappe.db.exists("Customer Group", {"customer_group_name": group}):
+            doc = frappe.new_doc("Customer Group")
+            doc.customer_group_name = group
+            doc.parent_customer_group = "All Customer Groups"
+            doc.is_group = 0
+            doc.save(ignore_permissions=True)
+
+def ensure_item_groups():
+    # Ensure Digital Services item group exists
+    digital_services_group = "Digital Services"
+    if not frappe.db.exists("Item Group", {"item_group_name": digital_services_group}):
+        ig_doc = frappe.new_doc("Item Group")
+        ig_doc.item_group_name = digital_services_group
+        ig_doc.is_group = 0
+        ig_doc.insert(ignore_permissions=True)
 
 @frappe.whitelist()
 def setup_cyprus_tax_templates(company=None):
@@ -506,33 +537,44 @@ def create_cyprus_tax_rules(company):
     """
     Create Tax Rules for all Cyprus VAT scenarios for the given company, including all OSS countries.
     """
-    # Ensure Digital Services item group exists
-    digital_services_group = "Digital Services"
-    if not frappe.db.exists("Item Group", {"item_group_name": digital_services_group}):
-        ig_doc = frappe.new_doc("Item Group")
-        ig_doc.item_group_name = digital_services_group
-        ig_doc.is_group = 0
-        ig_doc.insert(ignore_permissions=True)
+    
+    # --- Cyprus VAT rates (Sales & Purchase, B2B & B2C) ---
+    cy_vat_rates = [
+        ("Cyprus VAT 19%", "Cyprus Purchase VAT 19%"),
+        ("Cyprus VAT 9%", "Cyprus Purchase VAT 9%"),
+        ("Cyprus VAT 5%", "Cyprus Purchase VAT 5%"),
+        ("Cyprus VAT 0% (Zero Rated)", "Cyprus Purchase VAT 0% (Zero Rated)"),
+        ("Cyprus VAT Exempt", "Cyprus Purchase VAT Exempt"),
+    ]
+    for sales_tpl, purchase_tpl in cy_vat_rates:
+        # Sales B2C
+        create_tax_rule(
+            company=company,
+            party_type="Customer",
+            country="Cyprus",
+            customer_group="Individual",
+            tax_template=sales_tpl,
+            tax_type="Sales"
+        )
+        # Sales B2B
+        create_tax_rule(
+            company=company,
+            party_type="Customer",
+            country="Cyprus",
+            customer_group="Commercial",
+            tax_template=sales_tpl,
+            tax_type="Sales"
+        )
+        # Purchase (all suppliers)
+        create_tax_rule(
+            company=company,
+            party_type="Supplier",
+            country="Cyprus",
+            tax_template=purchase_tpl,
+            tax_type="Purchase"
+        )
 
-    # Domestic B2C (Cyprus, Individual)
-    create_tax_rule(
-        company=company,
-        party_type="Customer",
-        country="Cyprus",
-        customer_group="Individual",
-        tax_template="Cyprus VAT 19%",
-        tax_type="Sales"
-    )
-    # Domestic B2B (Cyprus, Commercial)
-    create_tax_rule(
-        company=company,
-        party_type="Customer",
-        country="Cyprus",
-        customer_group="Commercial",
-        tax_template="Cyprus VAT 19%",
-        tax_type="Sales"
-    )
-    # EU B2C (OSS): All EU countries except Cyprus, Individual
+    # --- EU B2B Sales (Reverse Charge) for all EU except Cyprus ---
     oss_countries = [
         ("AT", "Austria", 20), ("BE", "Belgium", 21), ("BG", "Bulgaria", 20), ("HR", "Croatia", 25),
         ("CZ", "Czech Republic", 21), ("DK", "Denmark", 25), ("EE", "Estonia", 20), ("FI", "Finland", 24),
@@ -543,7 +585,25 @@ def create_cyprus_tax_rules(company):
         ("ES", "Spain", 21), ("SE", "Sweden", 25)
     ]
     for code, country, rate in oss_countries:
-        # OSS Goods
+        # EU B2B Goods
+        create_tax_rule(
+            company=company,
+            party_type="Customer",
+            country=country,
+            customer_group="Commercial",
+            tax_template="EU B2B Sales - Goods - Reverse Charge",
+            tax_type="Sales"
+        )
+        # EU B2B Services
+        create_tax_rule(
+            company=company,
+            party_type="Customer",
+            country=country,
+            customer_group="Commercial",
+            tax_template="EU B2B Sales - Services - Reverse Charge",
+            tax_type="Sales"
+        )
+        # OSS Goods (B2C)
         create_tax_rule(
             company=company,
             party_type="Customer",
@@ -552,7 +612,7 @@ def create_cyprus_tax_rules(company):
             tax_template=f"EU B2C Sales - Goods - {code}",
             tax_type="Sales"
         )
-        # OSS Digital Services (set item_group to Digital Services)
+        # OSS Digital Services (B2C, with item group)
         create_tax_rule(
             company=company,
             party_type="Customer",
@@ -562,7 +622,8 @@ def create_cyprus_tax_rules(company):
             tax_type="Sales",
             item_group=digital_services_group
         )
-    # Non-EU Sale (USA)
+
+    # --- Non-EU Sale (USA) ---
     create_tax_rule(
         company=company,
         party_type="Customer",
@@ -570,22 +631,25 @@ def create_cyprus_tax_rules(company):
         tax_template="Non-EU Exports - Zero Rated",
         tax_type="Sales"
     )
-    # Domestic Purchase (Cyprus)
-    create_tax_rule(
-        company=company,
-        party_type="Supplier",
-        country="Cyprus",
-        tax_template="Cyprus Purchase VAT 19%",
-        tax_type="Purchase"
-    )
-    # EU Purchase (Germany)
-    create_tax_rule(
-        company=company,
-        party_type="Supplier",
-        country="Germany",
-        tax_template="EU Purchase - Goods - Reverse Charge",
-        tax_type="Purchase"
-    )
+
+    # --- Purchase: EU, Non-EU, and Special Cases ---
+    # EU Purchase (all EU except Cyprus)
+    for code, country, rate in oss_countries:
+        create_tax_rule(
+            company=company,
+            party_type="Supplier",
+            country=country,
+            tax_template="EU Purchase - Goods - Reverse Charge",
+            tax_type="Purchase"
+        )
+        create_tax_rule(
+            company=company,
+            party_type="Supplier",
+            country=country,
+            tax_template="EU Purchase - Services - Reverse Charge",
+            tax_type="Purchase"
+        )
+
     # Non-EU Purchase (USA)
     create_tax_rule(
         company=company,
@@ -594,6 +658,21 @@ def create_cyprus_tax_rules(company):
         tax_template="Import with VAT",
         tax_type="Purchase"
     )
+
+    # Special Purchase Cases (applies to Cyprus)
+    special_purchase_templates = [
+        "Purchase with Non-Deductible VAT",
+        "Purchase with Partial VAT Deduction (50%)",
+        "Purchase - Triangulation"
+    ]
+    for tpl in special_purchase_templates:
+        create_tax_rule(
+            company=company,
+            party_type="Supplier",
+            country="Cyprus",
+            tax_template=tpl,
+            tax_type="Purchase"
+        )
 
 def create_tax_rule(company, party_type, country, tax_template, tax_type, customer_group=None, item_group=None):
     """
