@@ -84,12 +84,24 @@
           }
         },
         "Tax": {
+          "account_type": "Tax",
           "VAT Input": {
-            "Cyprus Standard Rate VAT Input (19%)": {},
-            "Cyprus Reduced Rate VAT Input (9%)": {},
-            "Cyprus Reduced Rate VAT Input (5%)": {},
-            "EU Acquisition VAT Input": {},
-            "Import VAT Input": {}
+            "account_type": "Tax",
+            "Cyprus Standard Rate VAT Input (19%)": {
+              "account_type": "Tax"
+            },
+            "Cyprus Reduced Rate VAT Input (9%)": {
+              "account_type": "Tax"
+            },
+            "Cyprus Reduced Rate VAT Input (5%)": {
+              "account_type": "Tax"
+            },
+            "EU Acquisition VAT Input": {
+              "account_type": "Tax"
+            },
+            "Import VAT Input": {
+              "account_type": "Tax"
+            }
           }
         },
         "Prepayments": {
@@ -151,43 +163,112 @@
           "PAYE Payable": {}
         },
         "Tax Liabilities": {
+          "account_type": "Tax",
           "VAT Output": {
-            "Cyprus Standard Rate VAT Output (19%)": {},
-            "Cyprus Reduced Rate VAT Output (9%)": {},
-            "Cyprus Reduced Rate VAT Output (5%)": {},
-            "EU Reverse Charge VAT Output": {},
-            "Self-Supply VAT Output": {}
+            "account_type": "Tax",
+            "Cyprus Standard Rate VAT Output (19%)": {
+              "account_type": "Tax"
+            },
+            "Cyprus Reduced Rate VAT Output (9%)": {
+              "account_type": "Tax"
+            },
+            "Cyprus Reduced Rate VAT Output (5%)": {
+              "account_type": "Tax"
+            },
+            "EU Reverse Charge VAT Output": {
+              "account_type": "Tax"
+            },
+            "Self-Supply VAT Output": {
+              "account_type": "Tax"
+            }
           },
           "VAT OSS": {
-            "VAT OSS AT (Austria)": {},
-            "VAT OSS BE (Belgium)": {},
-            "VAT OSS BG (Bulgaria)": {},
-            "VAT OSS HR (Croatia)": {},
-            "VAT OSS CZ (Czech Republic)": {},
-            "VAT OSS DK (Denmark)": {},
-            "VAT OSS EE (Estonia)": {},
-            "VAT OSS FI (Finland)": {},
-            "VAT OSS FR (France)": {},
-            "VAT OSS DE (Germany)": {},
-            "VAT OSS GR (Greece)": {},
-            "VAT OSS HU (Hungary)": {},
-            "VAT OSS IE (Ireland)": {},
-            "VAT OSS IT (Italy)": {},
-            "VAT OSS LV (Latvia)": {},
-            "VAT OSS LT (Lithuania)": {},
-            "VAT OSS LU (Luxembourg)": {},
-            "VAT OSS MT (Malta)": {},
-            "VAT OSS NL (Netherlands)": {},
-            "VAT OSS PL (Poland)": {},
-            "VAT OSS PT (Portugal)": {},
-            "VAT OSS RO (Romania)": {},
-            "VAT OSS SK (Slovakia)": {},
-            "VAT OSS SI (Slovenia)": {},
-            "VAT OSS ES (Spain)": {},
-            "VAT OSS SE (Sweden)": {}
+            "account_type": "Tax",
+            "VAT OSS AT (Austria)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS BE (Belgium)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS BG (Bulgaria)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS HR (Croatia)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS CZ (Czech Republic)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS DK (Denmark)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS EE (Estonia)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS FI (Finland)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS FR (France)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS DE (Germany)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS GR (Greece)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS HU (Hungary)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS IE (Ireland)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS IT (Italy)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS LV (Latvia)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS LT (Lithuania)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS LU (Luxembourg)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS MT (Malta)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS NL (Netherlands)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS PL (Poland)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS PT (Portugal)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS RO (Romania)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS SK (Slovakia)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS SI (Slovenia)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS ES (Spain)": {
+              "account_type": "Tax"
+            },
+            "VAT OSS SE (Sweden)": {
+              "account_type": "Tax"
+            }
           },
-          "VAT Control": {},
-          "VAT Payable": {}
+          "VAT Control": {
+            "account_type": "Tax"
+          },
+          "VAT Payable": {
+            "account_type": "Tax"
+          }
         },
         "Dividends Payable": {},
         "Lease Liabilities - Current": {},

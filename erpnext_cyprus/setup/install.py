@@ -83,35 +83,30 @@ def create_cyprus_tax_templates(company):
                 "name": f"Cyprus Standard Rate VAT Output (19%) - {company_abbr}",
                 "parent": "VAT Output",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 19
             },
             "reduced_output_9": {
                 "name": f"Cyprus Reduced Rate VAT Output (9%) - {company_abbr}",
                 "parent": "VAT Output",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 9
             },
             "reduced_output_5": {
                 "name": f"Cyprus Reduced Rate VAT Output (5%) - {company_abbr}",
                 "parent": "VAT Output",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 5
             },
             "eu_reverse_output": {
                 "name": f"EU Reverse Charge VAT Output - {company_abbr}",
                 "parent": "VAT Output",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 19
             },
             "self_supply_output": {
                 "name": f"Self-Supply VAT Output - {company_abbr}",
                 "parent": "VAT Output",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 19
             },
             # Input VAT accounts (under Current Assets)
@@ -119,84 +114,76 @@ def create_cyprus_tax_templates(company):
                 "name": f"Cyprus Standard Rate VAT Input (19%) - {company_abbr}",
                 "parent": "VAT Input",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 19
             },
             "reduced_input_9": {
                 "name": f"Cyprus Reduced Rate VAT Input (9%) - {company_abbr}",
                 "parent": "VAT Input",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 9
             },
             "reduced_input_5": {
                 "name": f"Cyprus Reduced Rate VAT Input (5%) - {company_abbr}",
                 "parent": "VAT Input",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 5
             },
             "eu_input": {
                 "name": f"EU Acquisition VAT Input - {company_abbr}",
                 "parent": "VAT Input",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 19
             },
             "import_input": {
                 "name": f"Import VAT Input - {company_abbr}",
                 "parent": "VAT Input",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 19
             },
             "non_deductible_vat": {
                 "name": f"Non-Deductible VAT - {company_abbr}",
                 "parent": "Tax Expense",
                 "is_group": 0,
-                "account_type": "",
                 "tax_rate": 19
             },
             # Control accounts
             "vat_control": {
                 "name": f"VAT Control - {company_abbr}",
                 "parent": "Tax Liabilities",
-                "is_group": 0,
-                "account_type": ""
+                "is_group": 0
             },
             "vat_payable": {
                 "name": f"VAT Payable - {company_abbr}",
                 "parent": "Tax Liabilities",
-                "is_group": 0,
-                "account_type": ""
+                "is_group": 0
             },
             # OSS Accounts (all EU member states except Cyprus)
-            "oss_at": {"name": f"VAT OSS AT (Austria) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
-            "oss_be": {"name": f"VAT OSS BE (Belgium) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
-            "oss_bg": {"name": f"VAT OSS BG (Bulgaria) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
-            "oss_hr": {"name": f"VAT OSS HR (Croatia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 25},
-            "oss_cz": {"name": f"VAT OSS CZ (Czech Republic) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
-            "oss_dk": {"name": f"VAT OSS DK (Denmark) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 25},
-            "oss_ee": {"name": f"VAT OSS EE (Estonia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
-            "oss_fi": {"name": f"VAT OSS FI (Finland) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 24},
-            "oss_fr": {"name": f"VAT OSS FR (France) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
-            "oss_de": {"name": f"VAT OSS DE (Germany) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 19},
-            "oss_gr": {"name": f"VAT OSS GR (Greece) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 24},
-            "oss_hu": {"name": f"VAT OSS HU (Hungary) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 27},
-            "oss_ie": {"name": f"VAT OSS IE (Ireland) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 23},
-            "oss_it": {"name": f"VAT OSS IT (Italy) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 22},
-            "oss_lv": {"name": f"VAT OSS LV (Latvia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
-            "oss_lt": {"name": f"VAT OSS LT (Lithuania) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
-            "oss_lu": {"name": f"VAT OSS LU (Luxembourg) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 17},
-            "oss_mt": {"name": f"VAT OSS MT (Malta) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 18},
-            "oss_nl": {"name": f"VAT OSS NL (Netherlands) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
-            "oss_pl": {"name": f"VAT OSS PL (Poland) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 23},
-            "oss_pt": {"name": f"VAT OSS PT (Portugal) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 23},
-            "oss_ro": {"name": f"VAT OSS RO (Romania) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 19},
-            "oss_sk": {"name": f"VAT OSS SK (Slovakia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 20},
-            "oss_si": {"name": f"VAT OSS SI (Slovenia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 22},
-            "oss_es": {"name": f"VAT OSS ES (Spain) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 21},
-            "oss_se": {"name": f"VAT OSS SE (Sweden) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "account_type": "", "tax_rate": 25}
+            "oss_at": {"name": f"VAT OSS AT (Austria) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 20},
+            "oss_be": {"name": f"VAT OSS BE (Belgium) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 21},
+            "oss_bg": {"name": f"VAT OSS BG (Bulgaria) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 20},
+            "oss_hr": {"name": f"VAT OSS HR (Croatia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 25},
+            "oss_cz": {"name": f"VAT OSS CZ (Czech Republic) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 21},
+            "oss_dk": {"name": f"VAT OSS DK (Denmark) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 25},
+            "oss_ee": {"name": f"VAT OSS EE (Estonia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 20},
+            "oss_fi": {"name": f"VAT OSS FI (Finland) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 24},
+            "oss_fr": {"name": f"VAT OSS FR (France) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 20},
+            "oss_de": {"name": f"VAT OSS DE (Germany) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 19},
+            "oss_gr": {"name": f"VAT OSS GR (Greece) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 24},
+            "oss_hu": {"name": f"VAT OSS HU (Hungary) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 27},
+            "oss_ie": {"name": f"VAT OSS IE (Ireland) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 23},
+            "oss_it": {"name": f"VAT OSS IT (Italy) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 22},
+            "oss_lv": {"name": f"VAT OSS LV (Latvia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 21},
+            "oss_lt": {"name": f"VAT OSS LT (Lithuania) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 21},
+            "oss_lu": {"name": f"VAT OSS LU (Luxembourg) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 17},
+            "oss_mt": {"name": f"VAT OSS MT (Malta) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 18},
+            "oss_nl": {"name": f"VAT OSS NL (Netherlands) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 21},
+            "oss_pl": {"name": f"VAT OSS PL (Poland) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 23},
+            "oss_pt": {"name": f"VAT OSS PT (Portugal) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 23},
+            "oss_ro": {"name": f"VAT OSS RO (Romania) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 19},
+            "oss_sk": {"name": f"VAT OSS SK (Slovakia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 20},
+            "oss_si": {"name": f"VAT OSS SI (Slovenia) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 22},
+            "oss_es": {"name": f"VAT OSS ES (Spain) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 21},
+            "oss_se": {"name": f"VAT OSS SE (Sweden) - {company_abbr}", "parent": "VAT OSS", "is_group": 0, "tax_rate": 25}
         }
         
         # Verify and create VAT accounts if they don't exist
@@ -224,7 +211,7 @@ def create_cyprus_tax_templates(company):
                     company=company,
                     parent_account=parent_account,
                     is_group=account_data["is_group"],
-                    account_type=account_data["account_type"] if account_data["account_type"] else None
+                    account_type=None
                 )
                 frappe.msgprint(f"Created account: {account_name}")
         
@@ -522,7 +509,7 @@ def ensure_parent_accounts_exist(company):
             "name": f"VAT Input - {company_abbr}",
             "parent": f"Tax - {company_abbr}",
             "is_group": 1,
-            "account_type": "",
+            "account_type": "Tax",
             "root_type": "Asset"
         },
         # VAT output and OSS under Current Liabilities > Tax Liabilities
@@ -530,21 +517,21 @@ def ensure_parent_accounts_exist(company):
             "name": f"Tax Liabilities - {company_abbr}",
             "parent": f"Current Liabilities - {company_abbr}",
             "is_group": 1,
-            "account_type": "",
+            "account_type": "Tax",
             "root_type": "Liability"
         },
         "VAT Output": {
             "name": f"VAT Output - {company_abbr}",
             "parent": f"Tax Liabilities - {company_abbr}",
             "is_group": 1,
-            "account_type": "",
+            "account_type": "Tax",
             "root_type": "Liability"
         },
         "VAT OSS": {
             "name": f"VAT OSS - {company_abbr}",
             "parent": f"Tax Liabilities - {company_abbr}",
             "is_group": 1,
-            "account_type": "",
+            "account_type": "Tax",
             "root_type": "Liability"
         },
         # Tax expense for Non-Deductible VAT
@@ -552,7 +539,7 @@ def ensure_parent_accounts_exist(company):
             "name": f"Tax Expense - {company_abbr}",
             "parent": f"Expenses - {company_abbr}",
             "is_group": 1,
-            "account_type": "",
+            "account_type": "Tax",
             "root_type": "Expense"
         }
     }
