@@ -80,25 +80,6 @@ def ensure_item_groups():
         ig_doc.is_group = 0
         ig_doc.insert(ignore_permissions=True)
 
-@frappe.whitelist()
-def setup_cyprus_tax_templates(company=None):
-    """Setup Cyprus tax templates for the specified company"""
-    if not company:
-        companies = frappe.get_all("Company", filters={"country": "Cyprus"})
-        for comp in companies:
-            create_cyprus_tax_templates(comp.name)
-        
-        if companies:
-            return {"status": "success", "message": "Cyprus tax templates created for all Cyprus companies"}
-        else:
-            return {"status": "error", "message": "No Cyprus companies found"}
-    else:
-        if frappe.db.get_value("Company", company, "country") == "Cyprus":
-            create_cyprus_tax_templates(company)
-            return {"status": "success", "message": f"Cyprus tax templates created for {company}"}
-        else:
-            return {"status": "error", "message": f"Company {company} is not set as a Cyprus company"}
-
 def create_cyprus_tax_templates(company):
     """Create Cyprus tax templates for the specified company"""
     try:
