@@ -695,7 +695,6 @@ def create_cyprus_tax_rules(company):
             "billing_city": "",
             "tax_template": f"EU Purchase - Services - Reverse Charge - {company_abbr}",
             "is_eu": True,
-            "is_service": True,
             "from_date": None,
             "to_date": None
         },
@@ -784,9 +783,6 @@ def create_tax_rule(company, rule_data):
     if rule_data.get("shipping_country"):
         filters["shipping_country"] = rule_data["shipping_country"]
     
-    if rule_data.get("customer_type"):
-        filters["customer_type"] = rule_data["customer_type"]
-    
     if rule_data.get("supplier_group"):
         filters["supplier_group"] = rule_data["supplier_group"]
     
@@ -812,9 +808,6 @@ def create_tax_rule(company, rule_data):
     if rule_data.get("item_group"):
         tax_rule.item_group = rule_data["item_group"]
     
-    if rule_data.get("customer_type"):
-        tax_rule.customer_type = rule_data["customer_type"]
-    
     if rule_data.get("shipping_country"):
         tax_rule.shipping_country = rule_data["shipping_country"]
     
@@ -829,10 +822,6 @@ def create_tax_rule(company, rule_data):
     
     if rule_data.get("supplier_group"):
         tax_rule.supplier_group = rule_data["supplier_group"]
-    
-    if rule_data.get("is_service"):
-        # For service rules, add is_service flag
-        tax_rule.is_service = 1
     
     # Set the tax template
     if rule_data["tax_type"] == "Purchase":
@@ -859,7 +848,7 @@ def create_cyprus_sales_tax_rules(company):
     Create tax rules for Cyprus sales tax templates.
     
     This method creates tax rules to automatically apply the appropriate sales tax templates
-    based on customer country, item groups, and B2B/B2C status.
+    based on customer country, item groups, and B2B/B2C status via customer groups.
     
     Args:
         company (str): The company name
@@ -893,11 +882,11 @@ def create_cyprus_sales_tax_rules(company):
             "priority": 1,
             "use_for_shopping_cart": 1,
             "item_group": "Digital Services",
+            "customer_group": "Individual",  # B2C customers
             "shipping_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": None,  # Will be set in loop for each country
             "is_eu": True,
-            "customer_type": "Individual",
             "from_date": None,
             "to_date": None
         },
@@ -909,11 +898,11 @@ def create_cyprus_sales_tax_rules(company):
             "priority": 2,
             "use_for_shopping_cart": 1,
             "item_group": "",  # Any item
+            "customer_group": "Individual",  # B2C customers
             "shipping_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": None,  # Will be set in loop for each country
             "is_eu": True,
-            "customer_type": "Individual",
             "from_date": None,
             "to_date": None
         },
@@ -925,11 +914,11 @@ def create_cyprus_sales_tax_rules(company):
             "priority": 3,
             "use_for_shopping_cart": 0,
             "item_group": "",  # Any item
+            "customer_group": "Commercial",  # B2B customers
             "shipping_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": f"EU B2B Goods - Zero Rated - {company_abbr}",
             "is_eu": True,
-            "customer_type": "Company",
             "from_date": None,
             "to_date": None
         },
@@ -941,12 +930,11 @@ def create_cyprus_sales_tax_rules(company):
             "priority": 4,
             "use_for_shopping_cart": 0,
             "item_group": "",  # Any item
+            "customer_group": "Commercial",  # B2B customers
             "shipping_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": f"EU B2B Services - Zero Rated - {company_abbr}",
             "is_eu": True,
-            "customer_type": "Company",
-            "is_service": True,
             "from_date": None,
             "to_date": None
         },
@@ -962,7 +950,6 @@ def create_cyprus_sales_tax_rules(company):
             "shipping_city": "",
             "tax_template": f"Export of Goods - Zero Rated - {company_abbr}",
             "is_eu": False,
-            "customer_type": "",  # Any
             "from_date": None,
             "to_date": None
         },
@@ -978,8 +965,6 @@ def create_cyprus_sales_tax_rules(company):
             "shipping_city": "",
             "tax_template": f"Export of Services - Zero Rated - {company_abbr}",
             "is_eu": False,
-            "customer_type": "",  # Any
-            "is_service": True,
             "from_date": None,
             "to_date": None
         },
@@ -995,7 +980,6 @@ def create_cyprus_sales_tax_rules(company):
             "shipping_city": "",
             "tax_template": f"Cyprus Sales VAT 19% - {company_abbr}",
             "is_eu": False,
-            "customer_type": "",  # Any
             "from_date": None,
             "to_date": None
         }
@@ -1042,10 +1026,8 @@ def create_cyprus_sales_tax_rules(company):
             created_count += 1
     
     if created_count > 0:
-        frappe.msgprint(_(f"{created_count} sales tax rules have been created for {company}."))
         return True
     else:
-        frappe.msgprint(_("No new sales tax rules were created for {0}.").format(company))
         return False
 
 def create_sales_tax_rule(company, rule_data):
@@ -1054,19 +1036,46 @@ def create_sales_tax_rule(company, rule_data):
     
     Args:
         company (str): The company name
-        rule_data (dict): Rule data with title, tax_type, and other filter criteria
+        rule_data (dict): Rule data with tax_type, and other filter criteria
     
     Returns:
         bool: True if created, False if already exists
     """
-    # Check if rule already exists
-    title = rule_data["title"]
-    if frappe.db.exists("Tax Rule", {"title": title, "company": company}):
+    # Check if rule already exists - using the appropriate filters
+    filters = {
+        "tax_type": rule_data["tax_type"],
+        "company": company
+    }
+    
+    # Add specific filters used in this rule
+    if rule_data.get("item_group"):
+        filters["item_group"] = rule_data["item_group"]
+    
+    if rule_data.get("customer_group"):
+        filters["customer_group"] = rule_data["customer_group"]
+    
+    if rule_data.get("shipping_country"):
+        filters["shipping_country"] = rule_data["shipping_country"]
+    
+    if rule_data.get("billing_country"):
+        filters["billing_country"] = rule_data["billing_country"]
+    
+    if rule_data.get("supplier_group"):
+        filters["supplier_group"] = rule_data["supplier_group"]
+    
+    # Check for tax template
+    if rule_data["tax_type"] == "Sales":
+        filters["sales_tax_template"] = rule_data["tax_template"]
+    else:
+        filters["purchase_tax_template"] = rule_data["tax_template"]
+    
+    # Check if a rule with these criteria already exists
+    existing_rules = frappe.db.get_all("Tax Rule", filters=filters)
+    if existing_rules:
         return False
     
     # Create new rule
     tax_rule = frappe.new_doc("Tax Rule")
-    tax_rule.title = title
     tax_rule.tax_type = rule_data["tax_type"]
     tax_rule.company = company
     tax_rule.priority = rule_data.get("priority", 1)
@@ -1076,8 +1085,8 @@ def create_sales_tax_rule(company, rule_data):
     if rule_data.get("item_group"):
         tax_rule.item_group = rule_data["item_group"]
     
-    if rule_data.get("customer_type"):
-        tax_rule.customer_type = rule_data["customer_type"]
+    if rule_data.get("customer_group"):
+        tax_rule.customer_group = rule_data["customer_group"]
     
     if rule_data.get("shipping_country"):
         tax_rule.shipping_country = rule_data["shipping_country"]
@@ -1085,8 +1094,14 @@ def create_sales_tax_rule(company, rule_data):
     if rule_data.get("shipping_city"):
         tax_rule.shipping_city = rule_data["shipping_city"]
     
-    if rule_data.get("is_service"):
-        tax_rule.is_service = 1
+    if rule_data.get("billing_country"):
+        tax_rule.billing_country = rule_data["billing_country"]
+    
+    if rule_data.get("billing_city"):
+        tax_rule.billing_city = rule_data["billing_city"]
+    
+    if rule_data.get("supplier_group"):
+        tax_rule.supplier_group = rule_data["supplier_group"]
     
     # Set the tax template
     if rule_data["tax_type"] == "Sales":
@@ -1105,5 +1120,5 @@ def create_sales_tax_rule(company, rule_data):
         tax_rule.save()
         return True
     except Exception as e:
-        frappe.log_error(f"Error creating sales tax rule {title}: {str(e)}", "ERPNext Cyprus Setup Error")
+        frappe.log_error(f"Error creating sales tax rule: {str(e)}", "ERPNext Cyprus Setup Error")
         return False
