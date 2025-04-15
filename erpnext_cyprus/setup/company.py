@@ -6,6 +6,11 @@ def setup_cyprus_company(company=None):
     # Set default accounts
     set_cyprus_default_accounts(company)
 
+    # Create purchase tax templates
+    create_purchase_tax_templates(company)
+
+    frappe.msgprint(_("Setup completed for company: {0}").format(company))
+
 def set_cyprus_default_accounts(company_name):
     """
     Set default accounts for a Cyprus company when triggered by the user.
@@ -23,7 +28,6 @@ def set_cyprus_default_accounts(company_name):
 
     company.flags.ignore_mandatory = True
     company.save()
-    frappe.msgprint(_("Default accounts have been set for Cyprus company {0}.").format(company.name))
 
 def get_cyprus_default_accounts(company_name):
     """
@@ -69,3 +73,265 @@ def find_account(account_name, company_name):
             account = accounts[0].name
 
     return account
+
+def create_purchase_tax_templates(company):
+    """
+    Create purchase tax templates for a Cyprus company.
+    
+    This function creates various tax templates required for purchase transactions,
+    covering all possible tax scenarios for a Cyprus company.
+    
+    Args:
+        company (str): The name of the company
+    
+    Returns:
+        bool: True if templates were created, False otherwise
+    """
+    company_abbr = frappe.get_cached_value("Company", company, "abbr")
+    
+    # Ensure company is in Cyprus
+    if frappe.db.get_value("Company", company, "country") != "Cyprus":
+        frappe.msgprint(_("Purchase tax templates can only be created for Cyprus companies."))
+        return False
+    
+    # Define purchase tax templates
+    templates = [
+        # Standard domestic rates
+        {
+            "title": "Cyprus Purchase VAT 19%",
+            "is_default": 1,
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Standard Rate VAT Input (19%) - {company_abbr}",
+                "description": "VAT 19%",
+                "add_deduct_tax": "Add",
+                "rate": 19
+            }]
+        },
+        {
+            "title": "Cyprus Purchase VAT 9%",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Reduced Rate VAT Input (9%) - {company_abbr}",
+                "description": "VAT 9%",
+                "add_deduct_tax": "Add",
+                "rate": 9
+            }]
+        },
+        {
+            "title": "Cyprus Purchase VAT 5%",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Cyprus Reduced Rate VAT Input (5%) - {company_abbr}",
+                "description": "VAT 5%",
+                "add_deduct_tax": "Add",
+                "rate": 5
+            }]
+        },
+        {
+            "title": "Cyprus Purchase VAT 0% (Zero Rated)",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Zero Rate",
+                "rate": 0
+            }]
+        },
+        {
+            "title": "Cyprus Purchase VAT Exempt",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT Exempt",
+                "rate": 0
+            }]
+        },
+        
+        # EU purchases
+        {
+            "title": "EU Purchase - Goods - Reverse Charge",
+            "taxes": [
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "description": "VAT 19% - Reverse Charge Output",
+                    "add_deduct_tax": "Add",
+                    "rate": 19
+                },
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "description": "VAT 19% - Reverse Charge Input",
+                    "add_deduct_tax": "Deduct",
+                    "rate": 19
+                }
+            ]
+        },
+        {
+            "title": "EU Purchase - Services - Reverse Charge",
+            "taxes": [
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "description": "VAT 19% - Reverse Charge Output",
+                    "add_deduct_tax": "Add",
+                    "rate": 19
+                },
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "description": "VAT 19% - Reverse Charge Input",
+                    "add_deduct_tax": "Deduct",
+                    "rate": 19
+                }
+            ]
+        },
+        
+        # Non-EU purchases
+        {
+            "title": "Import with VAT",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Import VAT Input - {company_abbr}",
+                "description": "Import VAT 19%",
+                "add_deduct_tax": "Add",
+                "rate": 19
+            }]
+        },
+        
+        # Special cases
+        {
+            "title": "Purchase with Non-Deductible VAT",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"Non-Deductible VAT - {company_abbr}",
+                "description": "Non-Deductible VAT 19%",
+                "add_deduct_tax": "Add",
+                "rate": 19
+            }]
+        },
+        {
+            "title": "Purchase with Partial VAT Deduction (50%)",
+            "taxes": [
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"Cyprus Standard Rate VAT Input (19%) - {company_abbr}",
+                    "description": "Deductible VAT 19% (50%)",
+                    "add_deduct_tax": "Add",
+                    "rate": 9.5
+                },
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"Non-Deductible VAT - {company_abbr}",
+                    "description": "Non-Deductible VAT 19% (50%)",
+                    "add_deduct_tax": "Add",
+                    "rate": 9.5
+                }
+            ]
+        },
+        {
+            "title": "Purchase - Triangulation",
+            "taxes": [{
+                "charge_type": "On Net Total",
+                "account_head": f"VAT Control - {company_abbr}",
+                "description": "VAT 0% - Triangulation",
+                "rate": 0
+            }]
+        },
+        
+        # Digital services specific (from your prompt)
+        {
+            "title": "EU Digital Services - Reverse Charge",
+            "taxes": [
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "description": "VAT 19% - Digital Services Reverse Charge Output",
+                    "add_deduct_tax": "Add",
+                    "rate": 19
+                },
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "description": "VAT 19% - Digital Services Reverse Charge Input",
+                    "add_deduct_tax": "Deduct",
+                    "rate": 19
+                }
+            ]
+        },
+        {
+            "title": "Non-EU Digital Services - Reverse Charge",
+            "taxes": [
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "description": "VAT 19% - Digital Services Reverse Charge Output",
+                    "add_deduct_tax": "Add",
+                    "rate": 19
+                },
+                {
+                    "charge_type": "On Net Total",
+                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "description": "VAT 19% - Digital Services Reverse Charge Input",
+                    "add_deduct_tax": "Deduct",
+                    "rate": 19
+                }
+            ]
+        }
+    ]
+    
+    # Create the tax templates
+    created_count = 0
+    for template in templates:
+        if create_purchase_tax_template(company, template):
+            created_count += 1
+    
+    if created_count > 0:
+        return True
+    else:
+        return False
+
+def create_purchase_tax_template(company, template_data):
+    """
+    Create a single purchase tax template if it doesn't already exist.
+    
+    Args:
+        company (str): The company name
+        template_data (dict): Template data including title and taxes
+    
+    Returns:
+        bool: True if created, False if already exists
+    """
+    title = template_data["title"]
+    is_default = template_data.get("is_default", 0)
+    taxes = template_data["taxes"]
+    
+    # Check if template already exists
+    company_abbr = frappe.get_cached_value("Company", company, "abbr")
+    template_name = f"{title} - {company_abbr}"
+    
+    if frappe.db.exists("Purchase Taxes and Charges Template", template_name):
+        return False
+        
+    # Create new template
+    doc = frappe.new_doc("Purchase Taxes and Charges Template")
+    doc.title = title
+    doc.company = company
+    doc.is_default = is_default
+    
+    # Add tax entries
+    for tax_entry in taxes:
+        doc.append("taxes", {
+            "charge_type": tax_entry["charge_type"],
+            "account_head": tax_entry["account_head"],
+            "description": tax_entry["description"],
+            "rate": tax_entry["rate"],
+            "add_deduct_tax": tax_entry.get("add_deduct_tax", "Add")
+        })
+    
+    try:
+        doc.save()
+        return True
+    except Exception as e:
+        frappe.log_error(f"Error creating tax template {title}: {str(e)}", "ERPNext Cyprus Setup Error")
+        return False
