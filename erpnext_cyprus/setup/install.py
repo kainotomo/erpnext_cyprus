@@ -484,7 +484,13 @@ def create_cyprus_tax_templates(company):
         # Create purchase tax templates
         for template in purchase_templates:
             create_tax_template(template, company, "Purchase Taxes and Charges Template")
-            
+        
+        # After creating all tax templates
+        frappe.db.commit()  # Ensure all templates are saved to the DB
+
+        # Now create tax rules
+        create_cyprus_tax_rules(company)
+        
         frappe.msgprint(_("Cyprus tax templates have been created for company {0}.").format(company))
         
         # Log successful creation
@@ -495,6 +501,142 @@ def create_cyprus_tax_templates(company):
     except Exception as e:
         frappe.log_error(f"Error creating Cyprus tax templates for {company}: {str(e)}", "ERPNext Cyprus Setup Error")
         return False
+
+def create_cyprus_tax_rules(company):
+    """
+    Create Tax Rules for all Cyprus VAT scenarios for the given company, including all OSS countries.
+    """
+    # Ensure Digital Services item group exists
+    digital_services_group = "Digital Services"
+    if not frappe.db.exists("Item Group", {"item_group_name": digital_services_group}):
+        ig_doc = frappe.new_doc("Item Group")
+        ig_doc.item_group_name = digital_services_group
+        ig_doc.is_group = 0
+        ig_doc.insert(ignore_permissions=True)
+
+    # Domestic B2C (Cyprus, Individual)
+    create_tax_rule(
+        company=company,
+        party_type="Customer",
+        country="Cyprus",
+        customer_group="Individual",
+        tax_template="Cyprus VAT 19%",
+        tax_type="Sales"
+    )
+    # Domestic B2B (Cyprus, Commercial)
+    create_tax_rule(
+        company=company,
+        party_type="Customer",
+        country="Cyprus",
+        customer_group="Commercial",
+        tax_template="Cyprus VAT 19%",
+        tax_type="Sales"
+    )
+    # EU B2C (OSS): All EU countries except Cyprus, Individual
+    oss_countries = [
+        ("AT", "Austria", 20), ("BE", "Belgium", 21), ("BG", "Bulgaria", 20), ("HR", "Croatia", 25),
+        ("CZ", "Czech Republic", 21), ("DK", "Denmark", 25), ("EE", "Estonia", 20), ("FI", "Finland", 24),
+        ("FR", "France", 20), ("DE", "Germany", 19), ("GR", "Greece", 24), ("HU", "Hungary", 27),
+        ("IE", "Ireland", 23), ("IT", "Italy", 22), ("LV", "Latvia", 21), ("LT", "Lithuania", 21),
+        ("LU", "Luxembourg", 17), ("MT", "Malta", 18), ("NL", "Netherlands", 21), ("PL", "Poland", 23),
+        ("PT", "Portugal", 23), ("RO", "Romania", 19), ("SK", "Slovakia", 20), ("SI", "Slovenia", 22),
+        ("ES", "Spain", 21), ("SE", "Sweden", 25)
+    ]
+    for code, country, rate in oss_countries:
+        # OSS Goods
+        create_tax_rule(
+            company=company,
+            party_type="Customer",
+            country=country,
+            customer_group="Individual",
+            tax_template=f"EU B2C Sales - Goods - {code}",
+            tax_type="Sales"
+        )
+        # OSS Digital Services (set item_group to Digital Services)
+        create_tax_rule(
+            company=company,
+            party_type="Customer",
+            country=country,
+            customer_group="Individual",
+            tax_template=f"EU B2C Sales - Digital Services - {code}",
+            tax_type="Sales",
+            item_group=digital_services_group
+        )
+    # Non-EU Sale (USA)
+    create_tax_rule(
+        company=company,
+        party_type="Customer",
+        country="United States",
+        tax_template="Non-EU Exports - Zero Rated",
+        tax_type="Sales"
+    )
+    # Domestic Purchase (Cyprus)
+    create_tax_rule(
+        company=company,
+        party_type="Supplier",
+        country="Cyprus",
+        tax_template="Cyprus Purchase VAT 19%",
+        tax_type="Purchase"
+    )
+    # EU Purchase (Germany)
+    create_tax_rule(
+        company=company,
+        party_type="Supplier",
+        country="Germany",
+        tax_template="EU Purchase - Goods - Reverse Charge",
+        tax_type="Purchase"
+    )
+    # Non-EU Purchase (USA)
+    create_tax_rule(
+        company=company,
+        party_type="Supplier",
+        country="United States",
+        tax_template="Import with VAT",
+        tax_type="Purchase"
+    )
+
+def create_tax_rule(company, party_type, country, tax_template, tax_type, customer_group=None, item_group=None):
+    """
+    Create a Tax Rule if it does not already exist, using the correct field for sales or purchase tax template.
+    """
+    # Get company abbreviation
+    company_abbr = frappe.get_cached_value("Company", company, "abbr")
+    # Construct the correct template name as used in ERPNext (Title - Company Abbreviation)
+    template_name = f"{tax_template} - {company_abbr}"
+    filters = {
+        "company": company,
+        "party_type": party_type,
+        "tax_type": tax_type
+    }
+    # Use billing_country for country filter
+    if country:
+        filters["billing_country"] = country
+    if customer_group:
+        filters["customer_group"] = customer_group
+    if item_group:
+        filters["item_group"] = item_group
+    # Determine the correct template field
+    if tax_type == "Sales":
+        filters["sales_tax_template"] = template_name
+    elif tax_type == "Purchase":
+        filters["purchase_tax_template"] = template_name
+    doctype = "Tax Rule"
+    if not frappe.db.exists(doctype, filters):
+        doc = frappe.new_doc(doctype)
+        doc.company = company
+        doc.party_type = party_type
+        doc.tax_type = tax_type
+        if country:
+            doc.billing_country = country
+        if tax_type == "Sales":
+            doc.sales_tax_template = template_name
+        elif tax_type == "Purchase":
+            doc.purchase_tax_template = template_name
+        if customer_group:
+            doc.customer_group = customer_group
+        if item_group:
+            doc.item_group = item_group
+        doc.save(ignore_permissions=True)
 
 def ensure_parent_accounts_exist(company):
     """
