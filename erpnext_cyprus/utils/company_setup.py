@@ -36,9 +36,7 @@ def auto_setup_cyprus_company(doc, method):
         frappe.log_error(f"Error in auto setup for Cyprus company {doc.name}: {str(e)}", 
                         "Cyprus Company Auto Setup Error")
         
-import frappe
-from frappe import _
-
+@frappe.whitelist()
 def setup_cyprus_company(company=None):
     # Set default accounts
     set_cyprus_default_accounts(company)
@@ -54,6 +52,8 @@ def setup_cyprus_company(company=None):
 
     # Create sales tax rules
     create_cyprus_sales_tax_rules(company)
+
+    frappe.msgprint(_("Setup completed for company: {0}").format(company))
 
 def set_cyprus_default_accounts(company_name):
     """

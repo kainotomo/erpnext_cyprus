@@ -141,9 +141,9 @@ doc_events = {
     "Customer": {
         "validate": "erpnext_cyprus.utils.customer_group_assignment.assign_customer_group_based_on_vat"
     },
-    "Company": {
-        "on_update": "erpnext_cyprus.utils.company_setup.auto_setup_cyprus_company"
-    }
+#    "Company": {
+#        "on_update": "erpnext_cyprus.utils.company_setup.auto_setup_cyprus_company"
+#    }
 }
 
 # Scheduled Tasks

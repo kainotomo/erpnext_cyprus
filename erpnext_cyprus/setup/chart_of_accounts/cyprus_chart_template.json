@@ -5,448 +5,860 @@
     "Assets": {
       "Non-current Assets": {
         "Fixed Assets": {
-          "Land and Buildings": {},
-          "Plants and Machinery": {},
-          "Office Equipment": {},
-          "Furniture and Fixtures": {},
-          "Motor Vehicles": {},
-          "Computer Equipment": {},
-          "Accumulated Depreciation": {}
+          "Land and Buildings": {
+            "account_number": "1111"
+          },
+          "Plants and Machinery": {
+            "account_number": "1112"
+          },
+          "Office Equipment": {
+            "account_number": "1113"
+          },
+          "Furniture and Fixtures": {
+            "account_number": "1114"
+          },
+          "Motor Vehicles": {
+            "account_number": "1115"
+          },
+          "Computer Equipment": {
+            "account_number": "1116"
+          },
+          "Accumulated Depreciation": {
+            "account_number": "1119"
+          },
+          "account_number": "111"
         },
         "Intangible Assets": {
-          "Goodwill": {},
-          "Patents and Trademarks": {},
-          "Software": {},
-          "Development Costs": {},
-          "Licenses": {}
+          "Goodwill": {
+            "account_number": "1121"
+          },
+          "Patents and Trademarks": {
+            "account_number": "1122"
+          },
+          "Software": {
+            "account_number": "1123"
+          },
+          "Development Costs": {
+            "account_number": "1124"
+          },
+          "Licenses": {
+            "account_number": "1125"
+          },
+          "account_number": "112"
         },
         "Investments": {
-          "Long-term Investments": {},
-          "Subsidiaries": {},
-          "Associates": {},
-          "Joint Ventures": {}
+          "Long-term Investments": {
+            "account_number": "1131"
+          },
+          "Subsidiaries": {
+            "account_number": "1132"
+          },
+          "Associates": {
+            "account_number": "1133"
+          },
+          "Joint Ventures": {
+            "account_number": "1134"
+          },
+          "account_number": "113"
         },
-        "Deferred Tax Assets": {}
+        "Deferred Tax Assets": {
+          "account_number": "114"
+        },
+        "account_number": "11"
       },
       "Current Assets": {
         "Bank": {
           "account_type": "Bank",
           "Bank Account - Current": {
-            "account_type": "Bank"
+            "account_type": "Bank",
+            "account_number": "1211"
           },
           "Bank Account - Savings": {
-            "account_type": "Bank"
+            "account_type": "Bank",
+            "account_number": "1212"
           },
           "Foreign Currency Accounts": {
             "account_type": "Bank",
             "EUR Account": {
-              "account_type": "Bank"
+              "account_type": "Bank",
+              "account_number": "12131"
             },
             "USD Account": {
-              "account_type": "Bank"
+              "account_type": "Bank",
+              "account_number": "12132"
             },
             "GBP Account": {
-              "account_type": "Bank"
-            }
-          }
+              "account_type": "Bank",
+              "account_number": "12133"
+            },
+            "account_number": "1213"
+          },
+          "account_number": "121"
         },
         "Cash": {
           "account_type": "Cash",
           "Petty Cash": {
-            "account_type": "Cash"
-          }
+            "account_type": "Cash",
+            "account_number": "1221"
+          },
+          "account_number": "122"
         },
         "Accounts Receivable": {
           "account_type": "Receivable",
           "Domestic Customers": {
-            "account_type": "Receivable"
+            "account_type": "Receivable",
+            "account_number": "1231"
           },
           "EU Customers": {
-            "account_type": "Receivable"
+            "account_type": "Receivable",
+            "account_number": "1232"
           },
           "Non-EU Customers": {
-            "account_type": "Receivable"
-          }
+            "account_type": "Receivable",
+            "account_number": "1233"
+          },
+          "account_number": "123"
         },
         "Stock": {
           "account_type": "Stock",
           "Stores": {
-            "account_type": "Stock"
+            "account_type": "Stock",
+            "account_number": "1241"
           },
           "Finished Goods": {
-            "account_type": "Stock"
+            "account_type": "Stock",
+            "account_number": "1242"
           },
           "Work In Progress": {
-            "account_type": "Stock"
+            "account_type": "Stock",
+            "account_number": "1243"
           },
           "Goods In Transit": {
-            "account_type": "Stock"
-          }
+            "account_type": "Stock",
+            "account_number": "1244"
+          },
+          "account_number": "124"
         },
         "Tax": {
           "account_type": "Tax",
           "VAT Input": {
             "account_type": "Tax",
             "Cyprus Standard Rate VAT Input (19%)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "12511"
             },
             "Cyprus Reduced Rate VAT Input (9%)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "12512"
             },
             "Cyprus Reduced Rate VAT Input (5%)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "12513"
             },
             "EU Acquisition VAT Input": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "12514"
             },
             "Import VAT Input": {
-              "account_type": "Tax"
-            }
-          }
+              "account_type": "Tax",
+              "account_number": "12515"
+            },
+            "account_number": "1251"
+          },
+          "account_number": "125"
         },
         "Prepayments": {
-          "Prepaid Insurance": {},
-          "Prepaid Rent": {},
-          "Prepaid Subscriptions": {}
+          "Prepaid Insurance": {
+            "account_number": "1261"
+          },
+          "Prepaid Rent": {
+            "account_number": "1262"
+          },
+          "Prepaid Subscriptions": {
+            "account_number": "1263"
+          },
+          "account_number": "126"
         },
         "Other Current Assets": {
-          "Short-term Deposits": {},
-          "Staff Advances": {},
-          "Security Deposits": {}
-        }
+          "Short-term Deposits": {
+            "account_number": "1281"
+          },
+          "Staff Advances": {
+            "account_number": "1282"
+          },
+          "Security Deposits": {
+            "account_number": "1283"
+          },
+          "account_number": "128"
+        },
+        "account_number": "12"
       },
-      "root_type": "Asset"
+      "root_type": "Asset",
+      "account_number": "1"
     },
     "Liabilities": {
       "Non-current Liabilities": {
         "Long-term Loans": {
-          "Bank Loans": {},
-          "Director's Loans": {},
-          "Other Long-term Loans": {}
+          "Bank Loans": {
+            "account_number": "2111"
+          },
+          "Director's Loans": {
+            "account_number": "2112"
+          },
+          "Other Long-term Loans": {
+            "account_number": "2113"
+          },
+          "account_number": "211"
         },
-        "Bonds": {},
-        "Deferred Tax Liabilities": {},
-        "Lease Liabilities - Non-current": {},
+        "Bonds": {
+          "account_number": "212"
+        },
+        "Deferred Tax Liabilities": {
+          "account_number": "213"
+        },
+        "Lease Liabilities - Non-current": {
+          "account_number": "214"
+        },
         "Employee Benefit Obligations": {
-          "Pension Obligations": {},
-          "Other Long-term Benefits": {}
+          "Pension Obligations": {
+            "account_number": "2151"
+          },
+          "Other Long-term Benefits": {
+            "account_number": "2152"
+          },
+          "account_number": "215"
         },
-        "Provisions - Non-current": {}
+        "Provisions - Non-current": {
+          "account_number": "216"
+        },
+        "account_number": "21"
       },
       "Current Liabilities": {
         "Accounts Payable": {
           "account_type": "Payable",
           "Domestic Suppliers": {
-            "account_type": "Payable"
+            "account_type": "Payable",
+            "account_number": "2211"
           },
           "EU Suppliers": {
-            "account_type": "Payable"
+            "account_type": "Payable",
+            "account_number": "2212"
           },
           "Non-EU Suppliers": {
-            "account_type": "Payable"
-          }
+            "account_type": "Payable",
+            "account_number": "2213"
+          },
+          "account_number": "221"
         },
         "Short-term Loans": {
-          "Bank Overdrafts": {},
-          "Short-term Bank Loans": {}
+          "Bank Overdrafts": {
+            "account_number": "2221"
+          },
+          "Short-term Bank Loans": {
+            "account_number": "2222"
+          },
+          "account_number": "222"
         },
         "Accrued Expenses": {
-          "Accrued Salaries": {},
-          "Accrued Utilities": {},
-          "Other Accrued Expenses": {}
+          "Accrued Salaries": {
+            "account_number": "2231"
+          },
+          "Accrued Utilities": {
+            "account_number": "2232"
+          },
+          "Other Accrued Expenses": {
+            "account_number": "2233"
+          },
+          "account_number": "223"
         },
         "Tax Payable": {
-          "Income Tax Payable": {},
-          "Social Insurance Payable": {},
-          "GESY Contributions Payable": {},
-          "Special Defense Contribution Payable": {},
-          "PAYE Payable": {}
+          "Income Tax Payable": {
+            "account_number": "2241"
+          },
+          "Social Insurance Payable": {
+            "account_number": "2242"
+          },
+          "GESY Contributions Payable": {
+            "account_number": "2243"
+          },
+          "Special Defense Contribution Payable": {
+            "account_number": "2244"
+          },
+          "PAYE Payable": {
+            "account_number": "2245"
+          },
+          "account_number": "224"
         },
         "Tax Liabilities": {
           "account_type": "Tax",
           "VAT Output": {
             "account_type": "Tax",
             "Cyprus Standard Rate VAT Output (19%)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "22511"
             },
             "Cyprus Reduced Rate VAT Output (9%)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "22512"
             },
             "Cyprus Reduced Rate VAT Output (5%)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "22513"
             },
             "EU Reverse Charge VAT Output": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "22514"
             },
             "Self-Supply VAT Output": {
-              "account_type": "Tax"
-            }
+              "account_type": "Tax",
+              "account_number": "22515"
+            },
+            "account_number": "2251"
           },
           "VAT OSS": {
             "account_type": "Tax",
             "VAT OSS AT (Austria)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225201"
             },
             "VAT OSS BE (Belgium)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225202"
             },
             "VAT OSS BG (Bulgaria)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225203"
             },
             "VAT OSS HR (Croatia)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225204"
             },
             "VAT OSS CZ (Czech Republic)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225205"
             },
             "VAT OSS DK (Denmark)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225206"
             },
             "VAT OSS EE (Estonia)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225207"
             },
             "VAT OSS FI (Finland)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225208"
             },
             "VAT OSS FR (France)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225209"
             },
             "VAT OSS DE (Germany)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225210"
             },
             "VAT OSS GR (Greece)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225211"
             },
             "VAT OSS HU (Hungary)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225212"
             },
             "VAT OSS IE (Ireland)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225213"
             },
             "VAT OSS IT (Italy)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225214"
             },
             "VAT OSS LV (Latvia)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225215"
             },
             "VAT OSS LT (Lithuania)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225216"
             },
             "VAT OSS LU (Luxembourg)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225217"
             },
             "VAT OSS MT (Malta)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225218"
             },
             "VAT OSS NL (Netherlands)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225219"
             },
             "VAT OSS PL (Poland)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225220"
             },
             "VAT OSS PT (Portugal)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225221"
             },
             "VAT OSS RO (Romania)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225222"
             },
             "VAT OSS SK (Slovakia)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225223"
             },
             "VAT OSS SI (Slovenia)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225224"
             },
             "VAT OSS ES (Spain)": {
-              "account_type": "Tax"
+              "account_type": "Tax",
+              "account_number": "225225"
             },
             "VAT OSS SE (Sweden)": {
-              "account_type": "Tax"
-            }
+              "account_type": "Tax",
+              "account_number": "225226"
+            },
+            "account_number": "2252"
           },
           "VAT Control": {
-            "account_type": "Tax"
+            "account_type": "Tax",
+            "account_number": "2253"
           },
           "VAT Payable": {
-            "account_type": "Tax"
-          }
+            "account_type": "Tax",
+            "account_number": "2254"
+          },
+          "account_number": "225"
         },
-        "Dividends Payable": {},
-        "Lease Liabilities - Current": {},
-        "Deferred Revenue": {},
-        "Provisions - Current": {}
+        "Dividends Payable": {
+          "account_number": "229"
+        },
+        "Lease Liabilities - Current": {
+          "account_number": "226"
+        },
+        "Deferred Revenue": {
+          "account_number": "227"
+        },
+        "Provisions - Current": {
+          "account_number": "228"
+        },
+        "account_number": "22"
       },
-      "root_type": "Liability"
+      "root_type": "Liability",
+      "account_number": "2"
     },
     "Equity": {
       "Share Capital": {
-        "Ordinary Shares": {},
-        "Preference Shares": {}
+        "Ordinary Shares": {
+          "account_number": "3110"
+        },
+        "Preference Shares": {
+          "account_number": "3120"
+        },
+        "account_number": "31"
       },
-      "Share Premium": {},
+      "Share Premium": {
+        "account_number": "32"
+      },
       "Retained Earnings": {
-        "Prior Year Retained Earnings": {},
-        "Current Year Profit/Loss": {}
+        "Prior Year Retained Earnings": {
+          "account_number": "3310"
+        },
+        "Current Year Profit/Loss": {
+          "account_number": "3320"
+        },
+        "account_number": "33"
       },
       "Other Comprehensive Income": {
-        "Revaluation Surplus": {},
-        "Foreign Currency Translation Reserve": {},
-        "Fair Value Through OCI Reserve": {}
+        "Revaluation Surplus": {
+          "account_number": "3410"
+        },
+        "Foreign Currency Translation Reserve": {
+          "account_number": "3420"
+        },
+        "Fair Value Through OCI Reserve": {
+          "account_number": "3430"
+        },
+        "account_number": "34"
       },
       "Reserves": {
-        "Legal Reserve": {},
-        "Statutory Reserves": {},
-        "General Reserves": {}
+        "Legal Reserve": {
+          "account_number": "3510"
+        },
+        "Statutory Reserves": {
+          "account_number": "3520"
+        },
+        "General Reserves": {
+          "account_number": "3530"
+        },
+        "account_number": "35"
       },
-      "Treasury Shares": {},
-      "root_type": "Equity"
+      "Treasury Shares": {
+        "account_number": "36"
+      },
+      "root_type": "Equity",
+      "account_number": "3"
     },
     "Income": {
       "Sales": {
         "Domestic Sales": {
-          "Goods - Standard Rate (19%)": {},
-          "Goods - Reduced Rate (9%)": {},
-          "Goods - Reduced Rate (5%)": {},
-          "Goods - Zero Rate": {},
-          "Goods - Exempt": {}
+          "Goods - Standard Rate (19%)": {
+            "account_number": "41111"
+          },
+          "Goods - Reduced Rate (9%)": {
+            "account_number": "41112"
+          },
+          "Goods - Reduced Rate (5%)": {
+            "account_number": "41113"
+          },
+          "Goods - Zero Rate": {
+            "account_number": "41114"
+          },
+          "Goods - Exempt": {
+            "account_number": "41115"
+          },
+          "account_number": "4111"
         },
         "EU Sales": {
-          "EU Sales - Goods B2B": {},
-          "EU Sales - Goods B2C": {},
-          "EU Sales - Services B2B": {},
-          "EU Sales - Services B2C": {}
+          "EU Sales - Goods B2B": {
+            "account_number": "4121"
+          },
+          "EU Sales - Goods B2C": {
+            "account_number": "4122"
+          },
+          "EU Sales - Services B2B": {
+            "account_number": "4123"
+          },
+          "EU Sales - Services B2C": {
+            "account_number": "4124"
+          },
+          "account_number": "412"
         },
         "Non-EU Sales": {
-          "Non-EU Exports - Goods": {},
-          "Non-EU Services": {}
+          "Non-EU Exports - Goods": {
+            "account_number": "4131"
+          },
+          "Non-EU Services": {
+            "account_number": "4132"
+          },
+          "account_number": "413"
         },
         "Digital Services - OSS": {
-          "Digital Services - EU B2C": {}
+          "Digital Services - EU B2C": {
+            "account_number": "4141"
+          },
+          "account_number": "414"
         },
-        "Sales Returns": {},
-        "Sales Discounts": {}
+        "Sales Returns": {
+          "account_number": "415"
+        },
+        "Sales Discounts": {
+          "account_number": "416"
+        },
+        "account_number": "41"
       },
       "Service Income": {
         "Domestic Services": {
-          "Services - Standard Rate (19%)": {},
-          "Services - Reduced Rate (9%)": {},
-          "Services - Reduced Rate (5%)": {},
-          "Services - Zero Rate": {},
-          "Services - Exempt": {}
+          "Services - Standard Rate (19%)": {
+            "account_number": "42111"
+          },
+          "Services - Reduced Rate (9%)": {
+            "account_number": "42112"
+          },
+          "Services - Reduced Rate (5%)": {
+            "account_number": "42113"
+          },
+          "Services - Zero Rate": {
+            "account_number": "42114"
+          },
+          "Services - Exempt": {
+            "account_number": "42115"
+          },
+          "account_number": "4211"
         },
-        "EU Services": {},
-        "Non-EU Services": {}
+        "EU Services": {
+          "account_number": "422"
+        },
+        "Non-EU Services": {
+          "account_number": "423"
+        },
+        "account_number": "42"
       },
       "Interest Income": {
-        "Bank Interest Income": {},
-        "Loan Interest Income": {}
+        "Bank Interest Income": {
+          "account_number": "4310"
+        },
+        "Loan Interest Income": {
+          "account_number": "4320"
+        },
+        "account_number": "43"
       },
-      "Dividend Income": {},
-      "Rental Income": {},
-      "Foreign Exchange Gains": {},
+      "Dividend Income": {
+        "account_number": "44"
+      },
+      "Rental Income": {
+        "account_number": "45"
+      },
+      "Foreign Exchange Gains": {
+        "account_number": "46"
+      },
       "Other Income": {
-        "Government Grants": {},
-        "Profit on Sale of Assets": {},
-        "Miscellaneous Income": {}
+        "Government Grants": {
+          "account_number": "4710"
+        },
+        "Profit on Sale of Assets": {
+          "account_number": "4720"
+        },
+        "Miscellaneous Income": {
+          "account_number": "4730"
+        },
+        "account_number": "47"
       },
-      "root_type": "Income"
+      "root_type": "Income",
+      "account_number": "4"
     },
     "Expenses": {
       "Cost of Goods Sold": {
-        "Domestic COGS": {},
-        "EU Acquisitions COGS": {},
-        "Import COGS": {},
-        "Purchase Returns": {},
-        "Purchase Discounts": {}
+        "Domestic COGS": {
+          "account_number": "5110"
+        },
+        "EU Acquisitions COGS": {
+          "account_number": "5120"
+        },
+        "Import COGS": {
+          "account_number": "5130"
+        },
+        "Purchase Returns": {
+          "account_number": "5140"
+        },
+        "Purchase Discounts": {
+          "account_number": "5150"
+        },
+        "account_number": "51"
       },
       "Salaries and Wages": {
-        "Basic Salaries": {},
-        "Overtime": {},
-        "Bonuses": {},
-        "Employer Social Insurance Contributions": {},
-        "Employer GESY Contributions": {},
-        "Other Employment Costs": {}
+        "Basic Salaries": {
+          "account_number": "5210"
+        },
+        "Overtime": {
+          "account_number": "5220"
+        },
+        "Bonuses": {
+          "account_number": "5230"
+        },
+        "Employer Social Insurance Contributions": {
+          "account_number": "5240"
+        },
+        "Employer GESY Contributions": {
+          "account_number": "5250"
+        },
+        "Other Employment Costs": {
+          "account_number": "5260"
+        },
+        "account_number": "52"
       },
-      "Office Rent": {},
+      "Office Rent": {
+        "account_number": "53"
+      },
       "Utilities": {
-        "Electricity": {},
-        "Water": {},
-        "Internet and Telecommunications": {},
-        "Gas": {}
+        "Electricity": {
+          "account_number": "5410"
+        },
+        "Water": {
+          "account_number": "5420"
+        },
+        "Internet and Telecommunications": {
+          "account_number": "5430"
+        },
+        "Gas": {
+          "account_number": "5440"
+        },
+        "account_number": "54"
       },
       "Advertising and Promotion": {
-        "Online Advertising": {},
-        "Print Media": {},
-        "Events and Exhibitions": {},
-        "Promotional Materials": {}
+        "Online Advertising": {
+          "account_number": "5510"
+        },
+        "Print Media": {
+          "account_number": "5520"
+        },
+        "Events and Exhibitions": {
+          "account_number": "5530"
+        },
+        "Promotional Materials": {
+          "account_number": "5540"
+        },
+        "account_number": "55"
       },
       "Travel Expenses": {
-        "Domestic Travel": {},
-        "International Travel": {},
-        "Accommodation": {},
-        "Subsistence": {}
+        "Domestic Travel": {
+          "account_number": "5610"
+        },
+        "International Travel": {
+          "account_number": "5620"
+        },
+        "Accommodation": {
+          "account_number": "5630"
+        },
+        "Subsistence": {
+          "account_number": "5640"
+        },
+        "account_number": "56"
       },
       "Depreciation": {
-        "Depreciation of Buildings": {},
-        "Depreciation of Plant and Machinery": {},
-        "Depreciation of Motor Vehicles": {},
-        "Depreciation of Office Equipment": {},
-        "Depreciation of Computer Equipment": {}
+        "Depreciation of Buildings": {
+          "account_number": "5710"
+        },
+        "Depreciation of Plant and Machinery": {
+          "account_number": "5720"
+        },
+        "Depreciation of Motor Vehicles": {
+          "account_number": "5730"
+        },
+        "Depreciation of Office Equipment": {
+          "account_number": "5740"
+        },
+        "Depreciation of Computer Equipment": {
+          "account_number": "5750"
+        },
+        "account_number": "57"
       },
       "Amortization": {
-        "Amortization of Software": {},
-        "Amortization of Patents and Trademarks": {},
-        "Amortization of Goodwill": {}
+        "Amortization of Software": {
+          "account_number": "5810"
+        },
+        "Amortization of Patents and Trademarks": {
+          "account_number": "5820"
+        },
+        "Amortization of Goodwill": {
+          "account_number": "5830"
+        },
+        "account_number": "58"
       },
       "Maintenance": {
-        "Building Maintenance": {},
-        "Equipment Maintenance": {},
-        "Vehicle Maintenance": {},
-        "Software Maintenance": {}
+        "Building Maintenance": {
+          "account_number": "5910"
+        },
+        "Equipment Maintenance": {
+          "account_number": "5920"
+        },
+        "Vehicle Maintenance": {
+          "account_number": "5930"
+        },
+        "Software Maintenance": {
+          "account_number": "5940"
+        },
+        "account_number": "59"
       },
       "Interest Expense": {
-        "Bank Loan Interest": {},
-        "Overdraft Interest": {},
-        "Finance Lease Interest": {}
+        "Bank Loan Interest": {
+          "account_number": "6010"
+        },
+        "Overdraft Interest": {
+          "account_number": "6020"
+        },
+        "Finance Lease Interest": {
+          "account_number": "6030"
+        },
+        "account_number": "60"
       },
       "Professional Fees": {
-        "Audit Fees": {},
-        "Legal Fees": {},
-        "Consulting Fees": {},
-        "Accounting Fees": {}
+        "Audit Fees": {
+          "account_number": "6110"
+        },
+        "Legal Fees": {
+          "account_number": "6120"
+        },
+        "Consulting Fees": {
+          "account_number": "6130"
+        },
+        "Accounting Fees": {
+          "account_number": "6140"
+        },
+        "account_number": "61"
       },
       "Tax Expense": {
-        "Corporation Tax": {},
-        "Special Contribution": {},
-        "Deferred Tax": {},
-        "Non-Deductible VAT": {}
+        "Corporation Tax": {
+          "account_number": "6210"
+        },
+        "Special Contribution": {
+          "account_number": "6220"
+        },
+        "Deferred Tax": {
+          "account_number": "6230"
+        },
+        "Non-Deductible VAT": {
+          "account_number": "6240"
+        },
+        "account_number": "62"
       },
-      "Foreign Exchange Losses": {},
+      "Foreign Exchange Losses": {
+        "account_number": "63"
+      },
       "Impairment Losses": {
-        "Impairment of Receivables": {},
-        "Impairment of Investments": {},
-        "Impairment of Assets": {}
+        "Impairment of Receivables": {
+          "account_number": "6410"
+        },
+        "Impairment of Investments": {
+          "account_number": "6420"
+        },
+        "Impairment of Assets": {
+          "account_number": "6430"
+        },
+        "account_number": "64"
       },
       "Miscellaneous Expenses": {
-        "Bank Charges": {},
-        "Insurance": {},
-        "Staff Welfare": {},
-        "Subscriptions": {},
-        "General Office Expenses": {}
+        "Bank Charges": {
+          "account_number": "6510"
+        },
+        "Insurance": {
+          "account_number": "6520"
+        },
+        "Staff Welfare": {
+          "account_number": "6530"
+        },
+        "Subscriptions": {
+          "account_number": "6540"
+        },
+        "General Office Expenses": {
+          "account_number": "6550"
+        },
+        "account_number": "65"
       },
-      "root_type": "Expense"
+      "root_type": "Expense",
+      "account_number": "5"
     },
     "Temporary": {
-      "Opening Balances Adjustments": {},
-      "Exchange Rate Adjustments": {},
-      "Closing Entries": {},
-      "root_type": "Asset"
+      "Opening Balances Adjustments": {
+        "account_number": "9100"
+      },
+      "Exchange Rate Adjustments": {
+        "account_number": "9200"
+      },
+      "Closing Entries": {
+        "account_number": "9300"
+      },
+      "root_type": "Asset",
+      "account_number": "9"
     },
     "Reporting": {
       "EU Trade Tracking": {
-        "EU B2B Goods Supplied": {},
-        "EU B2B Services Supplied": {},
-        "EU B2B Goods Acquired": {},
-        "EU B2B Services Acquired": {}
+        "EU B2B Goods Supplied": {
+          "account_number": "1271"
+        },
+        "EU B2B Services Supplied": {
+          "account_number": "1272"
+        },
+        "EU B2B Goods Acquired": {
+          "account_number": "1273"
+        },
+        "EU B2B Services Acquired": {
+          "account_number": "1274"
+        },
+        "account_number": "127"
       },
       "root_type": "Asset"
     }

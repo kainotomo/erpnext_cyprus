@@ -2,7 +2,37 @@ frappe.ui.form.on('Company', {
     refresh: function (frm) {
         // Only show Cyprus-specific features for Cyprus companies
         if (!frm.doc.__islocal && frm.doc.country === "Cyprus") {
-            
+            // Add "Setup Cyprus Company" to Cyprus Features dropdown
+            frm.add_custom_button(__('Finish Setup'), function() {
+                frappe.call({
+                    method: "erpnext_cyprus.utils.company_setup.setup_cyprus_company",
+                    args: {
+                        company: frm.doc.name
+                    },
+                    callback: function(r) {
+                        if (r.message && r.message.status === "success") {
+                            frappe.msgprint({
+                                title: __('Success'),
+                                indicator: 'green',
+                                message: r.message.message
+                            });
+                        } else if (r.message && r.message.status === "error") {
+                            frappe.msgprint({
+                                title: __('Error'),
+                                indicator: 'red',
+                                message: r.message.message
+                            });
+                        } else {
+                            frappe.msgprint({
+                                title: __('Error'),
+                                indicator: 'red',
+                                message: __('Failed to create Cyprus tax templates.')
+                            });
+                        }
+                    }
+                });
+            }, __("Cyprus Features"));
+
             // Add "Create Sample Data" to Cyprus Features dropdown
             frm.add_custom_button(__('Create Sample Data'), function () {
                 frappe.confirm(
