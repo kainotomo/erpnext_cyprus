@@ -48,6 +48,68 @@ frappe.ui.form.on('Company', {
                     }
                 });
             }, __("Cyprus Features"));
+
+            // Add "Create Sample Data" to Cyprus Features dropdown
+            frm.add_custom_button(__('Create Sample Data'), function () {
+                frappe.confirm(
+                    __('Are you sure you want to create sample data for this company?'),
+                    function () {
+                        frappe.call({
+                            method: "erpnext_cyprus.setup.sample_data.create_sample_data",
+                            args: {
+                                company: frm.doc.name
+                            },
+                            callback: function (response) {
+                                if (response.message && response.message.status === "success") {
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        indicator: 'green',
+                                        message: response.message.message
+                                    });
+                                    frm.reload_doc();
+                                } else {
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        indicator: 'red',
+                                        message: response.message ? response.message.message : __('Failed to create sample data.')
+                                    });
+                                }
+                            }
+                        });
+                    }
+                );
+            }, __("Cyprus Features"));
+
+            // Add "Delete Sample Data" to Cyprus Features dropdown
+            frm.add_custom_button(__('Delete Sample Data'), function () {
+                frappe.confirm(
+                    __('Are you sure you want to delete all sample data for this company?'),
+                    function () {
+                        frappe.call({
+                            method: "erpnext_cyprus.setup.sample_data.delete_sample_data",
+                            args: {
+                                company: frm.doc.name
+                            },
+                            callback: function (response) {
+                                if (response.message && response.message.status === "success") {
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        indicator: 'green',
+                                        message: response.message.message
+                                    });
+                                    frm.reload_doc();
+                                } else {
+                                    frappe.msgprint({
+                                        title: __('Error'),
+                                        indicator: 'red',
+                                        message: response.message ? response.message.message : __('Failed to delete sample data.')
+                                    });
+                                }
+                            }
+                        });
+                    }
+                );
+            }, __("Cyprus Features"));
         }
     },
     
