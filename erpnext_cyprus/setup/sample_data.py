@@ -59,6 +59,33 @@ def create_sample_data(company):
 
     # --- Suppliers ---
     # Create Cyprus, EU, and Non-EU suppliers
+    suppliers = [
+        {
+            "supplier_name": "Cyprus Supplier",
+            "supplier_type": "Company",
+            "country": "Cyprus",
+            "tax_id": "CY87654321B"
+        },
+        {
+            "supplier_name": "EU Supplier",
+            "supplier_type": "Company",
+            "country": "Germany",
+            "tax_id": "DE987654321"
+        },
+        {
+            "supplier_name": "Non-EU Supplier",
+            "supplier_type": "Company",
+            "country": "United States",
+            "tax_id": "US98-7654321"
+        }
+    ]
+    for supp in suppliers:
+        if not frappe.db.exists("Supplier", {"supplier_name": supp["supplier_name"]}):
+            doc = frappe.get_doc({
+                "doctype": "Supplier",
+                **supp
+            })
+            doc.insert(ignore_permissions=True)
 
     # --- Items ---
     # Create sample goods and services with different VAT rates
@@ -139,6 +166,18 @@ def delete_sample_data(company):
 
     # --- Suppliers ---
     # Delete sample suppliers
+    suppliers = [
+        {"supplier_name": "Cyprus Supplier"},
+        {"supplier_name": "EU Supplier"},
+        {"supplier_name": "Non-EU Supplier"}
+    ]
+    for supp in suppliers:
+        supplier_name = frappe.db.get_value("Supplier", {"supplier_name": supp["supplier_name"]}, "name")
+        if supplier_name:
+            try:
+                frappe.delete_doc("Supplier", supplier_name, ignore_permissions=True)
+            except frappe.LinkExistsError:
+                pass
 
     # --- Items ---
     # Delete sample items
