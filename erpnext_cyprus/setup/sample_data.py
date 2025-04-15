@@ -15,7 +15,7 @@ def create_sample_data(company):
             "customer_type": "Company",
             "customer_group": "Commercial",
             "country": "Cyprus",
-            "tax_id": "CY12345678A",
+            "tax_id": "CY10340430X",
             "company": company
         },
         {
@@ -30,7 +30,7 @@ def create_sample_data(company):
             "customer_type": "Company",
             "customer_group": "Commercial",
             "country": "Germany",
-            "tax_id": "DE123456789",
+            "tax_id": "DE813164483",
             "company": company
         },
         {
