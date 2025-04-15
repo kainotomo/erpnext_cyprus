@@ -137,13 +137,11 @@ before_uninstall = "erpnext_cyprus.setup.uninstall.before_uninstall"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Customer": {
+        "validate": "erpnext_cyprus.utils.customer_group_assignment.assign_customer_group_based_on_vat"
+    }
+}
 
 # Scheduled Tasks
 # ---------------
