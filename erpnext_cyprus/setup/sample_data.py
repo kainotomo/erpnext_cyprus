@@ -515,6 +515,10 @@ def create_sales_invoice(title, customer, items, posting_date, company):
     invoice.customer_group = customer_doc.customer_group
     invoice.territory = "All Territories"
     
+    # Copy tax_id from customer to invoice if available
+    if customer_doc.tax_id:
+        invoice.tax_id = customer_doc.tax_id
+    
     # Add items to invoice
     for item in items:
         invoice.append("items", {
@@ -750,6 +754,10 @@ def create_purchase_invoice(title, supplier, items, tax_template, posting_date, 
 	invoice.set_posting_time = 1
 	invoice.bill_no = f"{title[:20]}-001"
 	invoice.bill_date = posting_date
+	
+	# Copy tax_id from supplier to invoice if available
+	if supplier_doc.tax_id:
+		invoice.tax_id = supplier_doc.tax_id
 
 	for item in items:
 		invoice.append("items", {

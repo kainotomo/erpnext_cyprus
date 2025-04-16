@@ -60,13 +60,20 @@ def get_vies_entries(company, from_date, to_date, cost_center):
 		"company = %s",
 		"posting_date >= %s",
 		"posting_date <= %s",
-		"status = 'Paid'",
-		"docstatus = 1",
-		"total_taxes_and_charges = 0",
-		"tax_id IS NOT NULL AND tax_id != ''"
+		"docstatus = 1"
 	]
 	values = [company, from_date, to_date]
 
+	# Add status filter (only Paid invoices normally qualify for VIES)
+	conditions.append("status = 'Paid'")
+	
+	# VIES reporting requires zero-rated VAT for EU B2B transactions 
+	conditions.append("total_taxes_and_charges = 0")
+	
+	# EU B2B transactions must have a valid Tax ID
+	conditions.append("tax_id IS NOT NULL AND tax_id != ''")
+	
+	# Add any additional filters
 	if cost_center:
 		conditions.append("cost_center = %s")
 		values.append(cost_center)
