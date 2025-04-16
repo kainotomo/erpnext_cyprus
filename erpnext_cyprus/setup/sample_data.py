@@ -748,6 +748,7 @@ def delete_sample_data(company):
 	Delete sample data for the given company. This includes items, sales invoices, customers and suppliers.
 	"""
 	# Delete in the correct order to avoid reference issues
+	delete_purchase_invoices(company)
 	delete_sales_invoices(company)
 	delete_items(company)
 	delete_customers(company)
@@ -860,3 +861,20 @@ def delete_sales_invoices(company):
 				frappe.delete_doc("Sales Invoice", invoice)
 	except Exception as e:
 		frappe.log_error(f"Failed to delete sales invoices for company {company}: {str(e)}")
+
+def delete_purchase_invoices(company):
+    try:
+        # Get all submitted purchase invoices for the company
+        invoices = frappe.get_all("Purchase Invoice", 
+            filters={"company": company, "docstatus": 1},
+            pluck="name")
+        
+        # Cancel and delete each invoice
+        for invoice in invoices:
+            if frappe.db.exists("Purchase Invoice", invoice):
+                doc = frappe.get_doc("Purchase Invoice", invoice)
+                if doc.docstatus == 1:
+                    doc.cancel()
+                frappe.delete_doc("Purchase Invoice", invoice)
+    except Exception as e:
+        frappe.log_error(f"Failed to delete purchase invoices for company {company}: {str(e)}")
