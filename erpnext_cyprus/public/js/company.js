@@ -4,7 +4,7 @@ frappe.ui.form.on('Company', {
         if (!frm.doc.__islocal && frm.doc.country === "Cyprus") {
             // Add "Setup Cyprus Company" to Cyprus Features dropdown
             frm.add_custom_button(__('Finalize Setup'), function() {
-                frappe.dom.freeze(__('Extracting data from document...'));
+                frappe.dom.freeze(__('Creating data for company...'));
 
                 frappe.call({
                     method: "erpnext_cyprus.utils.company_setup.setup_cyprus_company",
@@ -44,12 +44,14 @@ frappe.ui.form.on('Company', {
                 frappe.confirm(
                     __('Are you sure you want to create sample data for this company?'),
                     function () {
+                        frappe.dom.freeze(__('Creating data for company...'));
                         frappe.call({
                             method: "erpnext_cyprus.setup.sample_data.create_sample_data",
                             args: {
                                 company: frm.doc.name
                             },
                             callback: function (response) {
+                                frappe.dom.unfreeze();
                                 if (response.message && response.message.status === "success") {
                                     frappe.msgprint({
                                         title: __('Success'),
@@ -64,6 +66,9 @@ frappe.ui.form.on('Company', {
                                         message: response.message ? response.message.message : __('Failed to create sample data.')
                                     });
                                 }
+                            },
+                            error: function() {
+                                frappe.dom.unfreeze();
                             }
                         });
                     }
@@ -75,12 +80,14 @@ frappe.ui.form.on('Company', {
                 frappe.confirm(
                     __('Are you sure you want to delete all sample data for this company?'),
                     function () {
+                        frappe.dom.freeze(__('Creating data for company...'));
                         frappe.call({
                             method: "erpnext_cyprus.setup.sample_data.delete_sample_data",
                             args: {
                                 company: frm.doc.name
                             },
                             callback: function (response) {
+                                frappe.dom.unfreeze();
                                 if (response.message && response.message.status === "success") {
                                     frappe.msgprint({
                                         title: __('Success'),
@@ -95,6 +102,9 @@ frappe.ui.form.on('Company', {
                                         message: response.message ? response.message.message : __('Failed to delete sample data.')
                                     });
                                 }
+                            },
+                            error: function() {
+                                frappe.dom.unfreeze();
                             }
                         });
                     }
