@@ -15,6 +15,7 @@ def create_sample_data(company):
 	create_suppliers(company)
 	create_items(company)
 	create_sales_invoices(company)
+	create_purchase_invoices(company)
 	
 	return {"message": "Sample data created successfully"}
 
@@ -530,6 +531,215 @@ def create_sales_invoice(title, customer, items, posting_date, company):
 		frappe.db.commit()
 	except Exception as e:
 		frappe.log_error(f"Failed to create invoice {title}: {str(e)}")
+		frappe.db.rollback()
+
+def create_purchase_invoices(company):
+	"""
+	Create sample purchase invoices covering all Cyprus, EU, and Non-EU tax scenarios
+	"""
+	posting_date = add_days(nowdate(), -10)
+
+	# 1. Domestic Purchases - Standard Rate (19%)
+	create_purchase_invoice(
+		title="Cyprus Standard Rate Purchase Invoice",
+		supplier="Cyprus Supplier",
+		items=[{"item_code": "CY-STD-ITEM", "qty": 2, "rate": 100}],
+		tax_template="Cyprus Purchase VAT 19%",
+		posting_date=posting_date,
+		company=company
+	)
+
+	# 2. Domestic Purchases - Reduced Rate (9%)
+	create_purchase_invoice(
+		title="Cyprus Reduced Rate 9% Purchase Invoice",
+		supplier="Cyprus Reduced Rate Supplier",
+		items=[{"item_code": "CY-RED9-ITEM", "qty": 1, "rate": 50}],
+		tax_template="Cyprus Purchase VAT 9%",
+		posting_date=add_days(posting_date, 1),
+		company=company
+	)
+
+	# 3. Domestic Purchases - Reduced Rate (5%)
+	create_purchase_invoice(
+		title="Cyprus Reduced Rate 5% Purchase Invoice",
+		supplier="Cyprus Reduced Rate Supplier",
+		items=[{"item_code": "CY-RED5-ITEM", "qty": 1, "rate": 40}],
+		tax_template="Cyprus Purchase VAT 5%",
+		posting_date=add_days(posting_date, 2),
+		company=company
+	)
+
+	# 4. Domestic Purchases - Zero Rated
+	create_purchase_invoice(
+		title="Cyprus Zero Rated Purchase Invoice",
+		supplier="Cyprus Supplier",
+		items=[{"item_code": "CY-ZERO-ITEM", "qty": 1, "rate": 75}],
+		tax_template="Cyprus Purchase VAT 0% (Zero Rated)",
+		posting_date=add_days(posting_date, 3),
+		company=company
+	)
+
+	# 5. Domestic Purchases - Exempt
+	create_purchase_invoice(
+		title="Cyprus Exempt Purchase Invoice",
+		supplier="Cyprus Exempt Supplier",
+		items=[{"item_code": "CY-EXEMPT-ITEM", "qty": 1, "rate": 60}],
+		tax_template="Cyprus Purchase VAT Exempt",
+		posting_date=add_days(posting_date, 4),
+		company=company
+	)
+
+	# 6. EU Purchases - Goods (Reverse Charge)
+	create_purchase_invoice(
+		title="EU Goods Purchase Invoice",
+		supplier="EU Supplier - Germany",
+		items=[{"item_code": "EU-GOODS-ITEM", "qty": 2, "rate": 120}],
+		tax_template="EU Purchase - Goods - Reverse Charge",
+		posting_date=add_days(posting_date, 5),
+		company=company
+	)
+
+	# 7. EU Purchases - Services (Reverse Charge)
+	create_purchase_invoice(
+		title="EU Services Purchase Invoice",
+		supplier="EU Supplier - France",
+		items=[{"item_code": "EU-SERVICE-ITEM", "qty": 1, "rate": 150}],
+		tax_template="EU Purchase - Services - Reverse Charge",
+		posting_date=add_days(posting_date, 6),
+		company=company
+	)
+
+	# 8. EU Purchases - Digital Services (Reverse Charge)
+	create_purchase_invoice(
+		title="EU Digital Services Purchase Invoice",
+		supplier="EU Supplier - Germany",
+		items=[{"item_code": "EU-DIGITAL-ITEM", "qty": 2, "rate": 25}],
+		tax_template="EU Digital Services - Reverse Charge",
+		posting_date=add_days(posting_date, 7),
+		company=company
+	)
+
+	# 9. EU Purchases - Triangulation
+	create_purchase_invoice(
+		title="EU Triangulation Purchase Invoice",
+		supplier="EU Supplier - Germany",
+		items=[{"item_code": "EU-GOODS-ITEM", "qty": 1, "rate": 120}],
+		tax_template="Purchase - Triangulation",
+		posting_date=add_days(posting_date, 8),
+		company=company
+	)
+
+	# 10. Non-EU Purchases - Import with VAT
+	create_purchase_invoice(
+		title="Non-EU Import with VAT Purchase Invoice",
+		supplier="Non-EU Supplier",
+		items=[{"item_code": "NON-EU-GOODS-ITEM", "qty": 1, "rate": 130}],
+		tax_template="Import with VAT",
+		posting_date=add_days(posting_date, 9),
+		company=company
+	)
+
+	# 11. Non-EU Purchases - Services (Reverse Charge)
+	create_purchase_invoice(
+		title="Non-EU Services Purchase Invoice",
+		supplier="Non-EU Supplier",
+		items=[{"item_code": "NON-EU-SERVICE-ITEM", "qty": 1, "rate": 160}],
+		tax_template="EU Purchase - Services - Reverse Charge",
+		posting_date=add_days(posting_date, 10),
+		company=company
+	)
+
+	# 12. Non-EU Purchases - Digital Services (Reverse Charge)
+	create_purchase_invoice(
+		title="Non-EU Digital Services Purchase Invoice",
+		supplier="Non-EU Supplier",
+		items=[{"item_code": "EU-DIGITAL-ITEM", "qty": 1, "rate": 25}],
+		tax_template="Non-EU Digital Services - Reverse Charge",
+		posting_date=add_days(posting_date, 11),
+		company=company
+	)
+
+	# 13. Non-Deductible VAT
+	create_purchase_invoice(
+		title="Non-Deductible VAT Purchase Invoice",
+		supplier="Cyprus Supplier",
+		items=[{"item_code": "CY-STD-ITEM", "qty": 1, "rate": 100}],
+		tax_template="Purchase with Non-Deductible VAT",
+		posting_date=add_days(posting_date, 12),
+		company=company
+	)
+
+	# 14. Partial VAT Deduction (50%)
+	create_purchase_invoice(
+		title="Partial VAT Deduction Purchase Invoice",
+		supplier="Cyprus Supplier",
+		items=[{"item_code": "CY-STD-ITEM", "qty": 1, "rate": 100}],
+		tax_template="Purchase with Partial VAT Deduction (50%)",
+		posting_date=add_days(posting_date, 13),
+		company=company
+	)
+
+	# 15. Mixed VAT Rates on Single Invoice
+	create_purchase_invoice(
+		title="Mixed VAT Rates Purchase Invoice",
+		supplier="Cyprus Supplier",
+		items=[
+			{"item_code": "CY-STD-ITEM", "qty": 1, "rate": 100},
+			{"item_code": "CY-RED9-ITEM", "qty": 1, "rate": 50},
+			{"item_code": "CY-RED5-ITEM", "qty": 1, "rate": 40}
+		],
+		tax_template=None,  # Let system auto-assign per item
+		posting_date=add_days(posting_date, 14),
+		company=company
+	)
+
+
+def create_purchase_invoice(title, supplier, items, tax_template, posting_date, company):
+	"""
+	Helper to create a purchase invoice for sample data
+	"""
+	if frappe.db.exists("Purchase Invoice", {"title": title, "company": company}):
+		return
+
+	supplier_doc = frappe.get_doc("Supplier", {"supplier_name": supplier})
+
+	invoice = frappe.new_doc("Purchase Invoice")
+	invoice.title = title
+	invoice.supplier = supplier_doc.name
+	invoice.company = company
+	invoice.posting_date = posting_date
+	invoice.due_date = add_days(posting_date, 30)
+	invoice.set_posting_time = 1
+	invoice.bill_no = f"{title[:20]}-001"
+	invoice.bill_date = posting_date
+
+	for item in items:
+		invoice.append("items", {
+			"item_code": item["item_code"],
+			"qty": item["qty"],
+			"rate": item["rate"]
+			})
+
+	# Instead of setting explicit tax template, save first and let tax rules apply
+	# If a specific template is needed for testing/debugging, we can uncomment the below code
+	# if tax_template:
+	#    invoice.taxes_and_charges = f"{tax_template} - {company}"
+
+	try:
+		# First save without setting taxes manually, so tax rules can apply
+		invoice.insert(ignore_permissions=True)
+		
+		# If you need to set taxes explicitly for testing (bypassing rules)
+		# Uncomment this section
+		# if tax_template:
+		#    invoice.taxes_and_charges = f"{tax_template} - {company}"
+		#    invoice.set_taxes()
+		#    invoice.save()
+		
+		invoice.submit()
+		frappe.db.commit()
+	except Exception as e:
+		frappe.log_error(f"Failed to create purchase invoice {title}: {str(e)}")
 		frappe.db.rollback()
 
 @frappe.whitelist()
