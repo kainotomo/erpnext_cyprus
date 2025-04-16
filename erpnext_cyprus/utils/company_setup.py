@@ -166,7 +166,7 @@ def create_purchase_tax_templates(company):
         # Standard domestic rates
         {
             "title": "Cyprus Purchase VAT 19%",
-            "is_default": 1,
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Standard Rate VAT Input (19%)", company),
@@ -177,6 +177,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "Cyprus Purchase VAT 9%",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Reduced Rate VAT Input (9%)", company),
@@ -187,6 +188,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "Cyprus Purchase VAT 5%",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Reduced Rate VAT Input (5%)", company),
@@ -197,6 +199,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "Cyprus Purchase VAT 0% (Zero Rated)",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -206,6 +209,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "Cyprus Purchase VAT Exempt",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -217,6 +221,7 @@ def create_purchase_tax_templates(company):
         # EU purchases
         {
             "title": "EU Purchase - Goods - Reverse Charge",
+            "is_default": 0,
             "taxes": [
                 {
                     "charge_type": "On Net Total",
@@ -236,6 +241,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "EU Purchase - Services - Reverse Charge",
+            "is_default": 0,
             "taxes": [
                 {
                     "charge_type": "On Net Total",
@@ -257,6 +263,7 @@ def create_purchase_tax_templates(company):
         # Non-EU purchases
         {
             "title": "Import with VAT",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Import VAT Input", company),
@@ -269,6 +276,7 @@ def create_purchase_tax_templates(company):
         # Special cases
         {
             "title": "Purchase with Non-Deductible VAT",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Non-Deductible VAT", company),
@@ -279,6 +287,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "Purchase with Partial VAT Deduction (50%)",
+            "is_default": 0,
             "taxes": [
                 {
                     "charge_type": "On Net Total",
@@ -298,6 +307,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "Purchase - Triangulation",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -309,6 +319,7 @@ def create_purchase_tax_templates(company):
         # Digital services specific
         {
             "title": "EU Digital Services - Reverse Charge",
+            "is_default": 0,
             "taxes": [
                 {
                     "charge_type": "On Net Total",
@@ -328,6 +339,7 @@ def create_purchase_tax_templates(company):
         },
         {
             "title": "Non-EU Digital Services - Reverse Charge",
+            "is_default": 0,
             "taxes": [
                 {
                     "charge_type": "On Net Total",
@@ -457,7 +469,7 @@ def create_sales_tax_templates(company):
         # Domestic sales
         {
             "title": "Cyprus Sales VAT 19%",
-            "is_default": 1,
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Standard Rate VAT Output (19%)", company),
@@ -468,6 +480,7 @@ def create_sales_tax_templates(company):
         },
         {
             "title": "Cyprus Sales VAT 9%",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Reduced Rate VAT Output (9%)", company),
@@ -478,6 +491,7 @@ def create_sales_tax_templates(company):
         },
         {
             "title": "Cyprus Sales VAT 5%",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Reduced Rate VAT Output (5%)", company),
@@ -488,6 +502,7 @@ def create_sales_tax_templates(company):
         },
         {
             "title": "Cyprus Sales VAT 0% (Zero Rated)",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -497,6 +512,7 @@ def create_sales_tax_templates(company):
         },
         {
             "title": "Cyprus Sales VAT Exempt",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -508,6 +524,7 @@ def create_sales_tax_templates(company):
         # EU B2B sales
         {
             "title": "EU B2B Goods - Zero Rated",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -517,6 +534,7 @@ def create_sales_tax_templates(company):
         },
         {
             "title": "EU B2B Services - Zero Rated",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -528,6 +546,7 @@ def create_sales_tax_templates(company):
         # EU B2C threshold sales
         {
             "title": "EU B2C Goods - Below Threshold",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Standard Rate VAT Output (19%)", company),
@@ -540,6 +559,7 @@ def create_sales_tax_templates(company):
         # Non-EU
         {
             "title": "Export of Goods - Zero Rated",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -549,6 +569,7 @@ def create_sales_tax_templates(company):
         },
         {
             "title": "Export of Services - Zero Rated",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -560,6 +581,7 @@ def create_sales_tax_templates(company):
         # Special cases
         {
             "title": "Triangulation Sales",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("VAT Control", company),
@@ -569,6 +591,7 @@ def create_sales_tax_templates(company):
         },
         {
             "title": "Margin Scheme Sales",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account("Cyprus Standard Rate VAT Output (19%)", company),
@@ -587,6 +610,7 @@ def create_sales_tax_templates(company):
         # Digital services template
         templates.append({
             "title": f"EU B2C Digital Services - {country}",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account(f"VAT OSS {code} ({country})", company),
@@ -599,6 +623,7 @@ def create_sales_tax_templates(company):
         # Goods template for OSS
         templates.append({
             "title": f"EU B2C Goods - {country}",
+            "is_default": 0,
             "taxes": [{
                 "charge_type": "On Net Total",
                 "account_head": find_account(f"VAT OSS {code} ({country})", company),
