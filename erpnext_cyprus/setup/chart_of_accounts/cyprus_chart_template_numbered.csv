@@ -18,9 +18,9 @@ Treasury Shares,Equity,36,3,1,,Equity,EUR
 Sales,Income,41,4,1,,Income,EUR
 Service Income,Income,42,4,1,,Income,EUR
 Interest Income,Income,43,4,1,,Income,EUR
-Dividend Income,Income,44,4,1,,Income,EUR
-Rental Income,Income,45,4,1,,Income,EUR
-Foreign Exchange Gains,Income,46,4,1,,Income,EUR
+Dividend Income,Income,44,4,0,,Income,EUR
+Rental Income,Income,45,4,0,,Income,EUR
+Foreign Exchange Gains,Income,46,4,0,,Income,EUR
 Other Income,Income,47,4,1,,Income,EUR
 Cost of Goods Sold,Expenses,51,5,1,Cost of Goods Sold,Expense,EUR
 Salaries and Wages,Expenses,52,5,1,,Expense,EUR
@@ -48,7 +48,7 @@ Bank,Current Assets,121,12,1,Bank,Asset,EUR
 Cash,Current Assets,122,12,1,Cash,Asset,EUR
 Accounts Receivable,Current Assets,123,12,1,Receivable,Asset,EUR
 Stock,Current Assets,124,12,1,Stock,Asset,EUR
-Tax,Current Assets,125,12,1,,Asset,EUR
+Tax,Current Assets,125,12,1,Tax,Asset,EUR
 Prepayments,Current Assets,126,12,1,,Asset,EUR
 EU Trade Tracking,Current Assets,127,12,1,,Asset,EUR
 Other Current Assets,Current Assets,128,12,1,,Asset,EUR
@@ -59,6 +59,15 @@ Furniture and Fixtures,Fixed Assets,1114,111,0,Fixed Asset,Asset,EUR
 Motor Vehicles,Fixed Assets,1115,111,0,Fixed Asset,Asset,EUR
 Computer Equipment,Fixed Assets,1116,111,0,Fixed Asset,Asset,EUR
 Accumulated Depreciation,Fixed Assets,1119,111,0,Accumulated Depreciation,Asset,EUR
+Goodwill,Intangible Assets,1121,112,0,,Asset,EUR
+Patents and Trademarks,Intangible Assets,1122,112,0,,Asset,EUR
+Software,Intangible Assets,1123,112,0,,Asset,EUR
+Development Costs,Intangible Assets,1124,112,0,,Asset,EUR
+Licenses,Intangible Assets,1125,112,0,,Asset,EUR
+Long-term Investments,Investments,1131,113,0,,Asset,EUR
+Subsidiaries,Investments,1132,113,0,,Asset,EUR
+Associates,Investments,1133,113,0,,Asset,EUR
+Joint Ventures,Investments,1134,113,0,,Asset,EUR
 Bank Account - Current,Bank,1211,121,0,Bank,Asset,EUR
 Bank Account - Savings,Bank,1212,121,0,Bank,Asset,EUR
 Foreign Currency Accounts,Bank,1213,121,1,Bank,Asset,EUR
@@ -70,25 +79,185 @@ Stores,Stock,1241,124,0,Stock,Asset,EUR
 Finished Goods,Stock,1242,124,0,Stock,Asset,EUR
 Work In Progress,Stock,1243,124,0,Stock,Asset,EUR
 Goods In Transit,Stock,1244,124,0,Stock,Asset,EUR
-Accounts Payable,Current Liabilities,221,22,1,Payable,Liability,EUR
-Tax Liabilities,Current Liabilities,225,22,1,,Liability,EUR
-Domestic Suppliers,Accounts Payable,2211,221,0,Payable,Liability,EUR
-EU Suppliers,Accounts Payable,2212,221,0,Payable,Liability,EUR
-Non-EU Suppliers,Accounts Payable,2213,221,0,Payable,Liability,EUR
-EUR Account,Foreign Currency Accounts,12131,1213,0,Bank,Asset,EUR
-USD Account,Foreign Currency Accounts,12132,1213,0,Bank,Asset,EUR
-GBP Account,Foreign Currency Accounts,12133,1213,0,Bank,Asset,EUR
-VAT Input,Tax,1251,125,1,,Asset,EUR
-VAT Output,Tax Liabilities,2251,225,1,,Liability,EUR
-VAT OSS,Tax Liabilities,2252,225,1,,Liability,EUR
-VAT Control,Tax Liabilities,2253,225,0,,Liability,EUR
-VAT Payable,Tax Liabilities,2254,225,0,,Liability,EUR
+VAT Input,Tax,1251,125,1,Tax,Asset,EUR
 Prepaid Insurance,Prepayments,1261,126,0,,Asset,EUR
 Prepaid Rent,Prepayments,1262,126,0,,Asset,EUR
 Prepaid Subscriptions,Prepayments,1263,126,0,,Asset,EUR
-Domestic Sales,Sales,411,41,1,,Income,EUR
+EU B2B Goods Supplied,EU Trade Tracking,1271,127,0,,Asset,EUR
+EU B2B Services Supplied,EU Trade Tracking,1272,127,0,,Asset,EUR
+EU B2B Goods Acquired,EU Trade Tracking,1273,127,0,,Asset,EUR
+EU B2B Services Acquired,EU Trade Tracking,1274,127,0,,Asset,EUR
+Short-term Deposits,Other Current Assets,1281,128,0,,Asset,EUR
+Staff Advances,Other Current Assets,1282,128,0,,Asset,EUR
+Security Deposits,Other Current Assets,1283,128,0,,Asset,EUR
+Cyprus Standard Rate VAT Input (19%),VAT Input,12511,1251,0,Tax,Asset,EUR
+Cyprus Reduced Rate VAT Input (9%),VAT Input,12512,1251,0,Tax,Asset,EUR
+Cyprus Reduced Rate VAT Input (5%),VAT Input,12513,1251,0,Tax,Asset,EUR
+EU Acquisition VAT Input,VAT Input,12514,1251,0,Tax,Asset,EUR
+Import VAT Input,VAT Input,12515,1251,0,Tax,Asset,EUR
+EUR Account,Foreign Currency Accounts,12131,1213,0,Bank,Asset,EUR
+USD Account,Foreign Currency Accounts,12132,1213,0,Bank,Asset,EUR
+GBP Account,Foreign Currency Accounts,12133,1213,0,Bank,Asset,EUR
+Long-term Loans,Non-current Liabilities,211,21,1,,Liability,EUR
+Bonds,Non-current Liabilities,212,21,0,,Liability,EUR
+Deferred Tax Liabilities,Non-current Liabilities,213,21,0,,Liability,EUR
+Lease Liabilities - Non-current,Non-current Liabilities,214,21,0,,Liability,EUR
+Employee Benefit Obligations,Non-current Liabilities,215,21,1,,Liability,EUR
+Provisions - Non-current,Non-current Liabilities,216,21,0,,Liability,EUR
+Bank Loans,Long-term Loans,2111,211,0,,Liability,EUR
+Director's Loans,Long-term Loans,2112,211,0,,Liability,EUR
+Other Long-term Loans,Long-term Loans,2113,211,0,,Liability,EUR
+Pension Obligations,Employee Benefit Obligations,2151,215,0,,Liability,EUR
+Other Long-term Benefits,Employee Benefit Obligations,2152,215,0,,Liability,EUR
+Accounts Payable,Current Liabilities,221,22,1,Payable,Liability,EUR
+Short-term Loans,Current Liabilities,222,22,1,,Liability,EUR
+Accrued Expenses,Current Liabilities,223,22,1,,Liability,EUR
+Tax Payable,Current Liabilities,224,22,1,,Liability,EUR
+Tax Liabilities,Current Liabilities,225,22,1,Tax,Liability,EUR
+Lease Liabilities - Current,Current Liabilities,226,22,0,,Liability,EUR
+Deferred Revenue,Current Liabilities,227,22,0,,Liability,EUR
+Provisions - Current,Current Liabilities,228,22,0,,Liability,EUR
+Dividends Payable,Current Liabilities,229,22,0,,Liability,EUR
+Domestic Suppliers,Accounts Payable,2211,221,0,Payable,Liability,EUR
+EU Suppliers,Accounts Payable,2212,221,0,Payable,Liability,EUR
+Non-EU Suppliers,Accounts Payable,2213,221,0,Payable,Liability,EUR
+Bank Overdrafts,Short-term Loans,2221,222,0,,Liability,EUR
+Short-term Bank Loans,Short-term Loans,2222,222,0,,Liability,EUR
+Accrued Salaries,Accrued Expenses,2231,223,0,,Liability,EUR
+Accrued Utilities,Accrued Expenses,2232,223,0,,Liability,EUR
+Other Accrued Expenses,Accrued Expenses,2233,223,0,,Liability,EUR
+Income Tax Payable,Tax Payable,2241,224,0,,Liability,EUR
+Social Insurance Payable,Tax Payable,2242,224,0,,Liability,EUR
+GESY Contributions Payable,Tax Payable,2243,224,0,,Liability,EUR
+Special Defense Contribution Payable,Tax Payable,2244,224,0,,Liability,EUR
+PAYE Payable,Tax Payable,2245,224,0,,Liability,EUR
+VAT Output,Tax Liabilities,2251,225,1,Tax,Liability,EUR
+VAT OSS,Tax Liabilities,2252,225,1,Tax,Liability,EUR
+VAT Control,Tax Liabilities,2253,225,0,Tax,Liability,EUR
+VAT Payable,Tax Liabilities,2254,225,0,Tax,Liability,EUR
+Cyprus Standard Rate VAT Output (19%),VAT Output,22511,2251,0,Tax,Liability,EUR
+Cyprus Reduced Rate VAT Output (9%),VAT Output,22512,2251,0,Tax,Liability,EUR
+Cyprus Reduced Rate VAT Output (5%),VAT Output,22513,2251,0,Tax,Liability,EUR
+EU Reverse Charge VAT Output,VAT Output,22514,2251,0,Tax,Liability,EUR
+Self-Supply VAT Output,VAT Output,22515,2251,0,Tax,Liability,EUR
+VAT OSS AT (Austria),VAT OSS,225201,2252,0,Tax,Liability,EUR
+VAT OSS BE (Belgium),VAT OSS,225202,2252,0,Tax,Liability,EUR
+VAT OSS BG (Bulgaria),VAT OSS,225203,2252,0,Tax,Liability,EUR
+VAT OSS HR (Croatia),VAT OSS,225204,2252,0,Tax,Liability,EUR
+VAT OSS CZ (Czech Republic),VAT OSS,225205,2252,0,Tax,Liability,EUR
+VAT OSS DK (Denmark),VAT OSS,225206,2252,0,Tax,Liability,EUR
+VAT OSS EE (Estonia),VAT OSS,225207,2252,0,Tax,Liability,EUR
+VAT OSS FI (Finland),VAT OSS,225208,2252,0,Tax,Liability,EUR
+VAT OSS FR (France),VAT OSS,225209,2252,0,Tax,Liability,EUR
+VAT OSS DE (Germany),VAT OSS,225210,2252,0,Tax,Liability,EUR
+VAT OSS GR (Greece),VAT OSS,225211,2252,0,Tax,Liability,EUR
+VAT OSS HU (Hungary),VAT OSS,225212,2252,0,Tax,Liability,EUR
+VAT OSS IE (Ireland),VAT OSS,225213,2252,0,Tax,Liability,EUR
+VAT OSS IT (Italy),VAT OSS,225214,2252,0,Tax,Liability,EUR
+VAT OSS LV (Latvia),VAT OSS,225215,2252,0,Tax,Liability,EUR
+VAT OSS LT (Lithuania),VAT OSS,225216,2252,0,Tax,Liability,EUR
+VAT OSS LU (Luxembourg),VAT OSS,225217,2252,0,Tax,Liability,EUR
+VAT OSS MT (Malta),VAT OSS,225218,2252,0,Tax,Liability,EUR
+VAT OSS NL (Netherlands),VAT OSS,225219,2252,0,Tax,Liability,EUR
+VAT OSS PL (Poland),VAT OSS,225220,2252,0,Tax,Liability,EUR
+VAT OSS PT (Portugal),VAT OSS,225221,2252,0,Tax,Liability,EUR
+VAT OSS RO (Romania),VAT OSS,225222,2252,0,Tax,Liability,EUR
+VAT OSS SK (Slovakia),VAT OSS,225223,2252,0,Tax,Liability,EUR
+VAT OSS SI (Slovenia),VAT OSS,225224,2252,0,Tax,Liability,EUR
+VAT OSS ES (Spain),VAT OSS,225225,2252,0,Tax,Liability,EUR
+VAT OSS SE (Sweden),VAT OSS,225226,2252,0,Tax,Liability,EUR
+Ordinary Shares,Share Capital,3110,31,0,,Equity,EUR
+Preference Shares,Share Capital,3120,31,0,,Equity,EUR
+Prior Year Retained Earnings,Retained Earnings,3310,33,0,,Equity,EUR
+Current Year Profit/Loss,Retained Earnings,3320,33,0,,Equity,EUR
+Revaluation Surplus,Other Comprehensive Income,3410,34,0,,Equity,EUR
+Foreign Currency Translation Reserve,Other Comprehensive Income,3420,34,0,,Equity,EUR
+Fair Value Through OCI Reserve,Other Comprehensive Income,3430,34,0,,Equity,EUR
+Legal Reserve,Reserves,3510,35,0,,Equity,EUR
+Statutory Reserves,Reserves,3520,35,0,,Equity,EUR
+General Reserves,Reserves,3530,35,0,,Equity,EUR
+Domestic Sales,Sales,4111,41,1,,Income,EUR
 EU Sales,Sales,412,41,1,,Income,EUR
 Non-EU Sales,Sales,413,41,1,,Income,EUR
+Digital Services - OSS,Sales,414,41,1,,Income,EUR
+Sales Returns,Sales,415,41,0,,Income,EUR
+Sales Discounts,Sales,416,41,0,,Income,EUR
+Goods - Standard Rate (19%),Domestic Sales,41111,4111,0,,Income,EUR
+Goods - Reduced Rate (9%),Domestic Sales,41112,4111,0,,Income,EUR
+Goods - Reduced Rate (5%),Domestic Sales,41113,4111,0,,Income,EUR
+Goods - Zero Rate,Domestic Sales,41114,4111,0,,Income,EUR
+Goods - Exempt,Domestic Sales,41115,4111,0,,Income,EUR
+EU Sales - Goods B2B,EU Sales,4121,412,0,,Income,EUR
+EU Sales - Goods B2C,EU Sales,4122,412,0,,Income,EUR
+EU Sales - Services B2B,EU Sales,4123,412,0,,Income,EUR
+EU Sales - Services B2C,EU Sales,4124,412,0,,Income,EUR
+Non-EU Exports - Goods,Non-EU Sales,4131,413,0,,Income,EUR
+Non-EU Services,Non-EU Sales,4132,413,0,,Income,EUR
+Digital Services - EU B2C,Digital Services - OSS,4141,414,0,,Income,EUR
+Domestic Services,Service Income,4211,42,1,,Income,EUR
+EU Services,Service Income,422,42,0,,Income,EUR
+Non-EU Services,Service Income,423,42,0,,Income,EUR
+Services - Standard Rate (19%),Domestic Services,42111,4211,0,,Income,EUR
+Services - Reduced Rate (9%),Domestic Services,42112,4211,0,,Income,EUR
+Services - Reduced Rate (5%),Domestic Services,42113,4211,0,,Income,EUR
+Services - Zero Rate,Domestic Services,42114,4211,0,,Income,EUR
+Services - Exempt,Domestic Services,42115,4211,0,,Income,EUR
+Bank Interest Income,Interest Income,4310,43,0,,Income,EUR
+Loan Interest Income,Interest Income,4320,43,0,,Income,EUR
+Government Grants,Other Income,4710,47,0,,Income,EUR
+Profit on Sale of Assets,Other Income,4720,47,0,,Income,EUR
+Miscellaneous Income,Other Income,4730,47,0,,Income,EUR
 Domestic COGS,Cost of Goods Sold,5110,51,0,Cost of Goods Sold,Expense,EUR
 EU Acquisitions COGS,Cost of Goods Sold,5120,51,0,Cost of Goods Sold,Expense,EUR
 Import COGS,Cost of Goods Sold,5130,51,0,Cost of Goods Sold,Expense,EUR
+Purchase Returns,Cost of Goods Sold,5140,51,0,Cost of Goods Sold,Expense,EUR
+Purchase Discounts,Cost of Goods Sold,5150,51,0,Cost of Goods Sold,Expense,EUR
+Basic Salaries,Salaries and Wages,5210,52,0,,Expense,EUR
+Overtime,Salaries and Wages,5220,52,0,,Expense,EUR
+Bonuses,Salaries and Wages,5230,52,0,,Expense,EUR
+Employer Social Insurance Contributions,Salaries and Wages,5240,52,0,,Expense,EUR
+Employer GESY Contributions,Salaries and Wages,5250,52,0,,Expense,EUR
+Other Employment Costs,Salaries and Wages,5260,52,0,,Expense,EUR
+Electricity,Utilities,5410,54,0,,Expense,EUR
+Water,Utilities,5420,54,0,,Expense,EUR
+Internet and Telecommunications,Utilities,5430,54,0,,Expense,EUR
+Gas,Utilities,5440,54,0,,Expense,EUR
+Online Advertising,Advertising and Promotion,5510,55,0,,Expense,EUR
+Print Media,Advertising and Promotion,5520,55,0,,Expense,EUR
+Events and Exhibitions,Advertising and Promotion,5530,55,0,,Expense,EUR
+Promotional Materials,Advertising and Promotion,5540,55,0,,Expense,EUR
+Domestic Travel,Travel Expenses,5610,56,0,,Expense,EUR
+International Travel,Travel Expenses,5620,56,0,,Expense,EUR
+Accommodation,Travel Expenses,5630,56,0,,Expense,EUR
+Subsistence,Travel Expenses,5640,56,0,,Expense,EUR
+Depreciation of Buildings,Depreciation,5710,57,0,Depreciation,Expense,EUR
+Depreciation of Plant and Machinery,Depreciation,5720,57,0,Depreciation,Expense,EUR
+Depreciation of Motor Vehicles,Depreciation,5730,57,0,Depreciation,Expense,EUR
+Depreciation of Office Equipment,Depreciation,5740,57,0,Depreciation,Expense,EUR
+Depreciation of Computer Equipment,Depreciation,5750,57,0,Depreciation,Expense,EUR
+Amortization of Software,Amortization,5810,58,0,,Expense,EUR
+Amortization of Patents and Trademarks,Amortization,5820,58,0,,Expense,EUR
+Amortization of Goodwill,Amortization,5830,58,0,,Expense,EUR
+Building Maintenance,Maintenance,5910,59,0,,Expense,EUR
+Equipment Maintenance,Maintenance,5920,59,0,,Expense,EUR
+Vehicle Maintenance,Maintenance,5930,59,0,,Expense,EUR
+Software Maintenance,Maintenance,5940,59,0,,Expense,EUR
+Bank Loan Interest,Interest Expense,6010,60,0,,Expense,EUR
+Overdraft Interest,Interest Expense,6020,60,0,,Expense,EUR
+Finance Lease Interest,Interest Expense,6030,60,0,,Expense,EUR
+Audit Fees,Professional Fees,6110,61,0,,Expense,EUR
+Legal Fees,Professional Fees,6120,61,0,,Expense,EUR
+Consulting Fees,Professional Fees,6130,61,0,,Expense,EUR
+Accounting Fees,Professional Fees,6140,61,0,,Expense,EUR
+Corporation Tax,Tax Expense,6210,62,0,,Expense,EUR
+Special Contribution,Tax Expense,6220,62,0,,Expense,EUR
+Deferred Tax,Tax Expense,6230,62,0,,Expense,EUR
+Non-Deductible VAT,Tax Expense,6240,62,0,,Expense,EUR
+Impairment of Receivables,Impairment Losses,6410,64,0,,Expense,EUR
+Impairment of Investments,Impairment Losses,6420,64,0,,Expense,EUR
+Impairment of Assets,Impairment Losses,6430,64,0,,Expense,EUR
+Bank Charges,Miscellaneous Expenses,6510,65,0,,Expense,EUR
+Insurance,Miscellaneous Expenses,6520,65,0,,Expense,EUR
+Staff Welfare,Miscellaneous Expenses,6530,65,0,,Expense,EUR
+Subscriptions,Miscellaneous Expenses,6540,65,0,,Expense,EUR
+General Office Expenses,Miscellaneous Expenses,6550,65,0,,Expense,EUR
