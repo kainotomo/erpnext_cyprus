@@ -4,12 +4,15 @@ frappe.ui.form.on('Company', {
         if (!frm.doc.__islocal && frm.doc.country === "Cyprus") {
             // Add "Setup Cyprus Company" to Cyprus Features dropdown
             frm.add_custom_button(__('Finalize Setup'), function() {
+                frappe.dom.freeze(__('Extracting data from document...'));
+
                 frappe.call({
                     method: "erpnext_cyprus.utils.company_setup.setup_cyprus_company",
                     args: {
                         company: frm.doc.name
                     },
                     callback: function(r) {
+                        frappe.dom.unfreeze();
                         if (r.message && r.message.status === "success") {
                             frappe.msgprint({
                                 title: __('Success'),
@@ -29,6 +32,9 @@ frappe.ui.form.on('Company', {
                                 message: __('Failed to create Cyprus tax templates.')
                             });
                         }
+                    },
+                    error: function() {
+                        frappe.dom.unfreeze();
                     }
                 });
             }, __("Cyprus Features"));
