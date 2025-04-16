@@ -836,9 +836,6 @@ def create_tax_rule(company, rule_data):
     if rule_data.get("billing_country"):
         filters["billing_country"] = rule_data["billing_country"]
     
-    if rule_data.get("shipping_country"):
-        filters["shipping_country"] = rule_data["shipping_country"]
-    
     if rule_data.get("supplier_group"):
         filters["supplier_group"] = rule_data["supplier_group"]
     
@@ -864,8 +861,8 @@ def create_tax_rule(company, rule_data):
     if rule_data.get("item_group"):
         tax_rule.item_group = rule_data["item_group"]
     
-    if rule_data.get("shipping_country"):
-        tax_rule.shipping_country = rule_data["shipping_country"]
+    if rule_data.get("billing_country"):
+        tax_rule.billing_country = rule_data["billing_country"]
     
     if rule_data.get("shipping_city"):
         tax_rule.shipping_city = rule_data["shipping_city"]
@@ -938,7 +935,7 @@ def create_cyprus_sales_tax_rules(company):
             "use_for_shopping_cart": 1,
             "item_group": "Digital Services",
             "customer_group": "Individual",  # B2C customers
-            "shipping_country": None,  # Will be set in loop for each EU country
+            "billing_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": None,  # Will be set in loop for each country
             "is_eu": True,
@@ -954,7 +951,7 @@ def create_cyprus_sales_tax_rules(company):
             "use_for_shopping_cart": 1,
             "item_group": "",  # Any item
             "customer_group": "Individual",  # B2C customers
-            "shipping_country": None,  # Will be set in loop for each EU country
+            "billing_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": None,  # Will be set in loop for each country
             "is_eu": True,
@@ -970,7 +967,7 @@ def create_cyprus_sales_tax_rules(company):
             "use_for_shopping_cart": 0,
             "item_group": "",  # Any item
             "customer_group": "Commercial",  # B2B customers
-            "shipping_country": None,  # Will be set in loop for each EU country
+            "billing_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": f"EU B2B Goods - Zero Rated - {company_abbr}",
             "is_eu": True,
@@ -986,7 +983,7 @@ def create_cyprus_sales_tax_rules(company):
             "use_for_shopping_cart": 0,
             "item_group": "",  # Any item
             "customer_group": "Commercial",  # B2B customers
-            "shipping_country": None,  # Will be set in loop for each EU country
+            "billing_country": None,  # Will be set in loop for each EU country
             "shipping_city": "",
             "tax_template": f"EU B2B Services - Zero Rated - {company_abbr}",
             "is_eu": True,
@@ -1001,7 +998,7 @@ def create_cyprus_sales_tax_rules(company):
             "priority": 5,
             "use_for_shopping_cart": 0,
             "item_group": "",  # Any item
-            "shipping_country": "",  # Any non-EU, non-Cyprus country
+            "billing_country": "",  # Any non-EU, non-Cyprus country
             "shipping_city": "",
             "tax_template": f"Export of Goods - Zero Rated - {company_abbr}",
             "is_eu": False,
@@ -1016,7 +1013,7 @@ def create_cyprus_sales_tax_rules(company):
             "priority": 6,
             "use_for_shopping_cart": 0,
             "item_group": "",  # Any item
-            "shipping_country": "",  # Any non-EU, non-Cyprus country
+            "billing_country": "",  # Any non-EU, non-Cyprus country
             "shipping_city": "",
             "tax_template": f"Export of Services - Zero Rated - {company_abbr}",
             "is_eu": False,
@@ -1031,7 +1028,7 @@ def create_cyprus_sales_tax_rules(company):
             "priority": 50,
             "use_for_shopping_cart": 0,
             "item_group": "",
-            "shipping_country": "Cyprus",
+            "billing_country": "Cyprus",
             "shipping_city": "",
             "tax_template": f"Cyprus Sales VAT 19% - {company_abbr}",
             "is_eu": False,
@@ -1051,7 +1048,7 @@ def create_cyprus_sales_tax_rules(company):
             if country != "Cyprus":  # Skip Cyprus, as it's handled by domestic rules
                 country_rule = rule.copy()
                 country_rule["title"] = f"{base_title} - {country}"
-                country_rule["shipping_country"] = country
+                country_rule["billing_country"] = country
                 
                 # Set the appropriate tax template based on rule type and country
                 if "Digital Services" in base_title:
@@ -1070,7 +1067,7 @@ def create_cyprus_sales_tax_rules(company):
             if country != "Cyprus":  # Skip Cyprus, as it's handled by domestic rules
                 country_rule = rule.copy()
                 country_rule["title"] = f"{base_title} - {country}"
-                country_rule["shipping_country"] = country
+                country_rule["billing_country"] = country
                 if create_sales_tax_rule(company, country_rule):
                     created_count += 1
     
@@ -1109,8 +1106,8 @@ def create_sales_tax_rule(company, rule_data):
     if rule_data.get("customer_group"):
         filters["customer_group"] = rule_data["customer_group"]
     
-    if rule_data.get("shipping_country"):
-        filters["shipping_country"] = rule_data["shipping_country"]
+    if rule_data.get("billing_country"):
+        filters["billing_country"] = rule_data["billing_country"]
     
     if rule_data.get("billing_country"):
         filters["billing_country"] = rule_data["billing_country"]
@@ -1143,8 +1140,8 @@ def create_sales_tax_rule(company, rule_data):
     if rule_data.get("customer_group"):
         tax_rule.customer_group = rule_data["customer_group"]
     
-    if rule_data.get("shipping_country"):
-        tax_rule.shipping_country = rule_data["shipping_country"]
+    if rule_data.get("billing_country"):
+        tax_rule.billing_country = rule_data["billing_country"]
     
     if rule_data.get("shipping_city"):
         tax_rule.shipping_city = rule_data["shipping_city"]
