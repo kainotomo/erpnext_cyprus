@@ -85,7 +85,7 @@ def create_customers(company):
 		}
 	]
 	for cust in customers:
-		if not frappe.db.exists("Customer", {"customer_name": cust["customer_name"], "company": company}):
+		if not frappe.db.exists("Customer", {"customer_name": cust["customer_name"]}):
 			doc = frappe.get_doc({
 				"doctype": "Customer",
 				**cust
@@ -165,7 +165,10 @@ def delete_customers(company):
 
 	# Delete customers
 	for customer_name in customer_names:
-		frappe.db.delete("Customer", {"customer_name": customer_name})
+		try:
+			frappe.db.delete("Customer", {"customer_name": customer_name})
+		except Exception as e:
+			frappe.log_error(f"Failed to delete customer {customer_name}: {str(e)}")
 
 def delete_suppliers(company):
 	supplier_names = [
@@ -178,4 +181,7 @@ def delete_suppliers(company):
 	]
 
 	for supplier_name in supplier_names:
-		frappe.db.delete("Supplier", {"supplier_name": supplier_name})
+		try:
+			frappe.db.delete("Supplier", {"supplier_name": supplier_name})
+		except Exception as e:
+			frappe.log_error(f"Failed to delete supplier {supplier_name}: {str(e)}")
