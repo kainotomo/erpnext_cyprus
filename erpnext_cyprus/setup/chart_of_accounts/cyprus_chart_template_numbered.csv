@@ -118,6 +118,7 @@ Lease Liabilities - Current,Current Liabilities,226,22,0,,Liability,EUR
 Deferred Revenue,Current Liabilities,227,22,0,,Liability,EUR
 Provisions - Current,Current Liabilities,228,22,0,,Liability,EUR
 Dividends Payable,Current Liabilities,229,22,0,,Liability,EUR
+Stock Received But Not Billed,Current Liabilities,2210,22,0,,Liability,EUR
 Domestic Suppliers,Accounts Payable,2211,221,0,Payable,Liability,EUR
 EU Suppliers,Accounts Payable,2212,221,0,Payable,Liability,EUR
 Non-EU Suppliers,Accounts Payable,2213,221,0,Payable,Liability,EUR
