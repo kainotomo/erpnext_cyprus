@@ -137,3 +137,41 @@ def create_sample_data(company):
 
     frappe.db.commit()
     return {"message": "Sample data created successfully"}
+
+@frappe.whitelist()
+def delete_sample_data(company):
+    """
+    Delete sample data for the given company.
+    """
+    # Define the customer and supplier names to delete
+    customer_names = [
+        "Cyprus B2B Customer",
+        "Cyprus B2C Customer",
+        "Cyprus Exempt Customer",
+        "Cyprus Zero Rated Customer",
+        "EU B2B Customer",
+        "EU B2C Customer",
+        "EU OSS Digital Services Customer",
+        "Non-EU B2B Customer",
+        "Non-EU B2C Customer"
+    ]
+
+    supplier_names = [
+        "Cyprus Supplier",
+        "Cyprus Exempt Supplier",
+        "Cyprus Reduced Rate Supplier",
+        "EU Supplier - Germany",
+        "EU Supplier - France",
+        "Non-EU Supplier"
+    ]
+
+    # Delete customers
+    for customer_name in customer_names:
+        frappe.db.delete("Customer", {"customer_name": customer_name})
+
+    # Delete suppliers
+    for supplier_name in supplier_names:
+        frappe.db.delete("Supplier", {"supplier_name": supplier_name})
+
+    frappe.db.commit()
+    return {"message": _("Sample data deleted successfully")}
