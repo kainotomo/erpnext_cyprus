@@ -494,44 +494,82 @@ def create_sales_invoices(company):
 	)
 
 def create_sales_invoice(title, customer, items, posting_date, company):
+    """
+    Helper function to create a sales invoice
+    """
+    if frappe.db.exists("Sales Invoice", {"title": title, "company": company}):
+        return None
+    
+    # Get customer document
+    customer_doc = frappe.get_doc("Customer", {"customer_name": customer})
+    
+    # Create invoice doc
+    invoice = frappe.new_doc("Sales Invoice")
+    invoice.title = title
+    invoice.customer = customer_doc.name
+    invoice.company = company
+    invoice.posting_date = posting_date
+    invoice.due_date = add_days(posting_date, 30)
+    invoice.set_posting_time = 1
+    invoice.update_stock = 0
+    invoice.customer_group = customer_doc.customer_group
+    invoice.territory = "All Territories"
+    
+    # Add items to invoice
+    for item in items:
+        invoice.append("items", {
+            "item_code": item["item_code"],
+            "qty": item["qty"],
+            "rate": item["rate"]
+        })
+    
+    # Save and submit
+    try:
+        invoice.insert()
+        invoice.submit()
+        
+        # Create payment for all sales invoices
+        create_payment_entry(invoice, posting_date, company)
+            
+        return invoice
+    except Exception as e:
+        frappe.log_error(f"Error creating sample invoice {title}: {str(e)}", "Sample Data Error")
+        return None
+
+def create_payment_entry(invoice, posting_date, company):
 	"""
-	Helper function to create a sales invoice
+	Create a payment entry for an invoice to mark it as "Paid"
 	"""
-	if frappe.db.exists("Sales Invoice", {"title": title, "company": company}):
-		return
-	
-	# Get customer document
-	customer_doc = frappe.get_doc("Customer", {"customer_name": customer})
-	
-	# Create invoice doc
-	invoice = frappe.new_doc("Sales Invoice")
-	invoice.title = title
-	invoice.customer = customer_doc.name
-	invoice.company = company
-	invoice.posting_date = posting_date
-	invoice.due_date = add_days(posting_date, 30)
-	invoice.set_posting_time = 1
-	invoice.update_stock = 0
-	invoice.customer_group = customer_doc.customer_group
-	invoice.territory = "All Territories"
-	
-	# Add items to invoice
-	for item in items:
-		invoice.append("items", {
-			"item_code": item["item_code"],
-			"qty": item["qty"],
-			"rate": item["rate"]
-		})
-	
-	# Save and submit
 	try:
-		invoice.set_taxes()
-		invoice.insert(ignore_permissions=True)
-		invoice.submit()
-		frappe.db.commit()
+		payment = frappe.new_doc("Payment Entry")
+		payment.payment_type = "Receive"
+		payment.mode_of_payment = "Cash"
+		payment.posting_date = posting_date
+		payment.company = company
+		payment.party_type = "Customer"
+		payment.party = invoice.customer
+		payment.paid_amount = invoice.grand_total
+		payment.received_amount = invoice.grand_total
+		payment.target_exchange_rate = 1.0
+		payment.source_exchange_rate = 1.0
+		payment.paid_to = frappe.db.get_value("Account", {"account_name": "Petty Cash", "company": company}, "name")
+		payment.paid_from = frappe.db.get_value("Account", {"account_name": "Domestic Customers", "company": company}, "name")
+		payment.reference_no = "Sample Payment"
+		payment.reference_date = posting_date
+		
+		# Add reference to invoice
+		payment.append("references", {
+			"reference_doctype": "Sales Invoice",
+			"reference_name": invoice.name,
+			"allocated_amount": invoice.grand_total
+		})
+		
+		payment.save()
+		payment.submit()
+		return payment
 	except Exception as e:
-		frappe.log_error(f"Failed to create invoice {title}: {str(e)}")
-		frappe.db.rollback()
+		frappe.log_error(f"Error creating payment for {invoice.name}: {str(e)}", "Sample Data Error")
+		return None
 
 def create_purchase_invoices(company):
 	"""
@@ -737,10 +775,49 @@ def create_purchase_invoice(title, supplier, items, tax_template, posting_date, 
 		#    invoice.save()
 		
 		invoice.submit()
+		
+		# Create payment entry for the purchase invoice
+		create_purchase_payment(invoice, posting_date, company)
+		
 		frappe.db.commit()
 	except Exception as e:
 		frappe.log_error(f"Failed to create purchase invoice {title}: {str(e)}")
 		frappe.db.rollback()
+
+def create_purchase_payment(invoice, posting_date, company):
+    """
+    Create a payment entry for a purchase invoice to mark it as "Paid"
+    """
+    try:
+        payment = frappe.new_doc("Payment Entry")
+        payment.payment_type = "Pay"
+        payment.mode_of_payment = "Cash"
+        payment.posting_date = posting_date
+        payment.company = company
+        payment.party_type = "Supplier"
+        payment.party = invoice.supplier
+        payment.paid_amount = invoice.grand_total
+        payment.received_amount = invoice.grand_total
+        payment.target_exchange_rate = 1.0
+        payment.source_exchange_rate = 1.0
+        payment.paid_from = frappe.db.get_value("Account", {"account_name": "Petty Cash", "company": company}, "name")
+        payment.paid_to = frappe.db.get_value("Account", {"account_name": "Domestic Suppliers", "company": company}, "name")
+        payment.reference_no = "Sample Payment"
+        payment.reference_date = posting_date
+        
+        # Add reference to invoice
+        payment.append("references", {
+            "reference_doctype": "Purchase Invoice",
+            "reference_name": invoice.name,
+            "allocated_amount": invoice.grand_total
+        })
+        
+        payment.save()
+        payment.submit()
+        return payment
+    except Exception as e:
+        frappe.log_error(f"Error creating payment for {invoice.name}: {str(e)}", "Sample Data Error")
+        return None
 
 @frappe.whitelist()
 def delete_sample_data(company):
@@ -748,8 +825,13 @@ def delete_sample_data(company):
 	Delete sample data for the given company. This includes items, sales invoices, customers and suppliers.
 	"""
 	# Delete in the correct order to avoid reference issues
+	
+	# First delete all payment entries that might be linked to invoices, customers or suppliers
+	delete_payment_entries(company)
+	
+	# Then proceed with other deletions
 	delete_purchase_invoices(company)
-	delete_sales_invoices(company)
+	delete_sales_invoices(company) 
 	delete_items(company)
 	delete_customers(company)
 	delete_suppliers(company)
@@ -846,21 +928,49 @@ def delete_items(company):
 			frappe.log_error(f"Failed to delete item {item_code}: {str(e)}")
 
 def delete_sales_invoices(company):
-	try:
-		# Get all submitted sales invoices for the company
-		invoices = frappe.get_all("Sales Invoice", 
-			filters={"company": company, "docstatus": 1},
-			pluck="name")
-		
-		# Cancel and delete each invoice
-		for invoice in invoices:
-			if frappe.db.exists("Sales Invoice", invoice):
-				doc = frappe.get_doc("Sales Invoice", invoice)
-				if doc.docstatus == 1:
-					doc.cancel()
-				frappe.delete_doc("Sales Invoice", invoice)
-	except Exception as e:
-		frappe.log_error(f"Failed to delete sales invoices for company {company}: {str(e)}")
+    """
+    Delete sample sales invoices for a company.
+    """
+    # Delete EU B2B invoices
+    invoices = frappe.get_all("Sales Invoice", 
+        filters={"company": company, "title": ["like", "%EU B2B%"]}, 
+        fields=["name"])
+            
+    # Cancel and delete the invoices
+    for invoice in invoices:
+        if frappe.db.exists("Sales Invoice", invoice.name):
+            inv = frappe.get_doc("Sales Invoice", invoice.name)
+            if inv.docstatus == 1:
+                inv.cancel()
+            inv.delete()
+            
+    # Delete other sample invoices
+    other_invoices = frappe.get_all("Sales Invoice", 
+        filters={
+            "company": company, 
+            "title": ["in", [
+                "Cyprus B2B Standard Rate Invoice",
+                "Cyprus B2C Standard Rate Invoice",
+                "Cyprus Reduced Rate 9% Invoice",
+                "Cyprus Reduced Rate 5% Invoice",
+                "Cyprus Zero Rated Invoice",
+                "Cyprus Exempt Invoice",
+                "EU B2C Goods Invoice",
+                "EU B2B Services Invoice",
+                "EU OSS Digital Services Invoice",
+                "Non-EU B2B Goods Export Invoice",
+                "Non-EU B2C Services Invoice",
+                "Mixed Tax Rates Invoice"
+            ]]
+        }, 
+        fields=["name"])
+        
+    for invoice in other_invoices:
+        if frappe.db.exists("Sales Invoice", invoice.name):
+            inv = frappe.get_doc("Sales Invoice", invoice.name)
+            if inv.docstatus == 1:
+                inv.cancel()
+            inv.delete()
 
 def delete_purchase_invoices(company):
     try:
@@ -869,7 +979,20 @@ def delete_purchase_invoices(company):
             filters={"company": company, "docstatus": 1},
             pluck="name")
         
-        # Cancel and delete each invoice
+        # First delete the payments associated with these invoices
+        for invoice in invoices:
+            payments = frappe.get_all("Payment Entry Reference", 
+                filters={"reference_doctype": "Purchase Invoice", "reference_name": invoice},
+                fields=["parent"])
+                
+            for payment in payments:
+                if frappe.db.exists("Payment Entry", payment.parent):
+                    payment_doc = frappe.get_doc("Payment Entry", payment.parent)
+                    if payment_doc.docstatus == 1:
+                        payment_doc.cancel()
+                    payment_doc.delete()
+        
+        # Now cancel and delete each invoice
         for invoice in invoices:
             if frappe.db.exists("Purchase Invoice", invoice):
                 doc = frappe.get_doc("Purchase Invoice", invoice)
@@ -878,3 +1001,18 @@ def delete_purchase_invoices(company):
                 frappe.delete_doc("Purchase Invoice", invoice)
     except Exception as e:
         frappe.log_error(f"Failed to delete purchase invoices for company {company}: {str(e)}")
+
+def delete_payment_entries(company):
+	"""
+	Delete all payment entries for the given company.
+	"""
+	try:
+		payments = frappe.get_all("Payment Entry", filters={"company": company}, pluck="name")
+		for payment in payments:
+			if frappe.db.exists("Payment Entry", payment):
+				doc = frappe.get_doc("Payment Entry", payment)
+				if doc.docstatus == 1:
+					doc.cancel()
+				frappe.delete_doc("Payment Entry", payment)
+	except Exception as e:
+		frappe.log_error(f"Failed to delete payment entries for company {company}: {str(e)}")

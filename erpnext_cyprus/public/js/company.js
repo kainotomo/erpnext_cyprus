@@ -80,7 +80,7 @@ frappe.ui.form.on('Company', {
                 frappe.confirm(
                     __('Are you sure you want to delete all sample data for this company?'),
                     function () {
-                        frappe.dom.freeze(__('Creating data for company...'));
+                        frappe.dom.freeze(__('Deleting data for company...'));
                         frappe.call({
                             method: "erpnext_cyprus.setup.sample_data.delete_sample_data",
                             args: {
