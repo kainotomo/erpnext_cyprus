@@ -38,6 +38,11 @@ def auto_setup_cyprus_company(doc, method):
         
 @frappe.whitelist()
 def setup_cyprus_company(company=None):
+
+    check_account = find_account("Cyprus Standard Rate VAT Output (19%)", company)
+    if not check_account:
+        frappe.throw(_("Cyprus Standard Rate VAT Output (19%) account not found in the chart of accounts."))
+
     # Set default accounts
     set_cyprus_default_accounts(company)
 
@@ -60,10 +65,6 @@ def set_cyprus_default_accounts(company_name):
     Set default accounts for a Cyprus company when triggered by the user.
     """
     company = frappe.get_doc("Company", company_name)
-
-    # Ensure the company is in Cyprus and uses a Cyprus chart of accounts
-    if company.country != "Cyprus" or not company.chart_of_accounts or "Cyprus" not in company.chart_of_accounts:
-        frappe.throw(_("This action is only applicable for Cyprus companies using a Cyprus chart of accounts."))
 
     # Set default accounts
     defaults = get_cyprus_default_accounts(company.name)
