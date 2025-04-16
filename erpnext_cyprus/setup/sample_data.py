@@ -315,7 +315,7 @@ def create_sales_invoices(company):
 	Create sample sales invoices covering all Cyprus tax scenarios
 	"""
 	# Set posting date in the current month for reporting
-	posting_date = nowdate()
+	posting_date = add_days(nowdate(), -15)
 	
 	# 1. Domestic Sales with Standard Rate (19%)
 	create_sales_invoice(

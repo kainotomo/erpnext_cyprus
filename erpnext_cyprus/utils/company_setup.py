@@ -86,7 +86,7 @@ def get_cyprus_default_accounts(company_name):
         "default_cash_account": find_account("Petty Cash", company_name),
         "default_receivable_account": find_account("Domestic Customers", company_name),
         "default_payable_account": find_account("Domestic Suppliers", company_name),
-        "default_income_account": find_account("Domestic Sales", company_name),
+        "default_income_account": find_account("Goods - Standard Rate (19%)", company_name),
         "default_expense_account": find_account("Domestic COGS", company_name),
         "default_inventory_account": find_account("Stores", company_name),
         "stock_adjustment_account": find_account("Stock Adjustment", company_name),
