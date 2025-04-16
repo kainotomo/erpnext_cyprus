@@ -90,12 +90,28 @@ def create_customers(company):
 		}
 	]
 	for cust in customers:
-		if not frappe.db.exists("Customer", {"customer_name": cust["customer_name"]}):
+		customer_name = cust["customer_name"]
+		if not frappe.db.exists("Customer", {"customer_name": customer_name}):
 			doc = frappe.get_doc({
 				"doctype": "Customer",
 				**cust
 			})
 			doc.insert(ignore_permissions=True)
+			
+			# Create billing address for the customer
+			address_doc = frappe.get_doc({
+				"doctype": "Address",
+				"address_title": f"{customer_name} Billing",
+				"address_type": "Billing",
+				 "address_line1": f"{customer_name} Address Line 1",
+				"city": f"City in {cust['country']}",
+				"country": cust["country"],
+				"links": [{
+					"link_doctype": "Customer",
+					"link_name": doc.name
+				}]
+			})
+			address_doc.insert(ignore_permissions=True)
 	
 	frappe.db.commit()
 
@@ -139,12 +155,28 @@ def create_suppliers(company):
 		}
 	]
 	for supp in suppliers:
-		if not frappe.db.exists("Supplier", {"supplier_name": supp["supplier_name"]}):
+		supplier_name = supp["supplier_name"]
+		if not frappe.db.exists("Supplier", {"supplier_name": supplier_name}):
 			doc = frappe.get_doc({
 				"doctype": "Supplier",
 				**supp
 			})
 			doc.insert(ignore_permissions=True)
+			
+			# Create billing address for the supplier
+			address_doc = frappe.get_doc({
+				"doctype": "Address",
+				"address_title": f"{supplier_name} Billing",
+				"address_type": "Billing",
+				 "address_line1": f"{supplier_name} Address Line 1",
+				"city": f"City in {supp['country']}",
+				"country": supp["country"],
+				"links": [{
+					"link_doctype": "Supplier",
+					"link_name": doc.name
+				}]
+			})
+			address_doc.insert(ignore_permissions=True)
 	
 	frappe.db.commit()
 
@@ -526,10 +558,23 @@ def delete_customers(company):
 		"Non-EU B2C Customer"
 	]
 
-	# Delete customers
+	# Delete customers and their addresses
 	for customer_name in customer_names:
 		try:
-			frappe.db.delete("Customer", {"customer_name": customer_name})
+			# First get the customer doc to find linked addresses
+			if frappe.db.exists("Customer", {"customer_name": customer_name}):
+				customer = frappe.get_doc("Customer", {"customer_name": customer_name})
+				
+				# Delete linked addresses
+				addresses = frappe.get_all("Address", 
+					filters={"link_doctype": "Customer", "link_name": customer.name},
+					pluck="name")
+				
+				for address in addresses:
+					frappe.delete_doc("Address", address)
+				
+				# Now delete the customer
+				frappe.delete_doc("Customer", customer.name)
 		except Exception as e:
 			frappe.log_error(f"Failed to delete customer {customer_name}: {str(e)}")
 
@@ -545,7 +590,20 @@ def delete_suppliers(company):
 
 	for supplier_name in supplier_names:
 		try:
-			frappe.db.delete("Supplier", {"supplier_name": supplier_name})
+			# First get the supplier doc to find linked addresses
+			if frappe.db.exists("Supplier", {"supplier_name": supplier_name}):
+				supplier = frappe.get_doc("Supplier", {"supplier_name": supplier_name})
+				
+				# Delete linked addresses
+				addresses = frappe.get_all("Address", 
+					filters={"link_doctype": "Supplier", "link_name": supplier.name},
+					pluck="name")
+				
+				for address in addresses:
+					frappe.delete_doc("Address", address)
+				
+				# Now delete the supplier
+				frappe.delete_doc("Supplier", supplier.name)
 		except Exception as e:
 			frappe.log_error(f"Failed to delete supplier {supplier_name}: {str(e)}")
 
