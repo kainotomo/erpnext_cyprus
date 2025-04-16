@@ -3,7 +3,7 @@ frappe.ui.form.on('Company', {
         // Only show Cyprus-specific features for Cyprus companies
         if (!frm.doc.__islocal && frm.doc.country === "Cyprus") {
             // Add "Setup Cyprus Company" to Cyprus Features dropdown
-            frm.add_custom_button(__('Finish Setup'), function() {
+            frm.add_custom_button(__('Finalize Setup'), function() {
                 frappe.call({
                     method: "erpnext_cyprus.utils.company_setup.setup_cyprus_company",
                     args: {

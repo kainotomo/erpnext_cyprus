@@ -98,8 +98,9 @@ def get_cyprus_default_accounts(company_name):
 
 def find_account(account_name, company_name):
     """
-    Find an account by name or pattern.
+    Find an account by name or pattern, handling numbered chart of accounts.
     """
+    # Try exact match first
     account = frappe.db.get_value(
         "Account",
         {"account_name": account_name, "company": company_name},
@@ -107,14 +108,36 @@ def find_account(account_name, company_name):
     )
 
     if not account:
+        # Try to find with account number prefix (for numbered charts of accounts)
         accounts = frappe.db.sql("""
             SELECT name FROM `tabAccount`
-            WHERE company=%s AND account_name LIKE %s
+            WHERE company=%s 
+            AND (
+                account_name LIKE %s 
+                OR name LIKE %s 
+                OR CONCAT(account_number, ' - ', account_name) LIKE %s
+            )
             ORDER BY lft LIMIT 1
-        """, (company_name, f"%{account_name}%"), as_dict=True)
+        """, (company_name, f"%{account_name}%", f"%{account_name}%", f"%{account_name}%"), as_dict=True)
 
         if accounts:
             account = accounts[0].name
+            
+        # If it's a tax account but still not found, try with account_type filter
+        if not account and ("VAT" in account_name or "Tax" in account_name):
+            accounts = frappe.db.sql("""
+                SELECT name FROM `tabAccount`
+                WHERE company=%s 
+                AND account_type='Tax'
+                AND (
+                    account_name LIKE %s 
+                    OR name LIKE %s
+                )
+                ORDER BY lft LIMIT 1
+            """, (company_name, f"%{account_name}%", f"%{account_name}%"), as_dict=True)
+            
+            if accounts:
+                account = accounts[0].name
 
     return account
 
@@ -145,7 +168,7 @@ def create_purchase_tax_templates(company):
             "is_default": 1,
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Standard Rate VAT Input (19%) - {company_abbr}",
+                "account_head": find_account("Cyprus Standard Rate VAT Input (19%)", company),
                 "description": "VAT 19%",
                 "add_deduct_tax": "Add",
                 "rate": 19
@@ -155,7 +178,7 @@ def create_purchase_tax_templates(company):
             "title": "Cyprus Purchase VAT 9%",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Reduced Rate VAT Input (9%) - {company_abbr}",
+                "account_head": find_account("Cyprus Reduced Rate VAT Input (9%)", company),
                 "description": "VAT 9%",
                 "add_deduct_tax": "Add",
                 "rate": 9
@@ -165,7 +188,7 @@ def create_purchase_tax_templates(company):
             "title": "Cyprus Purchase VAT 5%",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Reduced Rate VAT Input (5%) - {company_abbr}",
+                "account_head": find_account("Cyprus Reduced Rate VAT Input (5%)", company),
                 "description": "VAT 5%",
                 "add_deduct_tax": "Add",
                 "rate": 5
@@ -175,7 +198,7 @@ def create_purchase_tax_templates(company):
             "title": "Cyprus Purchase VAT 0% (Zero Rated)",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Zero Rate",
                 "rate": 0
             }]
@@ -184,7 +207,7 @@ def create_purchase_tax_templates(company):
             "title": "Cyprus Purchase VAT Exempt",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT Exempt",
                 "rate": 0
             }]
@@ -196,14 +219,14 @@ def create_purchase_tax_templates(company):
             "taxes": [
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "account_head": find_account("EU Reverse Charge VAT Output", company),
                     "description": "VAT 19% - Reverse Charge Output",
                     "add_deduct_tax": "Add",
                     "rate": 19
                 },
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "account_head": find_account("EU Acquisition VAT Input", company),
                     "description": "VAT 19% - Reverse Charge Input",
                     "add_deduct_tax": "Deduct",
                     "rate": 19
@@ -215,14 +238,14 @@ def create_purchase_tax_templates(company):
             "taxes": [
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "account_head": find_account("EU Reverse Charge VAT Output", company),
                     "description": "VAT 19% - Reverse Charge Output",
                     "add_deduct_tax": "Add",
                     "rate": 19
                 },
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "account_head": find_account("EU Acquisition VAT Input", company),
                     "description": "VAT 19% - Reverse Charge Input",
                     "add_deduct_tax": "Deduct",
                     "rate": 19
@@ -235,7 +258,7 @@ def create_purchase_tax_templates(company):
             "title": "Import with VAT",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Import VAT Input - {company_abbr}",
+                "account_head": find_account("Import VAT Input", company),
                 "description": "Import VAT 19%",
                 "add_deduct_tax": "Add",
                 "rate": 19
@@ -247,7 +270,7 @@ def create_purchase_tax_templates(company):
             "title": "Purchase with Non-Deductible VAT",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Non-Deductible VAT - {company_abbr}",
+                "account_head": find_account("Non-Deductible VAT", company),
                 "description": "Non-Deductible VAT 19%",
                 "add_deduct_tax": "Add",
                 "rate": 19
@@ -258,14 +281,14 @@ def create_purchase_tax_templates(company):
             "taxes": [
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"Cyprus Standard Rate VAT Input (19%) - {company_abbr}",
+                    "account_head": find_account("Cyprus Standard Rate VAT Input (19%)", company),
                     "description": "Deductible VAT 19% (50%)",
                     "add_deduct_tax": "Add",
                     "rate": 9.5
                 },
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"Non-Deductible VAT - {company_abbr}",
+                    "account_head": find_account("Non-Deductible VAT", company),
                     "description": "Non-Deductible VAT 19% (50%)",
                     "add_deduct_tax": "Add",
                     "rate": 9.5
@@ -276,26 +299,26 @@ def create_purchase_tax_templates(company):
             "title": "Purchase - Triangulation",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Triangulation",
                 "rate": 0
             }]
         },
         
-        # Digital services specific (from your prompt)
+        # Digital services specific
         {
             "title": "EU Digital Services - Reverse Charge",
             "taxes": [
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "account_head": find_account("EU Reverse Charge VAT Output", company),
                     "description": "VAT 19% - Digital Services Reverse Charge Output",
                     "add_deduct_tax": "Add",
                     "rate": 19
                 },
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "account_head": find_account("EU Acquisition VAT Input", company),
                     "description": "VAT 19% - Digital Services Reverse Charge Input",
                     "add_deduct_tax": "Deduct",
                     "rate": 19
@@ -307,14 +330,14 @@ def create_purchase_tax_templates(company):
             "taxes": [
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Reverse Charge VAT Output - {company_abbr}",
+                    "account_head": find_account("EU Reverse Charge VAT Output", company),
                     "description": "VAT 19% - Digital Services Reverse Charge Output",
                     "add_deduct_tax": "Add",
                     "rate": 19
                 },
                 {
                     "charge_type": "On Net Total",
-                    "account_head": f"EU Acquisition VAT Input - {company_abbr}",
+                    "account_head": find_account("EU Acquisition VAT Input", company),
                     "description": "VAT 19% - Digital Services Reverse Charge Input",
                     "add_deduct_tax": "Deduct",
                     "rate": 19
@@ -436,7 +459,7 @@ def create_sales_tax_templates(company):
             "is_default": 1,
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Standard Rate VAT Output (19%) - {company_abbr}",
+                "account_head": find_account("Cyprus Standard Rate VAT Output (19%)", company),
                 "description": "VAT 19%",
                 "add_deduct_tax": "Add",
                 "rate": 19
@@ -446,7 +469,7 @@ def create_sales_tax_templates(company):
             "title": "Cyprus Sales VAT 9%",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Reduced Rate VAT Output (9%) - {company_abbr}",
+                "account_head": find_account("Cyprus Reduced Rate VAT Output (9%)", company),
                 "description": "VAT 9%",
                 "add_deduct_tax": "Add",
                 "rate": 9
@@ -456,7 +479,7 @@ def create_sales_tax_templates(company):
             "title": "Cyprus Sales VAT 5%",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Reduced Rate VAT Output (5%) - {company_abbr}",
+                "account_head": find_account("Cyprus Reduced Rate VAT Output (5%)", company),
                 "description": "VAT 5%",
                 "add_deduct_tax": "Add",
                 "rate": 5
@@ -466,7 +489,7 @@ def create_sales_tax_templates(company):
             "title": "Cyprus Sales VAT 0% (Zero Rated)",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Zero Rate",
                 "rate": 0
             }]
@@ -475,7 +498,7 @@ def create_sales_tax_templates(company):
             "title": "Cyprus Sales VAT Exempt",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT Exempt",
                 "rate": 0
             }]
@@ -486,7 +509,7 @@ def create_sales_tax_templates(company):
             "title": "EU B2B Goods - Zero Rated",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Reverse Charge - Art. 138 EU VAT Directive",
                 "rate": 0
             }]
@@ -495,7 +518,7 @@ def create_sales_tax_templates(company):
             "title": "EU B2B Services - Zero Rated",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Reverse Charge - Art. 44 EU VAT Directive",
                 "rate": 0
             }]
@@ -506,7 +529,7 @@ def create_sales_tax_templates(company):
             "title": "EU B2C Goods - Below Threshold",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Standard Rate VAT Output (19%) - {company_abbr}",
+                "account_head": find_account("Cyprus Standard Rate VAT Output (19%)", company),
                 "description": "Cyprus VAT 19% (Below Distance Selling Threshold)",
                 "add_deduct_tax": "Add",
                 "rate": 19
@@ -518,7 +541,7 @@ def create_sales_tax_templates(company):
             "title": "Export of Goods - Zero Rated",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Export Outside EU",
                 "rate": 0
             }]
@@ -527,7 +550,7 @@ def create_sales_tax_templates(company):
             "title": "Export of Services - Zero Rated",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Services to Non-EU Customers",
                 "rate": 0
             }]
@@ -538,7 +561,7 @@ def create_sales_tax_templates(company):
             "title": "Triangulation Sales",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT Control - {company_abbr}",
+                "account_head": find_account("VAT Control", company),
                 "description": "VAT 0% - Triangulation",
                 "rate": 0
             }]
@@ -547,7 +570,7 @@ def create_sales_tax_templates(company):
             "title": "Margin Scheme Sales",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"Cyprus Standard Rate VAT Output (19%) - {company_abbr}",
+                "account_head": find_account("Cyprus Standard Rate VAT Output (19%)", company),
                 "description": "VAT 19% on Margin",
                 "add_deduct_tax": "Add",
                 "rate": 19
@@ -565,7 +588,7 @@ def create_sales_tax_templates(company):
             "title": f"EU B2C Digital Services - {country}",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT OSS {code} ({country}) - {company_abbr}",
+                "account_head": find_account(f"VAT OSS {code} ({country})", company),
                 "description": f"{country} VAT {rate}% - OSS Digital Services",
                 "add_deduct_tax": "Add",
                 "rate": rate
@@ -577,7 +600,7 @@ def create_sales_tax_templates(company):
             "title": f"EU B2C Goods - {country}",
             "taxes": [{
                 "charge_type": "On Net Total",
-                "account_head": f"VAT OSS {code} ({country}) - {company_abbr}",
+                "account_head": find_account(f"VAT OSS {code} ({country})", company),
                 "description": f"{country} VAT {rate}% - OSS Goods",
                 "add_deduct_tax": "Add",
                 "rate": rate
