@@ -2,7 +2,7 @@ frappe.ui.form.on('Company', {
     refresh: function(frm) {
         // Only show button if company exists (has been saved) and country is Cyprus
         if (frm.doc.name && !frm.is_new() && frm.doc.country === 'Cyprus') {
-            frm.add_custom_button(__('Setup Cyprus Chart of Accounts'), function() {
+            frm.add_custom_button(__('Setup Cyprus Company'), function() {
                 frappe.confirm(
                     __('This will extend the chart of accounts with Cyprus-specific accounts for handling local, EU, and international transactions. Proceed?'),
                     function() {
