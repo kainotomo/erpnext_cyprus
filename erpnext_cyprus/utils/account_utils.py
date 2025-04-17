@@ -100,13 +100,85 @@ def setup_cyprus_accounts(company):
         }
     ]
     
+    cyprus_salary_accounts = [
+        # Employer contributions
+        {
+            "account_name": "Employer Social Insurance",
+            "parent_account": "Indirect Expenses",
+            "account_number": "6100"
+        },
+        {
+            "account_name": "Employer GESY Contributions",
+            "parent_account": "Indirect Expenses",
+            "account_number": "6110"
+        },
+        {
+            "account_name": "Redundancy Fund",
+            "parent_account": "Indirect Expenses",
+            "account_number": "6120"
+        },
+        {
+            "account_name": "Industrial Training Fund",
+            "parent_account": "Indirect Expenses",
+            "account_number": "6130"
+        },
+        {
+            "account_name": "Social Cohesion Fund",
+            "parent_account": "Indirect Expenses",
+            "account_number": "6140"
+        },
+        
+        # Employee withholdings (liabilities)
+        {
+            "account_name": "Employee Income Tax Payable",
+            "parent_account": "Duties and Taxes",
+            "account_type": "Tax",
+            "account_number": "2600"
+        },
+        {
+            "account_name": "Employee Social Insurance Payable",
+            "parent_account": "Duties and Taxes",
+            "account_number": "2610"
+        },
+        {
+            "account_name": "Employee GESY Payable",
+            "parent_account": "Duties and Taxes",
+            "account_number": "2620"
+        },
+        
+        # Salary types
+        {
+            "account_name": "Basic Salaries",
+            "parent_account": "Salary",
+            "account_number": "6000"
+        },
+        {
+            "account_name": "13th Month Salary",
+            "parent_account": "Salary",
+            "account_number": "6010"
+        },
+        {
+            "account_name": "Bonus Payments",
+            "parent_account": "Salary",
+            "account_number": "6020"
+        },
+        {
+            "account_name": "Director Remuneration",
+            "parent_account": "Salary",
+            "account_number": "6030"
+        }
+    ]
+    
+    # Combine all accounts
+    all_accounts = cyprus_accounts + cyprus_salary_accounts
+    
     # First, ensure all parent accounts exist and are group accounts
-    parent_accounts = set([account["parent_account"] for account in cyprus_accounts])
+    parent_accounts = set([account["parent_account"] for account in all_accounts])
     for parent_name in parent_accounts:
         ensure_parent_account_is_group(parent_name, company)
     
     # Iterate through the accounts and create them if they don't exist
-    for account_data in cyprus_accounts:
+    for account_data in all_accounts:
         account_name = account_data["account_name"]
         parent_account = account_data["parent_account"]
         
