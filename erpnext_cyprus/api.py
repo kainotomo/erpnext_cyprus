@@ -15,9 +15,9 @@ def setup_cyprus_chart_of_accounts(company):
     if company_doc.country != "Cyprus":
         frappe.throw(_("This function is only available for Cyprus-based companies"))
     
-    results = setup_cyprus_accounts(company)
+    accounts_created = setup_cyprus_accounts(company)
     
     return {
         "message": _("Chart of Accounts extended with Cyprus-specific accounts"),
-        "accounts_added": results
+        "accounts_added": accounts_created
     }
