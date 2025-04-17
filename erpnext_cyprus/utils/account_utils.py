@@ -100,24 +100,32 @@ def setup_cyprus_accounts(company):
         }
     ]
     
+    # First, ensure all parent accounts exist and are group accounts
+    parent_accounts = set([account["parent_account"] for account in cyprus_accounts])
+    for parent_name in parent_accounts:
+        ensure_parent_account_is_group(parent_name, company)
+    
     # Iterate through the accounts and create them if they don't exist
     for account_data in cyprus_accounts:
         account_name = account_data["account_name"]
         parent_account = account_data["parent_account"]
         
+        # Check if account already exists by name or by function
+        existing_account = find_existing_account(account_name, company)
+        
+        if existing_account:
+            frappe.msgprint(_("Account {0} already exists. Skipping creation.").format(account_name))
+            continue
+            
         # Find the full parent account path
         parent = get_parent_account_path(parent_account, company)
         if not parent:
             frappe.msgprint(_("Parent account {0} not found. Skipping {1}").format(
                 parent_account, account_name))
             continue
-            
-        # Check if account already exists
-        existing_account = frappe.db.get_value("Account", 
-            {"account_name": account_name, "company": company})
         
-        if not existing_account:
-            # Create the account
+        # Create the account
+        try:
             new_account = frappe.get_doc({
                 "doctype": "Account",
                 "account_name": account_name,
@@ -132,26 +140,72 @@ def setup_cyprus_accounts(company):
             new_account.insert()
             accounts_created.append(account_name)
             frappe.db.commit()
+        except Exception as e:
+            frappe.log_error(f"Error creating account {account_name}: {str(e)}", "Cyprus Chart of Accounts")
+            frappe.msgprint(_("Error creating account {0}: {1}").format(account_name, str(e)))
             
     return accounts_created
+
+def ensure_parent_account_is_group(parent_name, company):
+    """
+    Ensure the parent account exists and is set as a group account
+    """
+    parent_account = get_parent_account_path(parent_name, company)
+    
+    if parent_account:
+        # Check if it's a group account
+        is_group = frappe.db.get_value("Account", parent_account, "is_group")
+        
+        if not is_group:
+            # Convert to group account
+            frappe.db.set_value("Account", parent_account, "is_group", 1)
+            frappe.msgprint(_("Converted {0} to a group account").format(parent_name))
+            frappe.db.commit()
+    else:
+        frappe.msgprint(_("Parent account {0} not found in the chart of accounts").format(parent_name))
+
+def find_existing_account(account_name, company):
+    """
+    Check if an account with the same name or similar function already exists
+    """
+    # Check by exact name
+    existing = frappe.db.get_value("Account", 
+        {"account_name": account_name, "company": company})
+    
+    if existing:
+        return existing
+        
+    # Check by similar names (for broader matching)
+    # For example, "VAT Cyprus Local" might exist as "Cyprus VAT" or "Local VAT (19%)"
+    if "VAT" in account_name:
+        similar_accounts = frappe.db.sql("""
+            SELECT name FROM `tabAccount`
+            WHERE account_name LIKE %s AND company = %s
+        """, (f"%{account_name.split()[0]}%", company), as_dict=1)
+        
+        if similar_accounts and len(similar_accounts) > 0:
+            return similar_accounts[0].name
+            
+    return None
 
 def get_parent_account_path(parent_account, company):
     """
     Get the full account path for the parent account
     """
+    # Try exact match first
     parent_data = frappe.db.get_value("Account", 
         {"account_name": parent_account, "company": company}, "name")
     
-    if not parent_data:
-        # Try to find any account that contains this name
-        accounts = frappe.db.sql("""
-            SELECT name FROM `tabAccount`
-            WHERE account_name LIKE %s AND company = %s
-        """, (f"%{parent_account}%", company), as_dict=1)
+    if parent_data:
+        return parent_data
         
-        if accounts and len(accounts) > 0:
-            return accounts[0].name
-            
-        return None
+    # If not found, try partial match
+    accounts = frappe.db.sql("""
+        SELECT name FROM `tabAccount`
+        WHERE account_name LIKE %s AND company = %s
+    """, (f"%{parent_account}%", company), as_dict=1)
     
-    return parent_data
+    if accounts and len(accounts) > 0:
+        return accounts[0].name
+        
+    return None

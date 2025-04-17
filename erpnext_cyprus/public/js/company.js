@@ -7,7 +7,7 @@ frappe.ui.form.on('Company', {
                     __('This will extend the chart of accounts with Cyprus-specific accounts for handling local, EU, and international transactions. Proceed?'),
                     function() {
                         frappe.call({
-                            method: 'erpnext_cyprus.erpnext_cyprus.api.setup_cyprus_chart_of_accounts',
+                            method: 'erpnext_cyprus.api.setup_cyprus_chart_of_accounts',
                             args: {
                                 company: frm.doc.name
                             },
