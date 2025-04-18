@@ -251,3 +251,255 @@ def setup_cyprus_purchase_tax_templates(company):
             frappe.db.commit()
             
     return templates_created
+
+def setup_cyprus_sales_tax_templates(company):
+    """
+    Set up Cyprus-specific sales tax templates
+    """
+    templates_created = []
+    
+    # First ensure we have the required accounts
+    tax_accounts = get_cyprus_tax_accounts(company)
+    if not tax_accounts:
+        frappe.msgprint(_("Required tax accounts not found. Please set up the chart of accounts first."))
+        return templates_created
+    
+    # Define the Cyprus-specific sales tax templates - one per use case
+    cyprus_sales_tax_templates = [        
+        # Main domestic sales template with all rates
+        {
+            "title": "Cyprus Sales VAT (All Rates)",
+            "company": company,
+            "is_inter_state": 0,
+            "tax_category": "Cyprus Standard",
+            "description": "All Cyprus domestic sales VAT rates",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["vat_local_19"],
+                    "description": "VAT 19%",
+                    "rate": 19
+                },
+                {
+                    "account_head": tax_accounts["vat_reduced_9"],
+                    "description": "VAT 9%",
+                    "rate": 0  # Default to 0, controlled by item tax templates
+                },
+                {
+                    "account_head": tax_accounts["vat_super_reduced_5"],
+                    "description": "VAT 5%",
+                    "rate": 0  # Default to 0, controlled by item tax templates
+                }
+            ]
+        },
+        # EU B2B sales (reverse charge)
+        {
+            "title": "EU B2B Sales (Reverse Charge)",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "EU B2B",
+            "description": "For VAT-registered businesses in EU (0% with reverse charge)",
+            "taxes": []  # Zero-rated
+        },
+        # EU B2C sales (charge local VAT)
+        {
+            "title": "EU B2C Sales",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "EU B2C",
+            "description": "For consumers in EU (with local VAT)",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["vat_local_19"],
+                    "description": "VAT 19%",
+                    "rate": 19
+                }
+            ]
+        },
+        # Non-EU export sales
+        {
+            "title": "Non-EU Export",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "Non-EU",
+            "description": "For exports outside the EU (zero-rated)",
+            "taxes": []  # Zero-rated
+        },
+        # Digital services (OSS)
+        {
+            "title": "Digital Services EU (OSS)",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "Digital Services",
+            "description": "For digital services to EU consumers (OSS)",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["oss_vat"],
+                    "description": "OSS VAT",
+                    "rate": 19  # Default rate, can be overridden by item tax templates
+                }
+            ]
+        },
+        # Exempt sales
+        {
+            "title": "VAT Exempt Sales",
+            "company": company,
+            "is_inter_state": 0,
+            "tax_category": "Exempt",
+            "description": "For VAT-exempt goods and services",
+            "taxes": []  # Zero-rated
+        }
+    ]
+    
+    # Create each sales tax template if it doesn't already exist
+    for template_data in cyprus_sales_tax_templates:
+        existing_template = frappe.db.exists("Sales Taxes and Charges Template", 
+            {"title": template_data["title"], "company": company})
+        
+        if not existing_template:
+            # Create the template
+            new_template = frappe.get_doc({
+                "doctype": "Sales Taxes and Charges Template",
+                "title": template_data["title"],
+                "company": template_data["company"],
+                "is_inter_state": template_data["is_inter_state"],
+                "tax_category": template_data["tax_category"],
+                "disabled": 0,
+                "description": template_data["description"]
+            })
+            
+            # Add the taxes
+            for tax in template_data["taxes"]:
+                new_template.append("taxes", {
+                    "account_head": tax["account_head"],
+                    "description": tax["description"],
+                    "rate": tax["rate"],
+                    "add_deduct_tax": tax.get("add_deduct_tax", "Add"),
+                    "category": "Total",
+                    "charge_type": "On Net Total"
+                })
+            
+            new_template.insert()
+            templates_created.append(template_data["title"])
+            frappe.db.commit()
+            
+    return templates_created
+
+def setup_cyprus_item_tax_templates(company):
+    """
+    Set up Cyprus-specific item tax templates for different VAT rates
+    """
+    templates_created = []
+    
+    # Get the tax accounts
+    tax_accounts = get_cyprus_tax_accounts(company)
+    if not tax_accounts:
+        frappe.msgprint(_("Required tax accounts not found. Please set up the chart of accounts first."))
+        return templates_created
+    
+    # Extract the full account names for use in item tax templates
+    vat_19_account = tax_accounts["vat_local_19"]
+    vat_9_account = tax_accounts["vat_reduced_9"]
+    vat_5_account = tax_accounts["vat_super_reduced_5"]
+    
+    # Define the Cyprus-specific item tax templates
+    cyprus_item_tax_templates = [
+        {
+            "title": "Cyprus Standard 19%",
+            "taxes": [
+                {
+                    "tax_type": vat_19_account,
+                    "tax_rate": 19
+                },
+                {
+                    "tax_type": vat_9_account,
+                    "tax_rate": 0
+                },
+                {
+                    "tax_type": vat_5_account,
+                    "tax_rate": 0
+                }
+            ]
+        },
+        {
+            "title": "Cyprus Reduced 9%",
+            "taxes": [
+                {
+                    "tax_type": vat_19_account,
+                    "tax_rate": 0
+                },
+                {
+                    "tax_type": vat_9_account,
+                    "tax_rate": 9
+                },
+                {
+                    "tax_type": vat_5_account,
+                    "tax_rate": 0
+                }
+            ]
+        },
+        {
+            "title": "Cyprus Super Reduced 5%",
+            "taxes": [
+                {
+                    "tax_type": vat_19_account,
+                    "tax_rate": 0
+                },
+                {
+                    "tax_type": vat_9_account,
+                    "tax_rate": 0
+                },
+                {
+                    "tax_type": vat_5_account,
+                    "tax_rate": 5
+                }
+            ]
+        },
+        {
+            "title": "Zero Rated",
+            "taxes": [
+                {
+                    "tax_type": vat_19_account,
+                    "tax_rate": 0
+                }
+            ]
+        },
+        {
+            "title": "Exempt",
+            "taxes": [
+                {
+                    "tax_type": vat_19_account,
+                    "tax_rate": 0
+                }
+            ]
+        }
+    ]
+    
+    # Create each item tax template if it doesn't already exist
+    for template_data in cyprus_item_tax_templates:
+        existing_template = frappe.db.exists("Item Tax Template", 
+            {"title": template_data["title"]})
+        
+        if not existing_template:
+            # Create the template
+            new_template = frappe.get_doc({
+                "doctype": "Item Tax Template",
+                "title": template_data["title"],
+                "disabled": 0,
+                "company": company  # Item tax templates should be company-specific
+            })
+            
+            # Add the taxes
+            for tax in template_data["taxes"]:
+                new_template.append("taxes", {
+                    "tax_type": tax["tax_type"],
+                    "tax_rate": tax["tax_rate"]
+                })
+            
+            try:
+                new_template.insert()
+                templates_created.append(template_data["title"])
+                frappe.db.commit()
+            except Exception as e:
+                frappe.log_error(f"Error creating item tax template {template_data['title']}: {str(e)}")
+            
+    return templates_created

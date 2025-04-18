@@ -4,7 +4,9 @@ from frappe.utils import cstr
 from erpnext_cyprus.utils.account_utils import setup_cyprus_accounts
 from erpnext_cyprus.utils.tax_utils import (
     setup_cyprus_tax_categories,
-    setup_cyprus_purchase_tax_templates
+    setup_cyprus_purchase_tax_templates,
+    setup_cyprus_sales_tax_templates,
+    setup_cyprus_item_tax_templates
 )
 
 @frappe.whitelist()
@@ -25,7 +27,9 @@ def setup_cyprus_company(company):
         "message": _("Cyprus company setup completed"),
         "accounts_added": [],
         "tax_categories_added": [],
-        "purchase_templates_added": []
+        "purchase_templates_added": [],
+        "sales_templates_added": [],
+        "item_tax_templates_added": []
     }
     
     # Step 1: Setup chart of accounts
@@ -54,5 +58,25 @@ def setup_cyprus_company(company):
     results["purchase_templates_added"] = purchase_templates_created
     frappe.msgprint(_("Purchase tax templates setup completed. Created: {0}").format(
         ", ".join(purchase_templates_created) if purchase_templates_created else "None"))
+    
+    # Commit changes before proceeding
+    frappe.db.commit()
+    
+    # Step 4: Setup sales tax templates
+    frappe.msgprint(_("Step 4: Setting up sales tax templates"))
+    sales_templates_created = setup_cyprus_sales_tax_templates(company)
+    results["sales_templates_added"] = sales_templates_created
+    frappe.msgprint(_("Sales tax templates setup completed. Created: {0}").format(
+        ", ".join(sales_templates_created) if sales_templates_created else "None"))
+    
+    # Commit changes before proceeding
+    frappe.db.commit()
+    
+    # Step 5: Setup item tax templates
+    frappe.msgprint(_("Step 5: Setting up item tax templates"))
+    item_templates_created = setup_cyprus_item_tax_templates(company)  # Pass the company parameter
+    results["item_tax_templates_added"] = item_templates_created
+    frappe.msgprint(_("Item tax templates setup completed. Created: {0}").format(
+        ", ".join(item_templates_created) if item_templates_created else "None"))
     
     return results
