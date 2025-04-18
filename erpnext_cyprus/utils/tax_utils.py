@@ -53,3 +53,201 @@ def setup_cyprus_tax_categories():
             frappe.db.commit()
             
     return tax_categories_created
+
+def get_cyprus_tax_accounts(company):
+    """
+    Get the necessary Cyprus tax accounts using exact account_name matches
+    """
+    accounts = {}
+    missing_accounts = []
+    found_accounts = []
+    
+    # Define the accounts we need by name
+    required_accounts = {
+        "vat_local_19": "VAT Cyprus Local (19%)",
+        "vat_reduced_9": "VAT Cyprus Reduced (9%)",
+        "vat_super_reduced_5": "VAT Cyprus Super Reduced (5%)",
+        "intra_eu_acquisition": "Intra-EU Acquisition VAT",
+        "reverse_charge_services": "Reverse Charge VAT B2B Services",
+        "import_vat": "Import VAT Non-EU",
+        "oss_vat": "OSS VAT Digital Services"
+    }
+    
+    # Simple direct search for each account by exact account_name and company
+    for key, account_name in required_accounts.items():
+        # Only use the exact account_name and company
+        account = frappe.db.get_value("Account", 
+            {"account_name": account_name, "company": company}, "name")
+        
+        # Store result
+        if account:
+            accounts[key] = account
+            found_accounts.append(f"{key}: {account_name} → {account}")
+        else:
+            missing_accounts.append(account_name)
+            accounts[key] = None
+    
+    # Only show missing accounts in production - this is critical information
+    if missing_accounts:
+        frappe.msgprint(_("Could not find these tax accounts:") + "<br>" + "<br>".join(missing_accounts))
+        return None
+    
+    return accounts
+
+def setup_cyprus_purchase_tax_templates(company):
+    """
+    Set up Cyprus-specific purchase tax templates
+    """
+    templates_created = []
+    
+    # First ensure we have the required accounts
+    tax_accounts = get_cyprus_tax_accounts(company)
+    if not tax_accounts:
+        frappe.msgprint(_("Required tax accounts not found. Please set up the chart of accounts first."))
+        return templates_created
+    
+    # Define the Cyprus-specific purchase tax templates - one per use case
+    cyprus_purchase_tax_templates = [        
+        # Main domestic purchase template with all rates
+        {
+            "title": "Cyprus Purchase VAT (All Rates)",
+            "company": company,
+            "is_inter_state": 0,
+            "tax_category": "Cyprus Standard",
+            "description": "All Cyprus domestic purchase VAT rates",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["vat_local_19"],
+                    "description": "VAT 19%",
+                    "rate": 19
+                },
+                {
+                    "account_head": tax_accounts["vat_reduced_9"],
+                    "description": "VAT 9%",
+                    "rate": 0  # Default to 0, controlled by item tax templates
+                },
+                {
+                    "account_head": tax_accounts["vat_super_reduced_5"],
+                    "description": "VAT 5%",
+                    "rate": 0  # Default to 0, controlled by item tax templates
+                }
+            ]
+        },
+        # EU acquisition template
+        {
+            "title": "EU Acquisition VAT 19%",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "EU B2B",
+            "description": "For goods acquired from EU suppliers",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["intra_eu_acquisition"],
+                    "description": "EU Acquisition VAT 19%",
+                    "rate": 19,
+                    "add_deduct_tax": "Add"
+                },
+                {
+                    "account_head": tax_accounts["intra_eu_acquisition"],
+                    "description": "Reverse EU Acquisition VAT 19%",
+                    "rate": -19,
+                    "add_deduct_tax": "Deduct"
+                }
+            ]
+        },
+        # EU services template
+        {
+            "title": "EU Services Reverse Charge",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "EU B2C",  # Using EU B2C for this template
+            "description": "For services from EU suppliers",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["reverse_charge_services"],
+                    "description": "Reverse Charge VAT 19%",
+                    "rate": 19,
+                    "add_deduct_tax": "Add"
+                },
+                {
+                    "account_head": tax_accounts["reverse_charge_services"],
+                    "description": "Reverse Charge VAT 19% (Input)",
+                    "rate": -19,
+                    "add_deduct_tax": "Deduct"
+                }
+            ]
+        },
+        # Non-EU import template
+        {
+            "title": "Non-EU Import VAT",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "Non-EU",
+            "description": "For imports from outside the EU",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["import_vat"],
+                    "description": "Import VAT 19%",
+                    "rate": 19
+                }
+            ]
+        },
+        # Exempt purchases
+        {
+            "title": "Zero-Rated Purchase",
+            "company": company,
+            "is_inter_state": 0,
+            "tax_category": "Exempt",
+            "description": "For zero-rated or exempt purchases",
+            "taxes": []
+        },
+        # Digital services
+        {
+            "title": "Digital Services Purchase",
+            "company": company,
+            "is_inter_state": 1,
+            "tax_category": "Digital Services",
+            "description": "For digital services purchases",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["oss_vat"],
+                    "description": "OSS VAT",
+                    "rate": 19
+                }
+            ]
+        }
+    ]
+    
+    # Create each purchase tax template if it doesn't already exist
+    for template_data in cyprus_purchase_tax_templates:
+        existing_template = frappe.db.exists("Purchase Taxes and Charges Template", 
+            {"title": template_data["title"], "company": company})
+        
+        if not existing_template:
+            # Create the template
+            new_template = frappe.get_doc({
+                "doctype": "Purchase Taxes and Charges Template",
+                "title": template_data["title"],
+                "company": template_data["company"],
+                "is_inter_state": template_data["is_inter_state"],
+                "tax_category": template_data["tax_category"],
+                "disabled": 0,
+                "description": template_data["description"]
+            })
+            
+            # Add the taxes
+            for tax in template_data["taxes"]:
+                new_template.append("taxes", {
+                    "account_head": tax["account_head"],
+                    "description": tax["description"],
+                    "rate": tax["rate"],
+                    "add_deduct_tax": tax.get("add_deduct_tax", "Add"),
+                    "category": "Total",
+                    "charge_type": "On Net Total"
+                })
+            
+            new_template.insert()
+            templates_created.append(template_data["title"])
+            frappe.db.commit()
+            
+    return templates_created

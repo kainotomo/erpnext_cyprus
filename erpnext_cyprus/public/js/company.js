@@ -4,7 +4,7 @@ frappe.ui.form.on('Company', {
         if (frm.doc.name && !frm.is_new() && frm.doc.country === 'Cyprus') {
             frm.add_custom_button(__('Setup Cyprus Company'), function() {
                 frappe.confirm(
-                    __('This will set up the Cyprus company with:<br>1. Extended chart of accounts<br>2. Tax categories<br><br>Proceed?'),
+                    __('This will set up the Cyprus company with:<br>1. Extended chart of accounts<br>2. Tax categories<br>3. Purchase tax templates<br><br>Proceed?'),
                     function() {
                         frappe.call({
                             method: 'erpnext_cyprus.api.setup_cyprus_company',
@@ -30,6 +30,13 @@ frappe.ui.form.on('Company', {
                                         message += r.message.tax_categories_added.join('<br>');
                                     } else {
                                         message += '<br><br>' + __('No new tax categories needed to be created.');
+                                    }
+                                    
+                                    if (r.message.purchase_templates_added && r.message.purchase_templates_added.length > 0) {
+                                        message += '<br><br><b>' + __('Purchase tax templates created:') + '</b><br>';
+                                        message += r.message.purchase_templates_added.join('<br>');
+                                    } else {
+                                        message += '<br><br>' + __('No new purchase tax templates needed to be created.');
                                     }
                                     
                                     frappe.msgprint({

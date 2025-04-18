@@ -255,33 +255,23 @@ def ensure_parent_account_is_group(parent_name, company):
 
 def find_existing_account(account_name, company):
     """
-    Check if an account with the same name or similar function already exists
+    Check if an account with the same name already exists - only using account_name and company
     """
-    # Check by exact name
+    # Exact match by account_name and company - this is the only reliable method
     existing = frappe.db.get_value("Account", 
-        {"account_name": account_name, "company": company})
+        {"account_name": account_name, "company": company}, "name")
     
     if existing:
         return existing
-        
-    # Check by similar names (for broader matching)
-    # For example, "VAT Cyprus Local" might exist as "Cyprus VAT" or "Local VAT (19%)"
-    if "VAT" in account_name:
-        similar_accounts = frappe.db.sql("""
-            SELECT name FROM `tabAccount`
-            WHERE account_name LIKE %s AND company = %s
-        """, (f"%{account_name.split()[0]}%", company), as_dict=1)
-        
-        if similar_accounts and len(similar_accounts) > 0:
-            return similar_accounts[0].name
-            
+    
+    # No other search methods - they cause false positives
     return None
 
 def get_parent_account_path(parent_account, company):
     """
     Get the full account path for the parent account
     """
-    # Try exact match first
+    # Try exact match by account_name and company
     parent_data = frappe.db.get_value("Account", 
         {"account_name": parent_account, "company": company}, "name")
     
