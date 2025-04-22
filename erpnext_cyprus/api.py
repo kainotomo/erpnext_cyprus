@@ -13,7 +13,9 @@ from erpnext_cyprus.utils.create_sample_data import (
     create_sample_suppliers,
     delete_sample_suppliers,
     create_sample_customers,
-    delete_sample_customers
+    delete_sample_customers,
+    create_sample_items,     # Add these
+    delete_sample_items      # Add these
 )
 
 @frappe.whitelist()
@@ -102,7 +104,7 @@ def setup_cyprus_company(company):
 @frappe.whitelist()
 def create_sample_data(company=None):
     """
-    Create sample customers and suppliers for testing Cyprus VAT scenarios
+    Create sample customers, suppliers and items for testing Cyprus VAT scenarios
     
     Args:
         company: Optional company to associate with sample data
@@ -130,15 +132,20 @@ def create_sample_data(company=None):
     results["customers"] = customer_results["customers"]
     results["customers_count"] = customer_results["count"]
     
+    # Create sample items
+    item_results = create_sample_items(company)
+    results["items"] = item_results["items"]
+    results["items_count"] = item_results["count"]
+    
     return results
 
 @frappe.whitelist()
 def delete_sample_data(company=None):
     """
-    Delete sample customers and suppliers created for testing Cyprus VAT scenarios
+    Delete sample customers, suppliers and items created for testing Cyprus VAT scenarios
     
     Args:
-        company: Optional company filter (not used in current implementation)
+        company: Optional company filter (not used for items)
         
     Returns:
         Dict with results of sample data deletion
@@ -159,5 +166,10 @@ def delete_sample_data(company=None):
     customer_results = delete_sample_customers(company)
     results["customers_deleted"] = customer_results["count"]
     results["customers_errors"] = customer_results["errors"]
+    
+    # Delete sample items
+    item_results = delete_sample_items()
+    results["items_deleted"] = item_results["count"]
+    results["items_errors"] = item_results["errors"]
     
     return results

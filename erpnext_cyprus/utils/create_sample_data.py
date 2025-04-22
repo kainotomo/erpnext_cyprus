@@ -603,3 +603,370 @@ def get_default_city_for_country(country):
     }
     
     return city_map.get(country, "Main City")  # Default to "Main City" if country not in map
+
+@frappe.whitelist()
+def create_sample_items(company=None):
+    """
+    Create sample items for testing Cyprus VAT scenarios
+    
+    Args:
+        company: Optional company to associate items with (for item defaults)
+        
+    Returns:
+        Dict with information about created items
+    """
+    # Validate company if provided
+    if company and not frappe.db.exists("Company", company):
+        frappe.throw(_("Company {0} does not exist").format(company))
+    
+    # Define the sample items to create
+    sample_items = [
+        # Standard rate (19%) items
+        {
+            "item_name": "Office Desk",
+            "item_group": "Products",
+            "item_code": "CY-STD-DESK",
+            "description": "Office desk with standard 19% VAT rate",
+            "is_stock_item": 1,
+            "standard_rate": 350.00,
+            "vat_rate": 19,
+            "stock_uom": "Nos"
+        },
+        {
+            "item_name": "Laptop Computer",
+            "item_group": "Products",
+            "item_code": "CY-STD-LAPTOP",
+            "description": "Business laptop with standard 19% VAT rate",
+            "is_stock_item": 1,
+            "standard_rate": 850.00,
+            "vat_rate": 19,
+            "stock_uom": "Nos"
+        },
+        {
+            "item_name": "IT Support Services",
+            "item_group": "Services",
+            "item_code": "CY-STD-ITSUPPORT",
+            "description": "Technical IT support with standard 19% VAT rate",
+            "is_stock_item": 0,
+            "standard_rate": 80.00,
+            "vat_rate": 19,
+            "stock_uom": "Hour"
+        },
+        
+        # Reduced rate (9%) items
+        {
+            "item_name": "Hotel Accommodation",
+            "item_group": "Services",
+            "item_code": "CY-RED-HOTEL",
+            "description": "Hotel accommodation with reduced 9% VAT rate",
+            "is_stock_item": 0,
+            "standard_rate": 120.00,
+            "vat_rate": 9,
+            "stock_uom": "Day"
+        },
+        {
+            "item_name": "Restaurant Meal",
+            "item_group": "Products",
+            "item_code": "CY-RED-MEAL",
+            "description": "Restaurant meal with reduced 9% VAT rate",
+            "is_stock_item": 1,
+            "standard_rate": 25.00,
+            "vat_rate": 9,
+            "stock_uom": "Nos"
+        },
+        
+        # Super-reduced rate (5%) items
+        {
+            "item_name": "Educational Book",
+            "item_group": "Products",
+            "item_code": "CY-SRED-BOOK",
+            "description": "Educational book with super-reduced 5% VAT rate",
+            "is_stock_item": 1,
+            "standard_rate": 35.00,
+            "vat_rate": 5,
+            "stock_uom": "Nos"
+        },
+        {
+            "item_name": "Pharmaceutical Product",
+            "item_group": "Products",
+            "item_code": "CY-SRED-PHARMA",
+            "description": "Pharmaceutical product with super-reduced 5% VAT rate",
+            "is_stock_item": 1,
+            "standard_rate": 18.50,
+            "vat_rate": 5,
+            "stock_uom": "Nos"
+        },
+        
+        # Zero-rated items
+        {
+            "item_name": "Export Goods",
+            "item_group": "Products",
+            "item_code": "CY-ZERO-EXPORT",
+            "description": "Goods for export with zero VAT rate",
+            "is_stock_item": 1,
+            "standard_rate": 200.00,
+            "vat_rate": 0,
+            "stock_uom": "Nos"
+        },
+        
+        # Exempt items
+        {
+            "item_name": "Insurance Service",
+            "item_group": "Services",
+            "item_code": "CY-EXEMPT-INS",
+            "description": "Insurance service exempt from VAT",
+            "is_stock_item": 0,
+            "standard_rate": 150.00,
+            "vat_rate": 0,
+            "is_exempt": 1,
+            "stock_uom": "Nos"
+        },
+        {
+            "item_name": "Medical Service",
+            "item_group": "Services",
+            "item_code": "CY-EXEMPT-MED",
+            "description": "Medical service exempt from VAT",
+            "is_stock_item": 0,
+            "standard_rate": 80.00,
+            "vat_rate": 0,
+            "is_exempt": 1,
+            "stock_uom": "Hour"
+        },
+        
+        # Digital services (for OSS testing)
+        {
+            "item_name": "Digital Subscription",
+            "item_group": "Services",
+            "item_code": "CY-DIG-SUB",
+            "description": "Digital subscription service for OSS VAT testing",
+            "is_stock_item": 0,
+            "standard_rate": 9.99,
+            "vat_rate": 19,  # Default Cyprus rate, but will be taxed at destination rate
+            "is_digital": 1,
+            "stock_uom": "Nos"
+        },
+        
+        # Items for triangular transactions
+        {
+            "item_name": "Triangulation Goods",
+            "item_group": "Products",
+            "item_code": "CY-TRI-GOODS",
+            "description": "Goods for testing triangulation scenarios",
+            "is_stock_item": 1,
+            "standard_rate": 450.00,
+            "vat_rate": 0,  # Zero-rated for triangulation
+            "stock_uom": "Nos"
+        }
+    ]
+    
+    # Create the items
+    items_created = []
+    
+    # Ensure required item groups exist
+    ensure_item_groups_exist()
+    
+    for item_data in sample_items:
+        # Check if item already exists by item code
+        existing = frappe.db.exists("Item", item_data["item_code"])
+        
+        if existing:
+            # Update existing item instead of creating new
+            item = frappe.get_doc("Item", existing)
+            item.item_name = item_data["item_name"]
+            item.description = item_data["description"]
+            item.item_group = item_data["item_group"]
+            item.is_stock_item = item_data["is_stock_item"]
+            item.standard_rate = item_data["standard_rate"]
+            item.save()
+        else:
+            # Create new item
+            item = frappe.get_doc({
+                "doctype": "Item",
+                "item_code": item_data["item_code"],
+                "item_name": item_data["item_name"],
+                "description": item_data["description"],
+                "item_group": item_data["item_group"],
+                "is_stock_item": item_data["is_stock_item"],
+                "stock_uom": item_data["stock_uom"],
+                "standard_rate": item_data["standard_rate"]
+            })
+            
+            # Add VAT/tax classification in item flags or custom fields
+            if item_data.get("is_exempt"):
+                item.is_exempted = 1
+            
+            if item_data.get("is_digital"):
+                # Flag for digital services if your system supports it
+                # This might be a custom field in your implementation
+                # item.digital_service = 1
+                pass
+                
+            # If company is provided, add item defaults
+            if company:
+                item.append("item_defaults", {
+                    "company": company,
+                    "default_warehouse": frappe.db.get_value("Warehouse", {"company": company, "is_group": 0}, "name"),
+                    "default_price_list": frappe.db.get_value("Price List", {"selling": 1}, "name")
+                })
+            
+            item.insert()
+            
+            # Create and link item tax template based on VAT rate
+            link_item_tax_template(item, company, item_data["vat_rate"], item_data.get("is_exempt"))
+        
+        # Add to created items list
+        items_created.append({
+            "item_code": item.item_code,
+            "item_name": item.item_name,
+            "item_group": item.item_group,
+            "vat_rate": item_data["vat_rate"],
+            "exempt": item_data.get("is_exempt", 0),
+            "digital": item_data.get("is_digital", 0)
+        })
+    
+    # Commit to save changes
+    frappe.db.commit()
+    
+    # Return information about created items
+    return {
+        "items": items_created,
+        "count": len(items_created),
+        "message": _("Successfully created/updated {0} sample items").format(len(items_created))
+    }
+
+@frappe.whitelist()
+def delete_sample_items():
+    """
+    Delete sample items that were created for testing Cyprus VAT scenarios
+    
+    Returns:
+        Dict with information about deleted items
+    """
+    # Get item codes from the list we created
+    item_codes = [
+        "CY-STD-DESK", "CY-STD-LAPTOP", "CY-STD-ITSUPPORT", 
+        "CY-RED-HOTEL", "CY-RED-MEAL",
+        "CY-SRED-BOOK", "CY-SRED-PHARMA", 
+        "CY-ZERO-EXPORT", 
+        "CY-EXEMPT-INS", "CY-EXEMPT-MED", 
+        "CY-DIG-SUB", 
+        "CY-TRI-GOODS"
+    ]
+    
+    # Track deletion results
+    deletion_log = []
+    errors = []
+    
+    # Try to delete each item
+    for item_code in item_codes:
+        if frappe.db.exists("Item", item_code):
+            try:
+                # Check for linked documents
+                has_links = False
+                for doctype in ["Sales Invoice Item", "Purchase Invoice Item", "Sales Order Item"]:
+                    links = frappe.db.get_all(doctype, filters={"item_code": item_code}, limit=1)
+                    if links:
+                        has_links = True
+                        errors.append({
+                            "item_code": item_code,
+                            "error": f"Cannot delete {item_code} as it has linked {doctype} entries"
+                        })
+                        break
+                
+                if has_links:
+                    continue
+                
+                # Get item details before deletion
+                item = frappe.get_doc("Item", item_code)
+                
+                # Delete the item
+                frappe.delete_doc("Item", item_code)
+                
+                # Record the deletion
+                deletion_log.append({
+                    "item_code": item_code,
+                    "item_name": item.item_name,
+                    "item_group": item.item_group
+                })
+                
+            except Exception as e:
+                errors.append({
+                    "item_code": item_code,
+                    "error": str(e)
+                })
+    
+    # Commit changes
+    frappe.db.commit()
+    
+    # Return results
+    return {
+        "deleted": deletion_log,
+        "count": len(deletion_log),
+        "errors": errors,
+        "message": _("Successfully deleted {0} sample items").format(len(deletion_log))
+    }
+
+def ensure_item_groups_exist():
+    """Ensure that required item groups exist"""
+    required_groups = ["Products", "Services"]
+    
+    for group in required_groups:
+        if not frappe.db.exists("Item Group", group):
+            frappe.get_doc({
+                "doctype": "Item Group",
+                "item_group_name": group,
+                "is_group": 0,
+                "parent_item_group": "All Item Groups"
+            }).insert()
+
+def link_item_tax_template(item, company, vat_rate, is_exempt=False):
+    """
+    Link the appropriate tax template to an item based on VAT rate
+    
+    Args:
+        item: Item document
+        company: Company for which to find tax templates
+        vat_rate: VAT rate for the item
+        is_exempt: Whether the item is exempt from VAT
+    """
+    if not company:
+        return
+    
+    # Map VAT rates to likely template names (adjust as needed)
+    template_map = {
+        19: "Cyprus VAT 19%",
+        9: "Cyprus VAT 9%",
+        5: "Cyprus VAT 5%",
+        0: "Zero Rated" if not is_exempt else "Exempt"
+    }
+    
+    template_name = template_map.get(vat_rate)
+    
+    if not template_name:
+        return
+    
+    # Try to find the item tax template
+    templates = frappe.get_all(
+        "Item Tax Template",
+        filters={"name": ["like", f"%{template_name}%"], "company": company},
+        fields=["name"]
+    )
+    
+    if not templates:
+        return
+    
+    # Link the template to the item
+    try:
+        item_with_taxes = frappe.get_doc("Item", item.name)
+        
+        # Add the tax template to item taxes table
+        item_with_taxes.append("taxes", {
+            "item_tax_template": templates[0].name,
+            "valid_from": frappe.utils.nowdate(),
+            "company": company
+        })
+        
+        item_with_taxes.save()
+    except Exception:
+        # If it fails, don't stop the process
+        pass
