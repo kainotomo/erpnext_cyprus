@@ -3,10 +3,10 @@ from frappe import _
 from frappe.utils import cstr
 from erpnext_cyprus.utils.account_utils import setup_cyprus_accounts
 from erpnext_cyprus.utils.tax_utils import (
-    setup_cyprus_purchase_tax_templates,
-    setup_cyprus_sales_tax_templates,
-    setup_cyprus_item_tax_templates,
-    setup_cyprus_tax_rules,
+    setup_purchase_tax_templates,
+    setup_sales_tax_templates,
+    setup_item_tax_templates,
+    setup_tax_rules,
     setup_cyprus_item_groups
 )
 
@@ -56,7 +56,7 @@ def setup_cyprus_company(company):
     
     # Step 3: Setup purchase tax templates (formerly Step 4)
     frappe.msgprint(_("Step 3: Setting up purchase tax templates"))
-    purchase_templates_created = setup_cyprus_purchase_tax_templates(company)
+    purchase_templates_created = setup_purchase_tax_templates(company)
     results["purchase_templates_added"] = purchase_templates_created
     frappe.msgprint(_("Purchase tax templates setup completed. Created: {0}").format(
         ", ".join(purchase_templates_created) if purchase_templates_created else "None"))
@@ -66,7 +66,7 @@ def setup_cyprus_company(company):
     
     # Step 4: Setup sales tax templates (formerly Step 5)
     frappe.msgprint(_("Step 4: Setting up sales tax templates"))
-    sales_templates_created = setup_cyprus_sales_tax_templates(company)
+    sales_templates_created = setup_sales_tax_templates(company)
     results["sales_templates_added"] = sales_templates_created
     frappe.msgprint(_("Sales tax templates setup completed. Created: {0}").format(
         ", ".join(sales_templates_created) if sales_templates_created else "None"))
@@ -76,7 +76,7 @@ def setup_cyprus_company(company):
     
     # Step 5: Setup item tax templates (formerly Step 6)
     frappe.msgprint(_("Step 5: Setting up item tax templates"))
-    item_templates_created = setup_cyprus_item_tax_templates(company)
+    item_templates_created = setup_item_tax_templates(company)
     results["item_tax_templates_added"] = item_templates_created
     frappe.msgprint(_("Item tax templates setup completed. Created: {0}").format(
         ", ".join(item_templates_created) if item_templates_created else "None"))
@@ -86,7 +86,7 @@ def setup_cyprus_company(company):
     
     # Step 6: Setup tax rules (formerly Step 7)
     frappe.msgprint(_("Step 6: Setting up tax rules"))
-    tax_rules_created = setup_cyprus_tax_rules(company)
+    tax_rules_created = setup_tax_rules(company)
     results["tax_rules_added"] = tax_rules_created
     frappe.msgprint(_("Tax rules setup completed. Created: {0}").format(
         ", ".join(tax_rules_created) if tax_rules_created else "None"))

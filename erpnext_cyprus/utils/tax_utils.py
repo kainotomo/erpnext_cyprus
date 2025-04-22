@@ -41,7 +41,7 @@ def get_cyprus_tax_accounts(company):
     
     return accounts
 
-def setup_cyprus_purchase_tax_templates(company):
+def setup_purchase_tax_templates(company):
     """
     Set up Cyprus-specific purchase tax templates
     """
@@ -192,7 +192,7 @@ def setup_cyprus_purchase_tax_templates(company):
             
     return templates_created
 
-def setup_cyprus_sales_tax_templates(company):
+def setup_sales_tax_templates(company):
     """
     Set up Cyprus-specific sales tax templates
     """
@@ -321,7 +321,7 @@ def setup_cyprus_sales_tax_templates(company):
             
     return templates_created
 
-def setup_cyprus_item_tax_templates(company):
+def setup_item_tax_templates(company):
     """
     Set up Cyprus-specific item tax templates for different VAT rates
     """
@@ -441,7 +441,7 @@ def setup_cyprus_item_tax_templates(company):
             
     return templates_created
 
-def setup_cyprus_tax_rules(company):
+def setup_tax_rules(company):
     """
     Set up Cyprus-specific tax rules for automatic tax template selection
     """
