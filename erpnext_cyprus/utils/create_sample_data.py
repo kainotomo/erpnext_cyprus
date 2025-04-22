@@ -970,3 +970,675 @@ def link_item_tax_template(item, company, vat_rate, is_exempt=False):
     except Exception:
         # If it fails, don't stop the process
         pass
+
+@frappe.whitelist()
+def create_sample_purchase_invoices(company=None):
+    """
+    Create sample purchase invoices covering all Cyprus VAT scenarios
+    
+    Args:
+        company: Company to create purchase invoices for (required)
+        
+    Returns:
+        Dict with information about created purchase invoices
+    """
+    if not company:
+        frappe.throw(_("Company is required to create sample purchase invoices"))
+        
+    if not frappe.db.exists("Company", company):
+        frappe.throw(_("Company {0} does not exist").format(company))
+    
+    # Get default accounts
+    company_doc = frappe.get_doc("Company", company)
+    default_expense_account = frappe.db.get_value("Company", company, "default_expense_account")
+    default_cost_center = frappe.db.get_value("Company", company, "cost_center")
+    
+    if not default_expense_account:
+        frappe.throw(_("Please set default expense account for company {0}").format(company))
+    
+    # Test scenarios
+    purchase_scenarios = [
+        # 1. Local purchases with different VAT rates
+        {
+            "title": "Local Standard VAT (19%) Purchase",
+            "supplier": "Cyprus Office Supplies Ltd - E2C",
+            "items": [
+                {"item_code": "CY-STD-DESK", "qty": 2, "rate": 350},
+                {"item_code": "CY-STD-LAPTOP", "qty": 1, "rate": 850}
+            ],
+            "description": "Purchase of office equipment with standard VAT rate (19%)"
+        },
+        {
+            "title": "Local Reduced VAT (9%) Purchase",
+            "supplier": "Cyprus Hotel Association - E2C",
+            "items": [
+                {"item_code": "CY-RED-HOTEL", "qty": 3, "rate": 120},
+                {"item_code": "CY-RED-MEAL", "qty": 5, "rate": 25}
+            ],
+            "description": "Purchase of hotel services with reduced VAT rate (9%)"
+        },
+        {
+            "title": "Local Super-reduced VAT (5%) Purchase",
+            "supplier": "Cyprus Books & Publishing - E2C",
+            "items": [
+                {"item_code": "CY-SRED-BOOK", "qty": 10, "rate": 35},
+                {"item_code": "CY-SRED-PHARMA", "qty": 5, "rate": 18.5}
+            ],
+            "description": "Purchase of books and pharmaceuticals with super-reduced VAT rate (5%)"
+        },
+        {
+            "title": "Local Exempt Purchase",
+            "supplier": "Cyprus Insurance Agency - E2C",
+            "items": [
+                {"item_code": "CY-EXEMPT-INS", "qty": 1, "rate": 150},
+                {"item_code": "CY-EXEMPT-MED", "qty": 2, "rate": 80}
+            ],
+            "description": "Purchase of exempt services (insurance, medical)"
+        },
+        
+        # 2. EU purchases (reverse charge)
+        {
+            "title": "EU Goods Purchase (Reverse Charge)",
+            "supplier": "German Electronics GmbH - E2C",
+            "items": [
+                {"item_code": "CY-STD-LAPTOP", "qty": 3, "rate": 800},
+                {"item_code": "CY-STD-DESK", "qty": 2, "rate": 320}
+            ],
+            "description": "Purchase of goods from EU with reverse charge"
+        },
+        {
+            "title": "EU Services Purchase (Reverse Charge)",
+            "supplier": "French IT Consulting SARL - E2C",
+            "items": [
+                {"item_code": "CY-STD-ITSUPPORT", "qty": 10, "rate": 75}
+            ],
+            "description": "Purchase of services from EU with reverse charge"
+        },
+        {
+            "title": "EU Special Case Purchase",
+            "supplier": "Italian Furniture Design SpA - E2C",
+            "items": [
+                {"item_code": "CY-STD-DESK", "qty": 5, "rate": 310}
+            ],
+            "description": "Purchase of goods with installation from EU supplier"
+        },
+        
+        # 3. Non-EU purchases (imports)
+        {
+            "title": "Non-EU Goods Import",
+            "supplier": "UK Manufacturing Ltd - E2C",
+            "items": [
+                {"item_code": "CY-STD-DESK", "qty": 4, "rate": 300},
+                {"item_code": "CY-ZERO-EXPORT", "qty": 2, "rate": 190}
+            ],
+            "description": "Import of goods from non-EU country with import VAT"
+        },
+        {
+            "title": "Non-EU Services Import",
+            "supplier": "US Software Inc - E2C",
+            "items": [
+                {"item_code": "CY-DIG-SUB", "qty": 5, "rate": 9.99}
+            ],
+            "description": "Import of digital services from non-EU with reverse charge"
+        },
+        
+        # 4. Special cases
+        {
+            "title": "Triangulation Purchase",
+            "supplier": "Global Dropshipping Services - E2C",
+            "items": [
+                {"item_code": "CY-TRI-GOODS", "qty": 3, "rate": 450}
+            ],
+            "description": "Purchase in triangulation arrangement (middleman scenario)"
+        }
+    ]
+    
+    # Create the invoices
+    invoices_created = []
+    
+    # Posting date
+    posting_date = frappe.utils.today()
+    
+    for scenario in purchase_scenarios:
+        # Check if supplier exists
+        supplier_exists = frappe.db.exists("Supplier", {"supplier_name": scenario["supplier"]})
+        if not supplier_exists:
+            continue
+            
+        supplier = frappe.get_doc("Supplier", {"supplier_name": scenario["supplier"]})
+        
+        # Create purchase invoice
+        pi = frappe.new_doc("Purchase Invoice")
+        pi.supplier = supplier.name
+        pi.posting_date = posting_date
+        pi.set_posting_time = 1
+        pi.company = company
+        pi.currency = company_doc.default_currency
+        pi.title = f"Test: {scenario['title']}"
+        pi.remarks = scenario["description"]
+        
+        # Add prefix to invoice number for easy identification
+        pi.naming_series = "CYT-PI-.YYYY.-"
+        
+        # Add items
+        for item_data in scenario["items"]:
+            if not frappe.db.exists("Item", item_data["item_code"]):
+                continue
+                
+            pi.append("items", {
+                "item_code": item_data["item_code"],
+                "qty": item_data["qty"],
+                "rate": item_data["rate"],
+                "expense_account": default_expense_account,
+                "cost_center": default_cost_center
+            })
+        
+        # If no valid items, skip this scenario
+        if not pi.items:
+            continue
+        
+        # Save and submit the purchase invoice
+        try:
+            pi.set_missing_values()
+            pi.calculate_taxes_and_totals()
+            pi.insert()
+            pi.submit()
+            
+            # Create payment entry
+            create_payment_entry(pi.doctype, pi.name, "Cash")
+            
+            # Add to created invoices list
+            invoices_created.append({
+                "name": pi.name,
+                "supplier": supplier.supplier_name,
+                "country": supplier.country,
+                "title": scenario["title"],
+                "total": pi.grand_total,
+                "tax_amount": pi.total_taxes_and_charges
+            })
+            
+        except Exception as e:
+            frappe.log_error(f"Failed to create purchase invoice for {scenario['title']}: {str(e)}")
+    
+    # Commit changes
+    frappe.db.commit()
+    
+    # Return information about created invoices
+    return {
+        "invoices": invoices_created,
+        "count": len(invoices_created),
+        "message": _("Successfully created {0} sample purchase invoices").format(len(invoices_created))
+    }
+
+
+@frappe.whitelist()
+def delete_sample_purchase_invoices():
+    """
+    Delete sample purchase invoices created for testing Cyprus VAT scenarios
+    
+    Returns:
+        Dict with information about deleted purchase invoices
+    """
+    # Find all test purchase invoices by naming series
+    purchase_invoices = frappe.get_all(
+        "Purchase Invoice", 
+        filters=[
+            ["naming_series", "=", "CYT-PI-.YYYY.-"],
+            ["docstatus", "!=", 2]  # Not cancelled
+        ],
+        fields=["name", "supplier", "supplier_name", "title", "grand_total", "docstatus"]
+    )
+    
+    # Track deletion results
+    deletion_log = []
+    errors = []
+    
+    # Cancel and delete each invoice
+    for pi in purchase_invoices:
+        try:
+            # First find and cancel any linked payment entries
+            payment_entries = frappe.get_all(
+                "Payment Entry Reference",
+                filters={"reference_doctype": "Purchase Invoice", "reference_name": pi.name},
+                fields=["parent"]
+            )
+            
+            # Cancel and delete payment entries
+            for pe in payment_entries:
+                if frappe.db.exists("Payment Entry", pe.parent):
+                    payment = frappe.get_doc("Payment Entry", pe.parent)
+                    if payment.docstatus == 1:  # Submitted
+                        payment.cancel()
+                    frappe.delete_doc("Payment Entry", pe.parent)
+            
+            # Now handle the invoice
+            invoice = frappe.get_doc("Purchase Invoice", pi.name)
+            
+            # If submitted, cancel first
+            if invoice.docstatus == 1:
+                invoice.cancel()
+            
+            frappe.delete_doc("Purchase Invoice", pi.name)
+            
+            # Record the deletion
+            deletion_log.append({
+                "name": pi.name,
+                "supplier": pi.supplier_name,
+                "title": pi.title,
+                "amount": pi.grand_total
+            })
+            
+        except Exception as e:
+            errors.append({
+                "invoice": pi.name,
+                "error": str(e)
+            })
+    
+    # Commit changes
+    frappe.db.commit()
+    
+    # Return results
+    return {
+        "deleted": deletion_log,
+        "count": len(deletion_log),
+        "errors": errors,
+        "message": _("Successfully deleted {0} sample purchase invoices").format(len(deletion_log))
+    }
+
+
+@frappe.whitelist()
+def create_sample_sales_invoices(company=None):
+    """
+    Create sample sales invoices covering all Cyprus VAT scenarios
+    
+    Args:
+        company: Company to create sales invoices for (required)
+        
+    Returns:
+        Dict with information about created sales invoices
+    """
+    if not company:
+        frappe.throw(_("Company is required to create sample sales invoices"))
+        
+    if not frappe.db.exists("Company", company):
+        frappe.throw(_("Company {0} does not exist").format(company))
+    
+    # Get default accounts
+    company_doc = frappe.get_doc("Company", company)
+    default_income_account = frappe.db.get_value("Company", company, "default_income_account")
+    default_cost_center = frappe.db.get_value("Company", company, "cost_center")
+    
+    if not default_income_account:
+        frappe.throw(_("Please set default income account for company {0}").format(company))
+    
+    # Test scenarios
+    sales_scenarios = [
+        # 1. Local sales with different VAT rates
+        {
+            "title": "Local B2C Sale (19% VAT)",
+            "customer": "Cyprus Retail Consumer - E2C",
+            "items": [
+                {"item_code": "CY-STD-DESK", "qty": 1, "rate": 450},
+                {"item_code": "CY-STD-LAPTOP", "qty": 1, "rate": 999}
+            ],
+            "description": "Sale to local consumer with standard VAT rate (19%)"
+        },
+        {
+            "title": "Local B2B Sale (19% VAT)",
+            "customer": "Cyprus Business Ltd - E2C",
+            "items": [
+                {"item_code": "CY-STD-DESK", "qty": 5, "rate": 400},
+                {"item_code": "CY-STD-ITSUPPORT", "qty": 10, "rate": 90}
+            ],
+            "description": "Sale to local business with standard VAT rate (19%)"
+        },
+        {
+            "title": "Local Sale with Reduced VAT (9%)",
+            "customer": "Cyprus Retail Consumer - E2C",
+            "items": [
+                {"item_code": "CY-RED-HOTEL", "qty": 3, "rate": 150},
+                {"item_code": "CY-RED-MEAL", "qty": 4, "rate": 35}
+            ],
+            "description": "Sale of hotel services and restaurant meals with reduced VAT rate (9%)"
+        },
+        {
+            "title": "Local Sale with Super-reduced VAT (5%)",
+            "customer": "Cyprus Retail Consumer - E2C",
+            "items": [
+                {"item_code": "CY-SRED-BOOK", "qty": 5, "rate": 45},
+                {"item_code": "CY-SRED-PHARMA", "qty": 2, "rate": 25}
+            ],
+            "description": "Sale of books and pharmaceuticals with super-reduced VAT rate (5%)"
+        },
+        {
+            "title": "Local Sale of Exempt Items",
+            "customer": "Cyprus Business Ltd - E2C",
+            "items": [
+                {"item_code": "CY-EXEMPT-INS", "qty": 1, "rate": 200},
+                {"item_code": "CY-EXEMPT-MED", "qty": 5, "rate": 95}
+            ],
+            "description": "Sale of exempt services (insurance, medical)"
+        },
+        {
+            "title": "Mixed Local Sale (Multiple VAT Rates)",
+            "customer": "Cyprus Business Ltd - E2C",
+            "items": [
+                {"item_code": "CY-STD-LAPTOP", "qty": 1, "rate": 999},  # 19%
+                {"item_code": "CY-RED-MEAL", "qty": 2, "rate": 35},     # 9%
+                {"item_code": "CY-SRED-BOOK", "qty": 3, "rate": 45},    # 5%
+                {"item_code": "CY-EXEMPT-INS", "qty": 1, "rate": 200}   # Exempt
+            ],
+            "description": "Sale with multiple VAT rates (19%, 9%, 5%, exempt)"
+        },
+        
+        # 2. EU sales
+        {
+            "title": "EU B2B Sale (Reverse Charge)",
+            "customer": "German Corporation GmbH - E2C",
+            "items": [
+                {"item_code": "CY-STD-DESK", "qty": 10, "rate": 380},
+                {"item_code": "CY-STD-LAPTOP", "qty": 5, "rate": 950}
+            ],
+            "description": "Sale to EU business with VAT number (reverse charge)"
+        },
+        {
+            "title": "EU B2B Services (Reverse Charge)",
+            "customer": "French Enterprise SARL - E2C",
+            "items": [
+                {"item_code": "CY-STD-ITSUPPORT", "qty": 20, "rate": 85}
+            ],
+            "description": "Sale of services to EU business with VAT number (reverse charge)"
+        },
+        {
+            "title": "EU B2C Sale",
+            "customer": "Maria Schmidt - E2C",
+            "items": [
+                {"item_code": "CY-STD-DESK", "qty": 1, "rate": 450}
+            ],
+            "description": "Sale of goods to EU customer without VAT number"
+        },
+        {
+            "title": "EU B2C Digital Service (OSS)",
+            "customer": "Pierre Dubois - E2C",
+            "items": [
+                {"item_code": "CY-DIG-SUB", "qty": 1, "rate": 12.99}
+            ],
+            "description": "Sale of digital services to EU consumer (OSS rules)"
+        },
+        {
+            "title": "EU Distance Selling",
+            "customer": "Italian Small Business - E2C",
+            "items": [
+                {"item_code": "CY-SRED-BOOK", "qty": 20, "rate": 40},
+                {"item_code": "CY-STD-DESK", "qty": 2, "rate": 430}
+            ],
+            "description": "Distance selling to EU business without VAT number"
+        },
+        
+        # 3. Non-EU sales (exports)
+        {
+            "title": "Non-EU Export (Zero-rated)",
+            "customer": "UK Trading Ltd - E2C",
+            "items": [
+                {"item_code": "CY-ZERO-EXPORT", "qty": 10, "rate": 210},
+                {"item_code": "CY-STD-LAPTOP", "qty": 3, "rate": 880}
+            ],
+            "description": "Export of goods to non-EU country (zero-rated)"
+        },
+        {
+            "title": "Non-EU B2B Services",
+            "customer": "US Corporation Inc - E2C",
+            "items": [
+                {"item_code": "CY-STD-ITSUPPORT", "qty": 15, "rate": 95}
+            ],
+            "description": "Sale of services to non-EU business"
+        },
+        {
+            "title": "Non-EU B2C Digital Service",
+            "customer": "John Smith - E2C",
+            "items": [
+                {"item_code": "CY-DIG-SUB", "qty": 1, "rate": 12.99}
+            ],
+            "description": "Sale of digital services to non-EU consumer"
+        },
+        
+        # 4. Special cases
+        {
+            "title": "Triangulation Sale",
+            "customer": "French Enterprise SARL - E2C",
+            "items": [
+                {"item_code": "CY-TRI-GOODS", "qty": 5, "rate": 480}
+            ],
+            "description": "Sale in triangulation arrangement (middleman scenario)"
+        }
+    ]
+    
+    # Create the invoices
+    invoices_created = []
+    
+    # Posting date
+    posting_date = frappe.utils.today()
+    
+    for scenario in sales_scenarios:
+        # Check if customer exists
+        customer_exists = frappe.db.exists("Customer", {"customer_name": scenario["customer"]})
+        if not customer_exists:
+            continue
+            
+        customer = frappe.get_doc("Customer", {"customer_name": scenario["customer"]})
+        
+        # Create sales invoice
+        si = frappe.new_doc("Sales Invoice")
+        si.customer = customer.name
+        si.posting_date = posting_date
+        si.set_posting_time = 1
+        si.company = company
+        si.currency = company_doc.default_currency
+        si.title = f"Test: {scenario['title']}"
+        si.remarks = scenario["description"]
+        
+        # Add prefix to invoice number for easy identification
+        si.naming_series = "CYT-SI-.YYYY.-"
+        
+        # Add items
+        for item_data in scenario["items"]:
+            if not frappe.db.exists("Item", item_data["item_code"]):
+                continue
+                
+            si.append("items", {
+                "item_code": item_data["item_code"],
+                "qty": item_data["qty"],
+                "rate": item_data["rate"],
+                "income_account": default_income_account,
+                "cost_center": default_cost_center
+            })
+        
+        # If no valid items, skip this scenario
+        if not si.items:
+            continue
+        
+        # Save and submit the sales invoice
+        try:
+            si.set_missing_values()
+            si.calculate_taxes_and_totals()
+            si.insert()
+            si.submit()
+            
+            # Create payment entry
+            create_payment_entry(si.doctype, si.name, "Cash")
+            
+            # Add to created invoices list
+            invoices_created.append({
+                "name": si.name,
+                "customer": customer.customer_name,
+                "country": customer.territory,  # Using territory as customer doesn't directly have country
+                "title": scenario["title"],
+                "total": si.grand_total,
+                "tax_amount": si.total_taxes_and_charges
+            })
+            
+        except Exception as e:
+            frappe.log_error(f"Failed to create sales invoice for {scenario['title']}: {str(e)}")
+    
+    # Commit changes
+    frappe.db.commit()
+    
+    # Return information about created invoices
+    return {
+        "invoices": invoices_created,
+        "count": len(invoices_created),
+        "message": _("Successfully created {0} sample sales invoices").format(len(invoices_created))
+    }
+
+
+@frappe.whitelist()
+def delete_sample_sales_invoices():
+    """
+    Delete sample sales invoices created for testing Cyprus VAT scenarios
+    
+    Returns:
+        Dict with information about deleted sales invoices
+    """
+    # Find all test sales invoices by naming series
+    sales_invoices = frappe.get_all(
+        "Sales Invoice", 
+        filters=[
+            ["naming_series", "=", "CYT-SI-.YYYY.-"],
+            ["docstatus", "!=", 2]  # Not cancelled
+        ],
+        fields=["name", "customer", "customer_name", "title", "grand_total", "docstatus"]
+    )
+    
+    # Track deletion results
+    deletion_log = []
+    errors = []
+    
+    # Cancel and delete each invoice
+    for si in sales_invoices:
+        try:
+            # First find and cancel any linked payment entries
+            payment_entries = frappe.get_all(
+                "Payment Entry Reference",
+                filters={"reference_doctype": "Sales Invoice", "reference_name": si.name},
+                fields=["parent"]
+            )
+            
+            # Cancel and delete payment entries
+            for pe in payment_entries:
+                if frappe.db.exists("Payment Entry", pe.parent):
+                    payment = frappe.get_doc("Payment Entry", pe.parent)
+                    if payment.docstatus == 1:  # Submitted
+                        payment.cancel()
+                    frappe.delete_doc("Payment Entry", pe.parent)
+            
+            # Now handle the invoice
+            invoice = frappe.get_doc("Sales Invoice", si.name)
+            
+            # If submitted, cancel first
+            if invoice.docstatus == 1:
+                invoice.cancel()
+            
+            frappe.delete_doc("Sales Invoice", si.name)
+            
+            # Record the deletion
+            deletion_log.append({
+                "name": si.name,
+                "customer": si.customer_name,
+                "title": si.title,
+                "amount": si.grand_total
+            })
+            
+        except Exception as e:
+            errors.append({
+                "invoice": si.name,
+                "error": str(e)
+            })
+    
+    # Commit changes
+    frappe.db.commit()
+    
+    # Return results
+    return {
+        "deleted": deletion_log,
+        "count": len(deletion_log),
+        "errors": errors,
+        "message": _("Successfully deleted {0} sample sales invoices").format(len(deletion_log))
+    }
+
+
+def create_payment_entry(invoice_type, invoice_name, mode_of_payment="Cash"):
+    """
+    Create and submit a payment entry for an invoice
+    
+    Args:
+        invoice_type: Either "Sales Invoice" or "Purchase Invoice"
+        invoice_name: The name (ID) of the invoice
+        mode_of_payment: Payment method (default: Cash)
+        
+    Returns:
+        The created payment entry or None if failed
+    """
+    try:
+        # Get the invoice
+        invoice = frappe.get_doc(invoice_type, invoice_name)
+        
+        if invoice.docstatus != 1:
+            return None
+            
+        # Determine payment type
+        payment_type = "Receive" if invoice_type == "Sales Invoice" else "Pay"
+        party_type = "Customer" if invoice_type == "Sales Invoice" else "Supplier"
+        
+        # Create payment entry
+        payment = frappe.new_doc("Payment Entry")
+        payment.payment_type = payment_type
+        payment.mode_of_payment = mode_of_payment
+        payment.party_type = party_type
+        payment.party = invoice.customer if invoice_type == "Sales Invoice" else invoice.supplier
+        payment.company = invoice.company
+        payment.posting_date = frappe.utils.today()
+        
+        # Set paid amount
+        payment.paid_amount = invoice.grand_total
+        payment.received_amount = invoice.grand_total
+        payment.source_exchange_rate = 1.0
+        payment.target_exchange_rate = 1.0
+        
+        # Reference the invoice
+        payment.append("references", {
+            "reference_doctype": invoice_type,
+            "reference_name": invoice_name,
+            "allocated_amount": invoice.grand_total
+        })
+        
+        # Set accounts based on invoice type
+        if invoice_type == "Sales Invoice":
+            payment.paid_from = frappe.db.get_value("Company", invoice.company, "default_receivable_account")
+            payment.paid_to = frappe.db.get_value("Mode of Payment Account",
+                {"parent": mode_of_payment, "company": invoice.company}, "default_account")
+        else:
+            payment.paid_from = frappe.db.get_value("Mode of Payment Account",
+                {"parent": mode_of_payment, "company": invoice.company}, "default_account")
+            payment.paid_to = frappe.db.get_value("Company", invoice.company, "default_payable_account")
+        
+        # If no payment account is found, try to get a reasonable default
+        if not payment.paid_from:
+            payment.paid_from = frappe.db.get_value("Account", 
+                {"company": invoice.company, "account_type": "Cash", "is_group": 0}, "name")
+            
+        if not payment.paid_to:
+            payment.paid_to = frappe.db.get_value("Account", 
+                {"company": invoice.company, "account_type": "Cash", "is_group": 0}, "name")
+            
+        if not payment.paid_from or not payment.paid_to:
+            return None
+            
+        # Save and submit
+        payment.insert()
+        payment.submit()
+        
+        return payment
+        
+    except Exception as e:
+        frappe.log_error(f"Failed to create payment for {invoice_type} {invoice_name}: {str(e)}")
+        return None
