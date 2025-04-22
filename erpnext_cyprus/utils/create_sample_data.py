@@ -28,7 +28,7 @@ def create_sample_suppliers(company=None):
             "supplier_group": "Commercial",
             "supplier_type": "Company",
             "country": "Cyprus",
-            "tax_id": "CY10012345X",
+            "tax_id": "CY10073946N",
             "description": "Local supplier for standard rate (19%) VAT"
         },
         {
@@ -62,7 +62,7 @@ def create_sample_suppliers(company=None):
             "supplier_group": "Commercial",
             "supplier_type": "Company",
             "country": "Germany",
-            "tax_id": "DE123456789",
+            "tax_id": "DE813164483",
             "description": "EU supplier for goods (intra-EU acquisition)"
         },
         {
@@ -70,7 +70,7 @@ def create_sample_suppliers(company=None):
             "supplier_group": "Services",
             "supplier_type": "Company",
             "country": "France",
-            "tax_id": "FR12345678901",
+            "tax_id": "FR50403481633",
             "description": "EU supplier for services (reverse charge)"
         },
         {
@@ -316,7 +316,7 @@ def create_sample_customers(company=None):
             "customer_group": "Commercial",
             "customer_type": "Company",
             "country": "Cyprus",
-            "tax_id": "CY10012345X",
+            "tax_id": "CY10073946N",
             "description": "Local business with VAT registration"
         },
         
@@ -326,7 +326,7 @@ def create_sample_customers(company=None):
             "customer_group": "Commercial",
             "customer_type": "Company",
             "country": "Germany",
-            "tax_id": "DE123456789",
+            "tax_id": "DE813164483",
             "description": "EU B2B customer with valid VAT (reverse charge)"
         },
         {
@@ -334,7 +334,7 @@ def create_sample_customers(company=None):
             "customer_group": "Commercial", 
             "customer_type": "Company",
             "country": "France",
-            "tax_id": "FR12345678901",
+            "tax_id": "FR50403481633",
             "description": "EU B2B customer with valid VAT (reverse charge)"
         },
         
