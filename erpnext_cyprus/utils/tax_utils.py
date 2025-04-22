@@ -493,9 +493,9 @@ def setup_tax_rules(company):
                 "tax_type": "Sales",
                 "customer_group": "Individual", 
                 "billing_country": country,
-                "item_group": "Digital Services",
+                "item_group": "Digital Services", # Re-enable this!
                 "sales_tax_template": template_name,
-                "priority": 1,  # Highest priority
+                "priority": 10,  # HIGHEST priority - highest number
                 "use_for_shopping_cart": 1
             }
             cyprus_tax_rules.append(rule)
@@ -507,9 +507,9 @@ def setup_tax_rules(company):
             "doctype": "Tax Rule",
             "tax_type": "Sales",
             "customer_group": "Commercial", 
-            "billing_country": "EU",  # Will be expanded to individual countries
+            "billing_country": "EU",
             "sales_tax_template": template_names.get("EU B2B Sales (Reverse Charge)"),
-            "priority": 2,
+            "priority": 8,
             "use_for_shopping_cart": 1
         },
         # EU B2C - non-digital (regular goods)
@@ -556,7 +556,7 @@ def setup_tax_rules(company):
             "tax_type": "Sales",
             "billing_country": "Cyprus",
             "sales_tax_template": template_names.get("Cyprus Sales VAT (All Rates)"),
-            "priority": 6,
+            "priority": 4,
             "use_for_shopping_cart": 1
         },
         
