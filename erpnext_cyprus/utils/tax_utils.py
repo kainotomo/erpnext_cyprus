@@ -694,7 +694,7 @@ def get_eu_countries():
     """Return a list of EU countries"""
     return list(get_eu_vat_rates().keys())
 
-def setup_cyprus_item_groups():
+def setup_item_groups():
     """
     Set up the required item groups for Cyprus tax rules
     """

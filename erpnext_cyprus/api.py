@@ -7,12 +7,14 @@ from erpnext_cyprus.utils.tax_utils import (
     setup_sales_tax_templates,
     setup_item_tax_templates,
     setup_tax_rules,
-    setup_cyprus_item_groups
+    setup_item_groups
 )
 from erpnext_cyprus.utils.create_sample_data import (
     create_sample_suppliers,
-    delete_sample_suppliers
-    )
+    delete_sample_suppliers,
+    create_sample_customers,
+    delete_sample_customers
+)
 
 @frappe.whitelist()
 def setup_cyprus_company(company):
@@ -48,9 +50,9 @@ def setup_cyprus_company(company):
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 2: Setup required item groups (formerly Step 3)
+    # Step 2: Setup required item groups
     frappe.msgprint(_("Step 2: Setting up required item groups"))
-    item_groups_created = setup_cyprus_item_groups()
+    item_groups_created = setup_item_groups()  # Corrected
     results["item_groups_added"] = item_groups_created
     frappe.msgprint(_("Item groups setup completed. Created: {0}").format(
         ", ".join(item_groups_created) if item_groups_created else "None"))
@@ -58,9 +60,9 @@ def setup_cyprus_company(company):
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 3: Setup purchase tax templates (formerly Step 4)
+    # Step 3: Setup purchase tax templates
     frappe.msgprint(_("Step 3: Setting up purchase tax templates"))
-    purchase_templates_created = setup_purchase_tax_templates(company)
+    purchase_templates_created = setup_purchase_tax_templates(company)  # Corrected
     results["purchase_templates_added"] = purchase_templates_created
     frappe.msgprint(_("Purchase tax templates setup completed. Created: {0}").format(
         ", ".join(purchase_templates_created) if purchase_templates_created else "None"))
@@ -68,9 +70,9 @@ def setup_cyprus_company(company):
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 4: Setup sales tax templates (formerly Step 5)
+    # Step 4: Setup sales tax templates
     frappe.msgprint(_("Step 4: Setting up sales tax templates"))
-    sales_templates_created = setup_sales_tax_templates(company)
+    sales_templates_created = setup_sales_tax_templates(company)  # Corrected
     results["sales_templates_added"] = sales_templates_created
     frappe.msgprint(_("Sales tax templates setup completed. Created: {0}").format(
         ", ".join(sales_templates_created) if sales_templates_created else "None"))
@@ -78,9 +80,9 @@ def setup_cyprus_company(company):
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 5: Setup item tax templates (formerly Step 6)
+    # Step 5: Setup item tax templates
     frappe.msgprint(_("Step 5: Setting up item tax templates"))
-    item_templates_created = setup_item_tax_templates(company)
+    item_templates_created = setup_item_tax_templates(company)  # Corrected
     results["item_tax_templates_added"] = item_templates_created
     frappe.msgprint(_("Item tax templates setup completed. Created: {0}").format(
         ", ".join(item_templates_created) if item_templates_created else "None"))
@@ -88,9 +90,9 @@ def setup_cyprus_company(company):
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 6: Setup tax rules (formerly Step 7)
+    # Step 6: Setup tax rules
     frappe.msgprint(_("Step 6: Setting up tax rules"))
-    tax_rules_created = setup_tax_rules(company)
+    tax_rules_created = setup_tax_rules(company)  # Corrected
     results["tax_rules_added"] = tax_rules_created
     frappe.msgprint(_("Tax rules setup completed. Created: {0}").format(
         ", ".join(tax_rules_created) if tax_rules_created else "None"))
@@ -98,37 +100,64 @@ def setup_cyprus_company(company):
     return results
 
 @frappe.whitelist()
-def create_sample_data(company):
+def create_sample_data(company=None):
     """
-    Create sample data for the specified company
+    Create sample customers and suppliers for testing Cyprus VAT scenarios
+    
+    Args:
+        company: Optional company to associate with sample data
+        
+    Returns:
+        Dict with results of sample data creation
     """
     if not frappe.has_permission("Company", "write"):
         frappe.throw(_("Not permitted"), frappe.PermissionError)
     
-    company_doc = frappe.get_doc("Company", company)
-    if company_doc.country != "Cyprus":
-        frappe.throw(_("This function is only available for Cyprus-based companies"))
+    if company and not frappe.db.exists("Company", company):
+        frappe.throw(_("Company {0} does not exist").format(company))
     
-    # Create test data here
-    create_sample_suppliers(company)
+    results = {
+        "message": _("Sample data creation completed"),
+    }
     
-    # Return success message
-    return _("Test data created successfully for {0}").format(company)
+    # Create sample suppliers
+    supplier_results = create_sample_suppliers(company)
+    results["suppliers"] = supplier_results["suppliers"]
+    results["suppliers_count"] = supplier_results["count"]
+    
+    # Create sample customers
+    customer_results = create_sample_customers(company)
+    results["customers"] = customer_results["customers"]
+    results["customers_count"] = customer_results["count"]
+    
+    return results
 
 @frappe.whitelist()
-def delete_sample_data(company):
+def delete_sample_data(company=None):
     """
-    Delete sample data for the specified company
+    Delete sample customers and suppliers created for testing Cyprus VAT scenarios
+    
+    Args:
+        company: Optional company filter (not used in current implementation)
+        
+    Returns:
+        Dict with results of sample data deletion
     """
     if not frappe.has_permission("Company", "write"):
         frappe.throw(_("Not permitted"), frappe.PermissionError)
     
-    company_doc = frappe.get_doc("Company", company)
-    if company_doc.country != "Cyprus":
-        frappe.throw(_("This function is only available for Cyprus-based companies"))
+    results = {
+        "message": _("Sample data deletion completed"),
+    }
     
-    # Delete test data here
-    delete_sample_suppliers(company)
+    # Delete sample suppliers
+    supplier_results = delete_sample_suppliers(company)
+    results["suppliers_deleted"] = supplier_results["count"]
+    results["suppliers_errors"] = supplier_results["errors"]
     
-    # Return success message
-    return _("Test data deleted successfully for {0}").format(company)
+    # Delete sample customers
+    customer_results = delete_sample_customers(company)
+    results["customers_deleted"] = customer_results["count"]
+    results["customers_errors"] = customer_results["errors"]
+    
+    return results
