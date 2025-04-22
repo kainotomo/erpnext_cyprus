@@ -975,12 +975,7 @@ def link_item_tax_template(item, company, vat_rate, is_exempt=False):
 def create_sample_purchase_invoices(company=None):
     """
     Create sample purchase invoices covering all Cyprus VAT scenarios
-    
-    Args:
-        company: Company to create purchase invoices for (required)
-        
-    Returns:
-        Dict with information about created purchase invoices
+    using ERPNext's built-in tax template selection
     """
     if not company:
         frappe.throw(_("Company is required to create sample purchase invoices"))
@@ -1116,8 +1111,6 @@ def create_sample_purchase_invoices(company=None):
         pi.currency = company_doc.default_currency
         pi.title = f"Test: {scenario['title']}"
         pi.remarks = scenario["description"]
-        
-        # Add prefix to invoice number for easy identification
         pi.naming_series = "CYT-PI-.YYYY.-"
         
         # Add items
@@ -1140,6 +1133,7 @@ def create_sample_purchase_invoices(company=None):
         # Save and submit the purchase invoice
         try:
             pi.set_missing_values()
+            pi.set_taxes()
             pi.calculate_taxes_and_totals()
             pi.insert()
             pi.submit()
@@ -1169,7 +1163,6 @@ def create_sample_purchase_invoices(company=None):
         "count": len(invoices_created),
         "message": _("Successfully created {0} sample purchase invoices").format(len(invoices_created))
     }
-
 
 @frappe.whitelist()
 def delete_sample_purchase_invoices():
