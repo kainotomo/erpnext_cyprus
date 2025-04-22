@@ -70,7 +70,7 @@ def create_sample_suppliers(company=None):
             "supplier_group": "Services",
             "supplier_type": "Company",
             "country": "France",
-            "tax_id": "FR50403481633",
+            "tax_id": "FR46482690021",
             "description": "EU supplier for services (reverse charge)"
         },
         {
@@ -334,7 +334,7 @@ def create_sample_customers(company=None):
             "customer_group": "Commercial", 
             "customer_type": "Company",
             "country": "France",
-            "tax_id": "FR50403481633",
+            "tax_id": "FR46482690021",
             "description": "EU B2B customer with valid VAT (reverse charge)"
         },
         
