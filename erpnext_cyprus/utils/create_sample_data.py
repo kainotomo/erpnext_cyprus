@@ -115,7 +115,7 @@ def create_sample_suppliers(company=None):
     
     for supplier_data in sample_suppliers:
         # Generate a unique name with suffix to avoid conflicts
-        unique_suffix = random_string(5)
+        unique_suffix = "E2C"
         supplier_data["supplier_name"] = f"{supplier_data['supplier_name']} - {unique_suffix}"
         
         # Check if supplier already exists
@@ -398,7 +398,7 @@ def create_sample_customers(company=None):
     
     for customer_data in sample_customers:
         # Generate a unique name with suffix to avoid conflicts
-        unique_suffix = random_string(5)
+        unique_suffix = "E2C"
         customer_data["customer_name"] = f"{customer_data['customer_name']} - {unique_suffix}"
         
         # Check if customer already exists
