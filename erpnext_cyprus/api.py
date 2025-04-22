@@ -3,10 +3,11 @@ from frappe import _
 from frappe.utils import cstr
 from erpnext_cyprus.utils.account_utils import setup_cyprus_accounts
 from erpnext_cyprus.utils.tax_utils import (
-    setup_cyprus_tax_categories,
     setup_cyprus_purchase_tax_templates,
     setup_cyprus_sales_tax_templates,
-    setup_cyprus_item_tax_templates
+    setup_cyprus_item_tax_templates,
+    setup_cyprus_tax_rules,
+    setup_cyprus_item_groups
 )
 
 @frappe.whitelist()
@@ -26,10 +27,11 @@ def setup_cyprus_company(company):
     results = {
         "message": _("Cyprus company setup completed"),
         "accounts_added": [],
-        "tax_categories_added": [],
+        "item_groups_added": [],
         "purchase_templates_added": [],
         "sales_templates_added": [],
-        "item_tax_templates_added": []
+        "item_tax_templates_added": [],
+        "tax_rules_added": []
     }
     
     # Step 1: Setup chart of accounts
@@ -39,20 +41,20 @@ def setup_cyprus_company(company):
     frappe.msgprint(_("Chart of accounts setup completed. Created: {0}").format(
         ", ".join(accounts_created) if accounts_created else "None"))
     
-    # Commit changes before proceeding to ensure accounts are saved
+    # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 2: Setup tax categories
-    frappe.msgprint(_("Step 2: Setting up tax categories"))
-    tax_categories_created = setup_cyprus_tax_categories()
-    results["tax_categories_added"] = tax_categories_created
-    frappe.msgprint(_("Tax categories setup completed. Created: {0}").format(
-        ", ".join(tax_categories_created) if tax_categories_created else "None"))
+    # Step 2: Setup required item groups (formerly Step 3)
+    frappe.msgprint(_("Step 2: Setting up required item groups"))
+    item_groups_created = setup_cyprus_item_groups()
+    results["item_groups_added"] = item_groups_created
+    frappe.msgprint(_("Item groups setup completed. Created: {0}").format(
+        ", ".join(item_groups_created) if item_groups_created else "None"))
     
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 3: Setup purchase tax templates
+    # Step 3: Setup purchase tax templates (formerly Step 4)
     frappe.msgprint(_("Step 3: Setting up purchase tax templates"))
     purchase_templates_created = setup_cyprus_purchase_tax_templates(company)
     results["purchase_templates_added"] = purchase_templates_created
@@ -62,7 +64,7 @@ def setup_cyprus_company(company):
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 4: Setup sales tax templates
+    # Step 4: Setup sales tax templates (formerly Step 5)
     frappe.msgprint(_("Step 4: Setting up sales tax templates"))
     sales_templates_created = setup_cyprus_sales_tax_templates(company)
     results["sales_templates_added"] = sales_templates_created
@@ -72,11 +74,21 @@ def setup_cyprus_company(company):
     # Commit changes before proceeding
     frappe.db.commit()
     
-    # Step 5: Setup item tax templates
+    # Step 5: Setup item tax templates (formerly Step 6)
     frappe.msgprint(_("Step 5: Setting up item tax templates"))
-    item_templates_created = setup_cyprus_item_tax_templates(company)  # Pass the company parameter
+    item_templates_created = setup_cyprus_item_tax_templates(company)
     results["item_tax_templates_added"] = item_templates_created
     frappe.msgprint(_("Item tax templates setup completed. Created: {0}").format(
         ", ".join(item_templates_created) if item_templates_created else "None"))
+    
+    # Commit changes before proceeding
+    frappe.db.commit()
+    
+    # Step 6: Setup tax rules (formerly Step 7)
+    frappe.msgprint(_("Step 6: Setting up tax rules"))
+    tax_rules_created = setup_cyprus_tax_rules(company)
+    results["tax_rules_added"] = tax_rules_created
+    frappe.msgprint(_("Tax rules setup completed. Created: {0}").format(
+        ", ".join(tax_rules_created) if tax_rules_created else "None"))
     
     return results

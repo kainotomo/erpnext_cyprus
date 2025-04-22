@@ -37,5 +37,7 @@ def assign_customer_group_based_on_vat(doc, method=None):
     """
     if doc.tax_id and is_valid_vies_vat(doc.tax_id):
         doc.customer_group = "Commercial"
+        doc.customer_type = "Company"
     else:
         doc.customer_group = "Individual"
+        doc.customer_type = "Individual"

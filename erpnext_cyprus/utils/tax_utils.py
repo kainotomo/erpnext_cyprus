@@ -1,59 +1,6 @@
 import frappe
 from frappe import _
 
-def setup_cyprus_tax_categories():
-    """
-    Set up Cyprus-specific tax categories
-    """
-    tax_categories_created = []
-    
-    # Define the Cyprus-specific tax categories
-    cyprus_tax_categories = [
-        {
-            "title": "Cyprus Standard",
-            "description": "Default for all domestic transactions"
-        },
-        {
-            "title": "EU B2B",
-            "description": "For business customers in EU with valid VAT numbers"
-        },
-        {
-            "title": "EU B2C",
-            "description": "For consumers in EU countries"
-        },
-        {
-            "title": "Non-EU",
-            "description": "For customers outside the EU"
-        },
-        {
-            "title": "Digital Services",
-            "description": "For electronically supplied services to EU consumers"
-        },
-        {
-            "title": "Exempt",
-            "description": "For VAT-exempt transactions"
-        }
-    ]
-    
-    # Create each tax category if it doesn't already exist
-    for category_data in cyprus_tax_categories:
-        existing_category = frappe.db.get_value("Tax Category", 
-            {"title": category_data["title"]}, "name")
-        
-        if not existing_category:
-            new_category = frappe.get_doc({
-                "doctype": "Tax Category",
-                "title": category_data["title"],
-                "is_exempt": category_data["title"] == "Exempt",
-                "description": category_data["description"]
-            })
-            
-            new_category.insert()
-            tax_categories_created.append(category_data["title"])
-            frappe.db.commit()
-            
-    return tax_categories_created
-
 def get_cyprus_tax_accounts(company):
     """
     Get the necessary Cyprus tax accounts using exact account_name matches
@@ -113,7 +60,6 @@ def setup_cyprus_purchase_tax_templates(company):
             "title": "Cyprus Purchase VAT (All Rates)",
             "company": company,
             "is_inter_state": 0,
-            "tax_category": "Cyprus Standard",
             "description": "All Cyprus domestic purchase VAT rates",
             "taxes": [
                 {
@@ -138,7 +84,6 @@ def setup_cyprus_purchase_tax_templates(company):
             "title": "EU Acquisition VAT 19%",
             "company": company,
             "is_inter_state": 1,
-            "tax_category": "EU B2B",
             "description": "For goods acquired from EU suppliers",
             "taxes": [
                 {
@@ -160,7 +105,6 @@ def setup_cyprus_purchase_tax_templates(company):
             "title": "EU Services Reverse Charge",
             "company": company,
             "is_inter_state": 1,
-            "tax_category": "EU B2C",  # Using EU B2C for this template
             "description": "For services from EU suppliers",
             "taxes": [
                 {
@@ -182,7 +126,6 @@ def setup_cyprus_purchase_tax_templates(company):
             "title": "Non-EU Import VAT",
             "company": company,
             "is_inter_state": 1,
-            "tax_category": "Non-EU",
             "description": "For imports from outside the EU",
             "taxes": [
                 {
@@ -197,7 +140,6 @@ def setup_cyprus_purchase_tax_templates(company):
             "title": "Zero-Rated Purchase",
             "company": company,
             "is_inter_state": 0,
-            "tax_category": "Exempt",
             "description": "For zero-rated or exempt purchases",
             "taxes": []
         },
@@ -206,7 +148,6 @@ def setup_cyprus_purchase_tax_templates(company):
             "title": "Digital Services Purchase",
             "company": company,
             "is_inter_state": 1,
-            "tax_category": "Digital Services",
             "description": "For digital services purchases",
             "taxes": [
                 {
@@ -230,7 +171,6 @@ def setup_cyprus_purchase_tax_templates(company):
                 "title": template_data["title"],
                 "company": template_data["company"],
                 "is_inter_state": template_data["is_inter_state"],
-                "tax_category": template_data["tax_category"],
                 "disabled": 0,
                 "description": template_data["description"]
             })
@@ -266,12 +206,10 @@ def setup_cyprus_sales_tax_templates(company):
     
     # Define the Cyprus-specific sales tax templates - one per use case
     cyprus_sales_tax_templates = [        
-        # Main domestic sales template with all rates
         {
             "title": "Cyprus Sales VAT (All Rates)",
             "company": company,
             "is_inter_state": 0,
-            "tax_category": "Cyprus Standard",
             "description": "All Cyprus domestic sales VAT rates",
             "taxes": [
                 {
@@ -282,30 +220,26 @@ def setup_cyprus_sales_tax_templates(company):
                 {
                     "account_head": tax_accounts["vat_reduced_9"],
                     "description": "VAT 9%",
-                    "rate": 0  # Default to 0, controlled by item tax templates
+                    "rate": 0
                 },
                 {
                     "account_head": tax_accounts["vat_super_reduced_5"],
                     "description": "VAT 5%",
-                    "rate": 0  # Default to 0, controlled by item tax templates
+                    "rate": 0
                 }
             ]
         },
-        # EU B2B sales (reverse charge)
         {
             "title": "EU B2B Sales (Reverse Charge)",
             "company": company,
             "is_inter_state": 1,
-            "tax_category": "EU B2B",
             "description": "For VAT-registered businesses in EU (0% with reverse charge)",
             "taxes": []  # Zero-rated
         },
-        # EU B2C sales (charge local VAT)
         {
             "title": "EU B2C Sales",
             "company": company,
             "is_inter_state": 1,
-            "tax_category": "EU B2C",
             "description": "For consumers in EU (with local VAT)",
             "taxes": [
                 {
@@ -315,40 +249,44 @@ def setup_cyprus_sales_tax_templates(company):
                 }
             ]
         },
-        # Non-EU export sales
         {
             "title": "Non-EU Export",
             "company": company,
             "is_inter_state": 1,
-            "tax_category": "Non-EU",
             "description": "For exports outside the EU (zero-rated)",
             "taxes": []  # Zero-rated
         },
-        # Digital services (OSS)
-        {
-            "title": "Digital Services EU (OSS)",
-            "company": company,
-            "is_inter_state": 1,
-            "tax_category": "Digital Services",
-            "description": "For digital services to EU consumers (OSS)",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["oss_vat"],
-                    "description": "OSS VAT",
-                    "rate": 19  # Default rate, can be overridden by item tax templates
-                }
-            ]
-        },
-        # Exempt sales
         {
             "title": "VAT Exempt Sales",
             "company": company,
             "is_inter_state": 0,
-            "tax_category": "Exempt",
             "description": "For VAT-exempt goods and services",
             "taxes": []  # Zero-rated
         }
     ]
+    
+    # Create country-specific OSS digital services templates
+    eu_vat_rates = get_eu_vat_rates()
+    for country, vat_rate in eu_vat_rates.items():
+        # Skip Cyprus as it uses domestic templates
+        if country == "Cyprus":
+            continue
+            
+        # Create the OSS template for this country
+        oss_template = {
+            "title": f"OSS Digital Services - {country} ({vat_rate}%)",
+            "company": company,
+            "is_inter_state": 1,
+            "description": f"Digital services to consumers in {country} (OSS)",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["oss_vat"],
+                    "description": f"OSS VAT {country} {vat_rate}%",
+                    "rate": vat_rate
+                }
+            ]
+        }
+        cyprus_sales_tax_templates.append(oss_template)
     
     # Create each sales tax template if it doesn't already exist
     for template_data in cyprus_sales_tax_templates:
@@ -362,7 +300,6 @@ def setup_cyprus_sales_tax_templates(company):
                 "title": template_data["title"],
                 "company": template_data["company"],
                 "is_inter_state": template_data["is_inter_state"],
-                "tax_category": template_data["tax_category"],
                 "disabled": 0,
                 "description": template_data["description"]
             })
@@ -503,3 +440,313 @@ def setup_cyprus_item_tax_templates(company):
                 frappe.log_error(f"Error creating item tax template {template_data['title']}: {str(e)}")
             
     return templates_created
+
+def setup_cyprus_tax_rules(company):
+    """
+    Set up Cyprus-specific tax rules for automatic tax template selection
+    """
+    rules_created = []
+    
+    # Get the actual template names first (since they include company abbreviations)
+    template_names = {}
+    
+    # Get sales tax templates
+    sales_templates = frappe.get_all(
+        "Sales Taxes and Charges Template",
+        filters={"company": company},
+        fields=["name", "title"]
+    )
+    for template in sales_templates:
+        template_names[template.title] = template.name
+    
+    # Get purchase tax templates
+    purchase_templates = frappe.get_all(
+        "Purchase Taxes and Charges Template",
+        filters={"company": company},
+        fields=["name", "title"]
+    )
+    for template in purchase_templates:
+        template_names[template.title] = template.name
+    
+    # Debug - show what was found
+    frappe.msgprint(f"Found {len(template_names)} tax templates for company {company}")
+    
+    # Initialize tax rules list
+    cyprus_tax_rules = []
+    
+    # Get EU VAT rates to create country-specific digital services rules
+    eu_vat_rates = get_eu_vat_rates()
+    
+    # First add individual country rules for digital services
+    for country, vat_rate in eu_vat_rates.items():
+        if country == "Cyprus":
+            # For Cyprus, use the standard template
+            continue
+            
+        country_code = country[:2].upper()
+        template_title = f"OSS Digital Services - {country} ({vat_rate}%)"
+        template_name = template_names.get(template_title)
+        
+        if template_name:
+            rule = {
+                "doctype": "Tax Rule",
+                "tax_type": "Sales",
+                "customer_group": "Individual", 
+                "billing_country": country,
+                "item_group": "Digital Services",
+                "sales_tax_template": template_name,
+                "priority": 1,  # Highest priority
+                "use_for_shopping_cart": 1
+            }
+            cyprus_tax_rules.append(rule)
+    
+    # Then add the standard rules    
+    standard_rules = [
+        # EU B2B - for all EU countries
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Sales",
+            "customer_group": "Commercial", 
+            "billing_country": "EU",  # Will be expanded to individual countries
+            "sales_tax_template": template_names.get("EU B2B Sales (Reverse Charge)"),
+            "priority": 2,
+            "use_for_shopping_cart": 1
+        },
+        # EU B2C - non-digital (regular goods)
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Sales",
+            "customer_group": "Individual",
+            "billing_country": "EU",  # Will be expanded to individual countries
+            "sales_tax_template": template_names.get("EU B2C Sales"),
+            "priority": 3,
+            "use_for_shopping_cart": 1
+        },
+        # Non-EU exports (priority 4)
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Sales",
+            # No billing_country - applies to any country not matched by higher priority rules
+            "sales_tax_template": template_names.get("Non-EU Export"),
+            "priority": 4,
+            "use_for_shopping_cart": 1
+        },
+        # Domestic rules - by item type
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Sales",
+            "billing_country": "Cyprus",
+            "item_group": "Hotel Services",
+            "sales_tax_template": template_names.get("Cyprus Sales VAT (All Rates)"),
+            "priority": 5,
+            "use_for_shopping_cart": 1
+        },
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Sales",
+            "billing_country": "Cyprus",
+            "item_group": "Books and Publications",
+            "sales_tax_template": template_names.get("Cyprus Sales VAT (All Rates)"),
+            "priority": 5,
+            "use_for_shopping_cart": 1
+        },
+        # Default domestic rule
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Sales",
+            "billing_country": "Cyprus",
+            "sales_tax_template": template_names.get("Cyprus Sales VAT (All Rates)"),
+            "priority": 6,
+            "use_for_shopping_cart": 1
+        },
+        
+        # PURCHASE RULES - modified to use supplier_group instead of tax_category
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "billing_country": "EU",
+            "purchase_tax_template": template_names.get("EU Acquisition VAT 19%"),
+            "priority": 1
+        },
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "billing_country": "EU",
+            "item_group": "Services",
+            "purchase_tax_template": template_names.get("EU Services Reverse Charge"),
+            "priority": 2
+        },
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            # No tax_category reference - applies to any country not matched by higher priority rules
+            "purchase_tax_template": template_names.get("Non-EU Import VAT"),
+            "priority": 3
+        },
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "billing_country": "Cyprus",
+            "item_group": "Hotel Services",
+            "purchase_tax_template": template_names.get("Cyprus Purchase VAT (All Rates)"),
+            "priority": 4
+        },
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "billing_country": "Cyprus",
+            "purchase_tax_template": template_names.get("Cyprus Purchase VAT (All Rates)"),
+            "priority": 5
+        }
+    ]
+    
+    # Combine all rules
+    cyprus_tax_rules.extend(standard_rules)
+    
+    # Create each tax rule if it doesn't already exist
+    for rule_data in cyprus_tax_rules:
+        # Add company to rule data
+        rule_data["company"] = company
+        
+        # Check for existing rule with similar criteria
+        filters = {
+            "tax_type": rule_data["tax_type"],
+            "company": company,
+            "priority": rule_data["priority"]
+        }
+        
+        if "billing_country" in rule_data:
+            filters["billing_country"] = rule_data["billing_country"]
+            
+        if "customer_group" in rule_data:
+            filters["customer_group"] = rule_data["customer_group"]
+            
+        if "supplier_group" in rule_data:
+            filters["supplier_group"] = rule_data["supplier_group"]
+            
+        existing_rule = frappe.db.exists("Tax Rule", filters)
+        
+        if not existing_rule:
+            # Special handling for EU country group
+            if rule_data.get("billing_country") == "EU":
+                # Create rules for each EU country
+                eu_countries = get_eu_countries()
+                for country in eu_countries:
+                    country_rule = rule_data.copy()
+                    country_rule["billing_country"] = country
+                    
+                    # Create the rule
+                    try:
+                        new_rule = frappe.get_doc(country_rule)
+                        new_rule.insert()
+                        rules_created.append(f"{country_rule['tax_type']} - {country} - Priority {country_rule['priority']}")
+                        frappe.db.commit()
+                    except Exception as e:
+                        frappe.log_error(f"Error creating tax rule for {country}: {str(e)}")
+            else:
+                # Create the rule
+                try:
+                    new_rule = frappe.get_doc(rule_data)
+                    new_rule.insert()
+                    rules_created.append(f"{rule_data['tax_type']} - {rule_data.get('billing_country', 'Any')} - Priority {rule_data['priority']}")
+                    frappe.db.commit()
+                except Exception as e:
+                    frappe.log_error(f"Error creating tax rule: {str(e)}")
+    
+    return rules_created
+
+def get_eu_vat_rates():
+    """
+    Return a dictionary of EU country standard VAT rates for OSS
+    Source: European Commission, rates as of 2023
+    """
+    return {
+        "Austria": 20,
+        "Belgium": 21,
+        "Bulgaria": 20,
+        "Croatia": 25,
+        "Cyprus": 19,
+        "Czech Republic": 21,
+        "Denmark": 25,
+        "Estonia": 22,
+        "Finland": 24,
+        "France": 20,
+        "Germany": 19,
+        "Greece": 24,
+        "Hungary": 27,
+        "Ireland": 23,
+        "Italy": 22,
+        "Latvia": 21,
+        "Lithuania": 21,
+        "Luxembourg": 17,
+        "Malta": 18,
+        "Netherlands": 21,
+        "Poland": 23,
+        "Portugal": 23,
+        "Romania": 19,
+        "Slovakia": 20,
+        "Slovenia": 22,
+        "Spain": 21,
+        "Sweden": 25
+    }
+
+def get_eu_countries():
+    """Return a list of EU countries"""
+    return list(get_eu_vat_rates().keys())
+
+def setup_cyprus_item_groups():
+    """
+    Set up the required item groups for Cyprus tax rules
+    """
+    groups_created = []
+    
+    # Define the required item groups
+    required_item_groups = [
+        {
+            "item_group_name": "Digital Services",
+            "parent_item_group": "All Item Groups",
+            "description": "Electronically supplied services (software, streaming, online content)"
+        },
+        {
+            "item_group_name": "Hotel Services",
+            "parent_item_group": "Services",
+            "description": "Hotel accommodation, restaurant services, and similar (9% VAT rate)"
+        },
+        {
+            "item_group_name": "Books and Publications",
+            "parent_item_group": "Products",
+            "description": "Books, newspapers, and other publications (5% VAT rate)"
+        },
+        {
+            "item_group_name": "Services",
+            "parent_item_group": "All Item Groups",
+            "description": "All service offerings"
+        }
+    ]
+    
+    # Create each item group if it doesn't already exist
+    for group_data in required_item_groups:
+        existing_group = frappe.db.exists("Item Group", group_data["item_group_name"])
+        
+        if not existing_group:
+            # Check if parent exists, default to "All Item Groups" if not
+            parent_exists = frappe.db.exists("Item Group", group_data["parent_item_group"])
+            parent_group = group_data["parent_item_group"] if parent_exists else "All Item Groups"
+            
+            # Create the item group
+            new_group = frappe.get_doc({
+                "doctype": "Item Group",
+                "item_group_name": group_data["item_group_name"],
+                "parent_item_group": parent_group,
+                "is_group": 0,
+                "description": group_data["description"]
+            })
+            
+            try:
+                new_group.insert()
+                groups_created.append(group_data["item_group_name"])
+                frappe.db.commit()
+            except Exception as e:
+                frappe.log_error(f"Error creating item group {group_data['item_group_name']}: {str(e)}")
+    
+    return groups_created
