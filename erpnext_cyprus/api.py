@@ -9,6 +9,10 @@ from erpnext_cyprus.utils.tax_utils import (
     setup_tax_rules,
     setup_cyprus_item_groups
 )
+from erpnext_cyprus.utils.create_sample_data import (
+    create_sample_suppliers,
+    delete_sample_suppliers
+    )
 
 @frappe.whitelist()
 def setup_cyprus_company(company):
@@ -92,3 +96,39 @@ def setup_cyprus_company(company):
         ", ".join(tax_rules_created) if tax_rules_created else "None"))
     
     return results
+
+@frappe.whitelist()
+def create_sample_data(company):
+    """
+    Create sample data for the specified company
+    """
+    if not frappe.has_permission("Company", "write"):
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
+    
+    company_doc = frappe.get_doc("Company", company)
+    if company_doc.country != "Cyprus":
+        frappe.throw(_("This function is only available for Cyprus-based companies"))
+    
+    # Create test data here
+    create_sample_suppliers(company)
+    
+    # Return success message
+    return _("Test data created successfully for {0}").format(company)
+
+@frappe.whitelist()
+def delete_sample_data(company):
+    """
+    Delete sample data for the specified company
+    """
+    if not frappe.has_permission("Company", "write"):
+        frappe.throw(_("Not permitted"), frappe.PermissionError)
+    
+    company_doc = frappe.get_doc("Company", company)
+    if company_doc.country != "Cyprus":
+        frappe.throw(_("This function is only available for Cyprus-based companies"))
+    
+    # Delete test data here
+    delete_sample_suppliers(company)
+    
+    # Return success message
+    return _("Test data deleted successfully for {0}").format(company)
