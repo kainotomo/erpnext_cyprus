@@ -367,9 +367,10 @@ def get_eu_acquisitions_vat(company, from_date, to_date):
     return flt(eu_vat[0].vat_amount) if eu_vat and eu_vat[0].vat_amount is not None else 0
 
 def get_total_sales(company, from_date, to_date):
-    # Get total sales excluding VAT
+    # Get total sales excluding VAT (including credit notes)
     sales = frappe.db.sql("""
-        SELECT SUM(base_net_total) as amount
+        SELECT 
+            SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE -base_net_total END) as amount
         FROM `tabSales Invoice`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
@@ -379,9 +380,10 @@ def get_total_sales(company, from_date, to_date):
     return flt(sales[0].amount) if sales and sales[0].amount is not None else 0
 
 def get_total_purchases(company, from_date, to_date):
-    # Get total purchases excluding VAT
+    # Get total purchases excluding VAT (including debit notes)
     purchases = frappe.db.sql("""
-        SELECT SUM(base_net_total) as amount
+        SELECT 
+            SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE -base_net_total END) as amount
         FROM `tabPurchase Invoice`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
@@ -399,7 +401,9 @@ def get_eu_goods_supplies(company, from_date, to_date):
     
     # Build query with proper address relationships
     query = """
-        SELECT SUM(si.base_net_total) as amount
+        SELECT SUM(
+            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
+        ) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
@@ -429,7 +433,9 @@ def get_eu_services_supplies(company, from_date, to_date):
     
     # Build query with proper address relationships
     query = """
-        SELECT SUM(si.base_net_total) as amount
+        SELECT SUM(
+            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
+        ) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
@@ -460,9 +466,11 @@ def get_non_eu_exports(company, from_date, to_date):
     # Format for SQL NOT IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Non-EU exports - using proper address relationship
+    # Non-EU exports - using proper address relationship and handling credit notes
     query = """
-        SELECT SUM(si.base_net_total) as amount
+        SELECT SUM(
+            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
+        ) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE si.posting_date BETWEEN %s AND %s
@@ -479,9 +487,11 @@ def get_non_eu_exports(company, from_date, to_date):
     return flt(exports[0].amount) if exports and exports[0].amount is not None else 0
 
 def get_out_of_scope_sales(company, from_date, to_date):
-    # Out of scope sales (zero-rated, exempt)
+    # Out of scope sales (zero-rated, exempt) with credit note handling
     out_of_scope = frappe.db.sql("""
-        SELECT SUM(si.base_net_total) as amount
+        SELECT SUM(
+            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
+        ) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Taxes and Charges` stc ON si.name = stc.parent
         WHERE si.posting_date BETWEEN %s AND %s
@@ -501,7 +511,9 @@ def get_eu_goods_acquisitions(company, from_date, to_date):
     
     # Build query with proper address relationships
     query = """
-        SELECT SUM(pi.base_net_total) as amount
+        SELECT SUM(
+            CASE WHEN pi.is_return = 0 THEN pi.base_net_total ELSE -pi.base_net_total END
+        ) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
         INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
@@ -529,7 +541,9 @@ def get_eu_services_acquisitions(company, from_date, to_date):
     
     # Build query with proper address relationships
     query = """
-        SELECT SUM(pi.base_net_total) as amount
+        SELECT SUM(
+            CASE WHEN pi.is_return = 0 THEN pi.base_net_total ELSE -pi.base_net_total END
+        ) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
         INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
