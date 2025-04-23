@@ -298,10 +298,16 @@ def get_eu_acquisitions_vat(company, from_date, to_date):
     if "reverse_charge_services" in tax_accounts:
         eu_vat_accounts.append(tax_accounts["reverse_charge_services"])
     
-    # If no specific EU VAT accounts are found in tax_utils, fall back to a generic search
+    # If no specific EU VAT accounts are found, fall back to a generic search
     if not eu_vat_accounts:
         eu_vat = frappe.db.sql("""
-            SELECT SUM(credit) as vat_amount
+            SELECT SUM(
+                CASE 
+                    WHEN voucher_type IN ('Purchase Invoice') THEN credit
+                    WHEN voucher_type IN ('Purchase Invoice Debit Note') THEN -debit
+                    ELSE 0
+                END
+            ) as vat_amount
             FROM `tabGL Entry`
             WHERE posting_date BETWEEN %s AND %s
             AND company = %s
@@ -319,7 +325,13 @@ def get_eu_acquisitions_vat(company, from_date, to_date):
     
     # Build query with proper parameterization for all values
     query = """
-        SELECT SUM(credit) as vat_amount
+        SELECT SUM(
+            CASE 
+                WHEN voucher_type IN ('Purchase Invoice') THEN credit
+                WHEN voucher_type IN ('Purchase Invoice Debit Note') THEN -debit
+                ELSE 0
+            END
+        ) as vat_amount
         FROM `tabGL Entry`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s

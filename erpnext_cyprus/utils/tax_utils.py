@@ -95,7 +95,7 @@ def setup_purchase_tax_templates(company):
                 {
                     "account_head": tax_accounts["intra_eu_acquisition"],
                     "description": "Reverse EU Acquisition VAT 19%",
-                    "rate": -19,
+                    "rate": 19,
                     "add_deduct_tax": "Deduct"
                 }
             ]
@@ -116,7 +116,7 @@ def setup_purchase_tax_templates(company):
                 {
                     "account_head": tax_accounts["reverse_charge_services"],
                     "description": "Reverse Charge VAT 19% (Input)",
-                    "rate": -19,
+                    "rate": 19,
                     "add_deduct_tax": "Deduct"
                 }
             ]
