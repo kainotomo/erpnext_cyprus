@@ -934,9 +934,9 @@ def link_item_tax_template(item, company, vat_rate, is_exempt=False):
     
     # Map VAT rates to likely template names (adjust as needed)
     template_map = {
-        19: "Cyprus VAT 19%",
-        9: "Cyprus VAT 9%",
-        5: "Cyprus VAT 5%",
+        19: "Cyprus Standard 19%",
+        9: "Cyprus Reduced 9%",
+        5: "Cyprus Super Reduced 5%",
         0: "Zero Rated" if not is_exempt else "Exempt"
     }
     
