@@ -14,9 +14,7 @@ def setup_cyprus_accounts(company):
     # Get existing account numbers to avoid conflicts
     existing_account_numbers = get_existing_account_numbers(company)
     
-    # Define the Cyprus-specific accounts to be added
     cyprus_accounts = [
-        # VAT-specific accounts under Duties and Taxes
         {
             "account_name": "VAT Cyprus Local (19%)",
             "parent_account": "Duties and Taxes",
@@ -61,48 +59,6 @@ def setup_cyprus_accounts(company):
             "parent_account": "Duties and Taxes",
             "account_type": "Tax",
             "account_number": "2500",
-        },
-        
-        # Income accounts by geography
-        {
-            "account_name": "Sales Cyprus",
-            "parent_account": "Sales",
-            "account_number": "4100",
-        },
-        {
-            "account_name": "Sales EU B2B",
-            "parent_account": "Sales",
-            "account_number": "4200",
-        },
-        {
-            "account_name": "Sales EU B2C",
-            "parent_account": "Sales",
-            "account_number": "4300",
-        },
-        {
-            "account_name": "Sales Non-EU",
-            "parent_account": "Sales",
-            "account_number": "4400",
-        },
-        {
-            "account_name": "Digital Services EU",
-            "parent_account": "Service",
-            "account_number": "4500",
-        },
-        {
-            "account_name": "Services Cyprus",
-            "parent_account": "Service",
-            "account_number": "4600",
-        },
-        {
-            "account_name": "Services EU B2B",
-            "parent_account": "Service",
-            "account_number": "4700",
-        },
-        {
-            "account_name": "Services Non-EU",
-            "parent_account": "Service",
-            "account_number": "4800",
         }
     ]
     
