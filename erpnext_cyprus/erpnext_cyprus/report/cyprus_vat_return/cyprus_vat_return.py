@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate, get_first_day, get_last_day, add_days, add_months
+from erpnext_cyprus.utils.tax_utils import get_cyprus_tax_accounts
 
 def execute(filters=None):
     # Ensure from_date and to_date are set
@@ -188,50 +189,135 @@ def get_data(filters):
     return vat_return_data
 
 def get_output_vat(company, from_date, to_date):
-    # Get VAT collected on sales
-    output_vat = frappe.db.sql("""
+    # Get the Cyprus tax accounts
+    tax_accounts = get_cyprus_tax_accounts(company)
+    if not tax_accounts:
+        return 0
+    
+    # Get all output VAT accounts
+    output_vat_accounts = [
+        tax_accounts["vat_local_19"],
+        tax_accounts["vat_reduced_9"],
+        tax_accounts["vat_super_reduced_5"]
+    ]
+    
+    # Format for SQL IN clause - converting to a proper list of parameters
+    placeholder_list = ', '.join(['%s'] * len(output_vat_accounts))
+    
+    # Build query with proper parameterization for all values
+    query = """
         SELECT SUM(credit - debit) as vat_amount
         FROM `tabGL Entry`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
-        AND account IN (
-            SELECT name FROM `tabAccount`
-            WHERE account_type = 'Tax' AND account_name LIKE '%%Output%%'
-            AND company = %s
-        )
-    """, (from_date, to_date, company, company), as_dict=1)
+        AND account IN ({0})
+    """.format(placeholder_list)
+    
+    # Build parameters list - add account names to the parameters
+    params = [from_date, to_date, company] + output_vat_accounts
+    
+    # Execute the query with all parameters
+    output_vat = frappe.db.sql(query, params, as_dict=1)
     
     return flt(output_vat[0].vat_amount) if output_vat and output_vat[0].vat_amount is not None else 0
 
 def get_input_vat(company, from_date, to_date):
-    # Get VAT paid on purchases
-    input_vat = frappe.db.sql("""
+    # Get the Cyprus tax accounts
+    tax_accounts = get_cyprus_tax_accounts(company)
+    if not tax_accounts:
+        return 0
+    
+    # Get input VAT accounts - using import_vat and any other input accounts
+    input_vat_accounts = []
+    
+    # Add import VAT account if available
+    if "import_vat" in tax_accounts:
+        input_vat_accounts.append(tax_accounts["import_vat"])
+    
+    # If no specific input accounts are found in tax_utils, fall back to a generic search
+    if not input_vat_accounts:
+        input_vat = frappe.db.sql("""
+            SELECT SUM(debit - credit) as vat_amount
+            FROM `tabGL Entry`
+            WHERE posting_date BETWEEN %s AND %s
+            AND company = %s
+            AND account IN (
+                SELECT name FROM `tabAccount`
+                WHERE account_type = 'Tax' AND account_name LIKE '%%Input%%'
+                AND company = %s
+            )
+        """, (from_date, to_date, company, company), as_dict=1)
+        
+        return flt(input_vat[0].vat_amount) if input_vat and input_vat[0].vat_amount is not None else 0
+    
+    # Format for SQL IN clause
+    placeholder_list = ', '.join(['%s'] * len(input_vat_accounts))
+    
+    # Build query with proper parameterization for all values
+    query = """
         SELECT SUM(debit - credit) as vat_amount
         FROM `tabGL Entry`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
-        AND account IN (
-            SELECT name FROM `tabAccount`
-            WHERE account_type = 'Tax' AND account_name LIKE '%%Input%%'
-            AND company = %s
-        )
-    """, (from_date, to_date, company, company), as_dict=1)
+        AND account IN ({0})
+    """.format(placeholder_list)
+    
+    # Build parameters list - add account names to the parameters
+    params = [from_date, to_date, company] + input_vat_accounts
+    
+    input_vat = frappe.db.sql(query, params, as_dict=1)
     
     return flt(input_vat[0].vat_amount) if input_vat and input_vat[0].vat_amount is not None else 0
 
 def get_eu_acquisitions_vat(company, from_date, to_date):
-    # Get VAT on EU acquisitions (reverse charge)
-    eu_vat = frappe.db.sql("""
+    # Get the Cyprus tax accounts
+    tax_accounts = get_cyprus_tax_accounts(company)
+    if not tax_accounts:
+        return 0
+    
+    # Get EU acquisition VAT accounts
+    eu_vat_accounts = []
+    
+    # Add intra-EU acquisition account if available
+    if "intra_eu_acquisition" in tax_accounts:
+        eu_vat_accounts.append(tax_accounts["intra_eu_acquisition"])
+    
+    # Add reverse charge services account if available
+    if "reverse_charge_services" in tax_accounts:
+        eu_vat_accounts.append(tax_accounts["reverse_charge_services"])
+    
+    # If no specific EU VAT accounts are found in tax_utils, fall back to a generic search
+    if not eu_vat_accounts:
+        eu_vat = frappe.db.sql("""
+            SELECT SUM(credit) as vat_amount
+            FROM `tabGL Entry`
+            WHERE posting_date BETWEEN %s AND %s
+            AND company = %s
+            AND account IN (
+                SELECT name FROM `tabAccount`
+                WHERE account_type = 'Tax' AND account_name LIKE '%%Acquisition%%'
+                AND company = %s
+            )
+        """, (from_date, to_date, company, company), as_dict=1)
+        
+        return flt(eu_vat[0].vat_amount) if eu_vat and eu_vat[0].vat_amount is not None else 0
+    
+    # Format for SQL IN clause
+    placeholder_list = ', '.join(['%s'] * len(eu_vat_accounts))
+    
+    # Build query with proper parameterization for all values
+    query = """
         SELECT SUM(credit) as vat_amount
         FROM `tabGL Entry`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
-        AND account IN (
-            SELECT name FROM `tabAccount`
-            WHERE account_type = 'Tax' AND account_name LIKE '%%Acquisition%%'
-            AND company = %s
-        )
-    """, (from_date, to_date, company, company), as_dict=1)
+        AND account IN ({0})
+    """.format(placeholder_list)
+    
+    # Build parameters list - add account names to the parameters
+    params = [from_date, to_date, company] + eu_vat_accounts
+    
+    eu_vat = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_vat[0].vat_amount) if eu_vat and eu_vat[0].vat_amount is not None else 0
 
@@ -336,19 +422,23 @@ def get_out_of_scope_sales(company, from_date, to_date):
     return flt(out_of_scope[0].amount) if out_of_scope and out_of_scope[0].amount is not None else 0
 
 def get_eu_goods_acquisitions(company, from_date, to_date):
-    # EU goods acquisitions
-    eu_countries = ["Austria", "Belgium", "Bulgaria", "Croatia", "Czech Republic", 
-                    "Denmark", "Estonia", "Finland", "France", "Germany", 
-                    "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
-                    "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", 
-                    "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
+    # Get EU countries list using utility function if available
+    try:
+        from erpnext_cyprus.utils.tax_utils import get_eu_countries
+        eu_countries = get_eu_countries()
+    except (ImportError, AttributeError):
+        # Fallback to hardcoded list if function not available
+        eu_countries = ["Austria", "Belgium", "Bulgaria", "Croatia", "Czech Republic", 
+                        "Denmark", "Estonia", "Finland", "France", "Germany", 
+                        "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
+                        "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", 
+                        "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
     
-    # Convert to SQL format for IN clause
-    eu_countries_str = "','".join(eu_countries)
-    eu_countries_str = f"('{eu_countries_str}')"
+    # Format for SQL IN clause
+    placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # EU goods acquisitions
-    eu_goods = frappe.db.sql(f"""
+    # Build query with proper parameterization for all values
+    query = """
         SELECT SUM(pi.base_net_total) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
@@ -356,12 +446,17 @@ def get_eu_goods_acquisitions(company, from_date, to_date):
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
-        AND s.country IN {eu_countries_str}
+        AND s.country IN ({0})
         AND s.country != 'Cyprus'
         AND pii.item_code IN (
             SELECT name FROM `tabItem` WHERE item_group = 'Products'
         )
-    """, (from_date, to_date, company), as_dict=1)
+    """.format(placeholder_list)
+    
+    # Build parameters list - add EU countries to the parameters
+    params = [from_date, to_date, company] + eu_countries
+    
+    eu_goods = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_goods[0].amount) if eu_goods and eu_goods[0].amount is not None else 0
 
@@ -373,12 +468,11 @@ def get_eu_services_acquisitions(company, from_date, to_date):
                     "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", 
                     "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
     
-    # Convert to SQL format for IN clause
-    eu_countries_str = "','".join(eu_countries)
-    eu_countries_str = f"('{eu_countries_str}')"
+    # Format for SQL IN clause
+    placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # EU services acquisitions
-    eu_services = frappe.db.sql(f"""
+    # Build query with proper parameterization for all values
+    query = """
         SELECT SUM(pi.base_net_total) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
@@ -386,12 +480,17 @@ def get_eu_services_acquisitions(company, from_date, to_date):
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
-        AND s.country IN {eu_countries_str}
+        AND s.country IN ({0})
         AND s.country != 'Cyprus'
         AND pii.item_code IN (
             SELECT name FROM `tabItem` WHERE item_group = 'Services'
         )
-    """, (from_date, to_date, company), as_dict=1)
+    """.format(placeholder_list)
+    
+    # Build parameters list - add EU countries to the parameters
+    params = [from_date, to_date, company] + eu_countries
+    
+    eu_services = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_services[0].amount) if eu_services and eu_services[0].amount is not None else 0
 
