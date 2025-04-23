@@ -206,7 +206,13 @@ def get_output_vat(company, from_date, to_date):
     
     # Build query with proper parameterization for all values
     query = """
-        SELECT SUM(credit - debit) as vat_amount
+        SELECT SUM(
+            CASE 
+                WHEN voucher_type IN ('Sales Invoice') THEN credit
+                WHEN voucher_type IN ('Sales Invoice Credit Note') THEN -debit
+                ELSE 0
+            END
+        ) as vat_amount
         FROM `tabGL Entry`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
@@ -255,7 +261,13 @@ def get_input_vat(company, from_date, to_date):
     
     # Build query with proper parameterization for all values
     query = """
-        SELECT SUM(debit - credit) as vat_amount
+        SELECT SUM(
+            CASE 
+                WHEN voucher_type IN ('Purchase Invoice') THEN debit
+                WHEN voucher_type IN ('Purchase Invoice Debit Note') THEN -credit
+                ELSE 0
+            END
+        ) as vat_amount
         FROM `tabGL Entry`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
