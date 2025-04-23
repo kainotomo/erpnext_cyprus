@@ -233,34 +233,25 @@ def get_input_vat(company, from_date, to_date):
     if not tax_accounts:
         return 0
     
-    # Get input VAT accounts - using import_vat and any other input accounts
-    input_vat_accounts = []
+    # Regular input VAT accounts
+    vat_accounts = [
+        tax_accounts["vat_local_19"],
+        tax_accounts["vat_reduced_9"],
+        tax_accounts["vat_super_reduced_5"],
+        tax_accounts["import_vat"]
+    ]
     
-    # Add import VAT account if available
-    if "import_vat" in tax_accounts:
-        input_vat_accounts.append(tax_accounts["import_vat"])
+    # Filter out None values (accounts that might not exist)
+    vat_accounts = [acc for acc in vat_accounts if acc]
     
-    # If no specific input accounts are found in tax_utils, fall back to a generic search
-    if not input_vat_accounts:
-        input_vat = frappe.db.sql("""
-            SELECT SUM(debit - credit) as vat_amount
-            FROM `tabGL Entry`
-            WHERE posting_date BETWEEN %s AND %s
-            AND company = %s
-            AND account IN (
-                SELECT name FROM `tabAccount`
-                WHERE account_type = 'Tax' AND account_name LIKE '%%Input%%'
-                AND company = %s
-            )
-        """, (from_date, to_date, company, company), as_dict=1)
-        
-        return flt(input_vat[0].vat_amount) if input_vat and input_vat[0].vat_amount is not None else 0
+    if not vat_accounts:
+        return 0
     
     # Format for SQL IN clause
-    placeholder_list = ', '.join(['%s'] * len(input_vat_accounts))
+    placeholder_list = ', '.join(['%s'] * len(vat_accounts))
     
-    # Build query with proper parameterization for all values
-    query = """
+    # Query for regular input VAT (filtered by voucher_type)
+    query1 = """
         SELECT SUM(
             CASE 
                 WHEN voucher_type IN ('Purchase Invoice') THEN debit
@@ -274,12 +265,41 @@ def get_input_vat(company, from_date, to_date):
         AND account IN ({0})
     """.format(placeholder_list)
     
-    # Build parameters list - add account names to the parameters
-    params = [from_date, to_date, company] + input_vat_accounts
+    params1 = [from_date, to_date, company] + vat_accounts
+    regular_vat = frappe.db.sql(query1, params1, as_dict=1)
     
-    input_vat = frappe.db.sql(query, params, as_dict=1)
+    # Get reverse charge VAT accounts
+    rc_accounts = []
+    if "intra_eu_acquisition" in tax_accounts and tax_accounts["intra_eu_acquisition"]:
+        rc_accounts.append(tax_accounts["intra_eu_acquisition"])
+    if "reverse_charge_services" in tax_accounts and tax_accounts["reverse_charge_services"]:
+        rc_accounts.append(tax_accounts["reverse_charge_services"])
     
-    return flt(input_vat[0].vat_amount) if input_vat and input_vat[0].vat_amount is not None else 0
+    # Calculate reverse charge input VAT (where VAT is both paid and reclaimed)
+    rc_vat_amount = 0
+    if rc_accounts:
+        rc_placeholder_list = ', '.join(['%s'] * len(rc_accounts))
+        query2 = """
+            SELECT SUM(
+                CASE 
+                    WHEN voucher_type IN ('Purchase Invoice') THEN debit
+                    WHEN voucher_type IN ('Purchase Invoice Debit Note') THEN -credit
+                    ELSE 0
+                END
+            ) as vat_amount
+            FROM `tabGL Entry`
+            WHERE posting_date BETWEEN %s AND %s
+            AND company = %s
+            AND account IN ({0})
+        """.format(rc_placeholder_list)
+        
+        params2 = [from_date, to_date, company] + rc_accounts
+        rc_vat = frappe.db.sql(query2, params2, as_dict=1)
+        rc_vat_amount = flt(rc_vat[0].vat_amount) if rc_vat and rc_vat[0].vat_amount is not None else 0
+    
+    # Combine regular and reverse charge VAT
+    total_vat = flt(regular_vat[0].vat_amount) if regular_vat and regular_vat[0].vat_amount is not None else 0
+    return total_vat + rc_vat_amount
 
 def get_eu_acquisitions_vat(company, from_date, to_date):
     # Get the Cyprus tax accounts
