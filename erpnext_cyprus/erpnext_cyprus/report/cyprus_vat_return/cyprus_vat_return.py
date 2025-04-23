@@ -505,12 +505,17 @@ def get_eu_goods_acquisitions(company, from_date, to_date):
     return flt(eu_goods[0].amount) if eu_goods and eu_goods[0].amount is not None else 0
 
 def get_eu_services_acquisitions(company, from_date, to_date):
-    # EU services acquisitions
-    eu_countries = ["Austria", "Belgium", "Bulgaria", "Croatia", "Czech Republic", 
-                    "Denmark", "Estonia", "Finland", "France", "Germany", 
-                    "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
-                    "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", 
-                    "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
+    # Get EU countries list using utility function
+    try:
+        from erpnext_cyprus.utils.tax_utils import get_eu_countries
+        eu_countries = get_eu_countries()
+    except (ImportError, AttributeError):
+        # Fallback to hardcoded list if function not available
+        eu_countries = ["Austria", "Belgium", "Bulgaria", "Croatia", "Czech Republic", 
+                        "Denmark", "Estonia", "Finland", "France", "Germany", 
+                        "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
+                        "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", 
+                        "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
     
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
