@@ -344,7 +344,6 @@ def get_eu_acquisitions_vat(company, from_date, to_date):
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_vat_accounts))
     
-    # Build query with proper parameterization for all values
     query = """
         SELECT SUM(
             CASE 
@@ -495,19 +494,55 @@ def get_non_eu_exports(company, from_date, to_date):
     return flt(exports[0].amount) if exports and exports[0].amount is not None else 0
 
 def get_out_of_scope_sales(company, from_date, to_date):
-    # Out of scope sales (zero-rated, exempt) with credit note handling
-    out_of_scope = frappe.db.sql("""
+    # Get company abbreviation to match template names
+    company_abbr = frappe.db.get_value("Company", company, "abbr")
+    
+    # Get EU countries for exclusion
+    eu_countries = get_eu_countries()
+    eu_countries.append("Cyprus")  # Add Cyprus to exclusion list
+    
+    # Out of scope templates
+    exempt_templates = [
+        f"Exempt Supply - {company_abbr}",
+        f"Zero Rated - {company_abbr}"
+    ]
+    
+    # Format for SQL IN clause
+    template_placeholders = ', '.join(['%s'] * len(exempt_templates))
+    eu_placeholder_list = ', '.join(['%s'] * len(eu_countries))
+    
+    query = """
         SELECT SUM(
             CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
         ) as amount
         FROM `tabSales Invoice` si
-        INNER JOIN `tabSales Taxes and Charges` stc ON si.name = stc.parent
+        LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
-        AND stc.rate = 0
-    """, (from_date, to_date, company), as_dict=1)
+        AND si.taxes_and_charges IN ({0})
+        AND (
+            /* Not to EU countries (exclude box 8) */
+            addr.country NOT IN ({1})
+            /* Not products to non-EU (exclude box 9) */
+            OR si.name NOT IN (
+                SELECT si2.name 
+                FROM `tabSales Invoice` si2
+                INNER JOIN `tabSales Invoice Item` sii ON si2.name = sii.parent
+                INNER JOIN `tabAddress` addr2 ON si2.customer_address = addr2.name
+                WHERE sii.item_code IN (SELECT name FROM `tabItem` WHERE item_group = 'Products')
+                AND addr2.country NOT IN ({1})
+            )
+        )
+    """.format(template_placeholders, eu_placeholder_list)
     
+    # Build parameters list
+    params = [from_date, to_date, company] + exempt_templates + eu_countries + eu_countries
+    
+    # Execute query
+    out_of_scope = frappe.db.sql(query, params, as_dict=1)
+    
+    # Return result
     return flt(out_of_scope[0].amount) if out_of_scope and out_of_scope[0].amount is not None else 0
 
 def get_eu_goods_acquisitions(company, from_date, to_date):
@@ -525,6 +560,8 @@ def get_eu_goods_acquisitions(company, from_date, to_date):
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
         INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        INNER JOIN `tabSupplier` supp ON pi.supplier = supp.name
+        AND supp.supplier_type = 'Company'
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
@@ -555,6 +592,8 @@ def get_eu_services_acquisitions(company, from_date, to_date):
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
         INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        INNER JOIN `tabSupplier` supp ON pi.supplier = supp.name
+        AND supp.supplier_type = 'Company'
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
