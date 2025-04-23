@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate, get_first_day, get_last_day, add_days, add_months
 from erpnext_cyprus.utils.tax_utils import get_cyprus_tax_accounts
+from erpnext_cyprus.utils.tax_utils import get_eu_countries
 
 def execute(filters=None):
     # Ensure from_date and to_date are set
@@ -390,64 +391,90 @@ def get_total_purchases(company, from_date, to_date):
     return flt(purchases[0].amount) if purchases and purchases[0].amount is not None else 0
 
 def get_eu_goods_supplies(company, from_date, to_date):
-    # EU goods supplies (exports to EU)
-    eu_goods = frappe.db.sql("""
+    # Get EU countries list using utility function
+    eu_countries = get_eu_countries()
+    
+    # Format for SQL IN clause
+    placeholder_list = ', '.join(['%s'] * len(eu_countries))
+    
+    # Build query with proper address relationships
+    query = """
         SELECT SUM(si.base_net_total) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
-        INNER JOIN `tabCustomer` c ON si.customer = c.name
+        INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
-        AND c.territory IN (
-            SELECT name FROM `tabTerritory` 
-            WHERE parent_territory = 'European Union'
-            AND name != 'Cyprus'
-        )
+        AND addr.country IN ({0})
+        AND addr.country != 'Cyprus'
         AND sii.item_code IN (
             SELECT name FROM `tabItem` WHERE item_group = 'Products'
         )
-    """, (from_date, to_date, company), as_dict=1)
+    """.format(placeholder_list)
+    
+    # Build parameters list - add EU countries to the parameters
+    params = [from_date, to_date, company] + eu_countries
+    
+    eu_goods = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_goods[0].amount) if eu_goods and eu_goods[0].amount is not None else 0
 
 def get_eu_services_supplies(company, from_date, to_date):
-    # EU services supplies
-    eu_services = frappe.db.sql("""
+    # Get EU countries list using utility function
+    eu_countries = get_eu_countries()
+    
+    # Format for SQL IN clause
+    placeholder_list = ', '.join(['%s'] * len(eu_countries))
+    
+    # Build query with proper address relationships
+    query = """
         SELECT SUM(si.base_net_total) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
-        INNER JOIN `tabCustomer` c ON si.customer = c.name
+        INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
-        AND c.territory IN (
-            SELECT name FROM `tabTerritory` 
-            WHERE parent_territory = 'European Union'
-            AND name != 'Cyprus'
-        )
+        AND addr.country IN ({0})
+        AND addr.country != 'Cyprus'
         AND sii.item_code IN (
             SELECT name FROM `tabItem` WHERE item_group = 'Services'
         )
-    """, (from_date, to_date, company), as_dict=1)
+    """.format(placeholder_list)
+    
+    # Build parameters list - add EU countries to the parameters
+    params = [from_date, to_date, company] + eu_countries
+    
+    eu_services = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_services[0].amount) if eu_services and eu_services[0].amount is not None else 0
 
 def get_non_eu_exports(company, from_date, to_date):
-    # Non-EU exports
-    exports = frappe.db.sql("""
+    # Get EU countries list for exclusion
+    eu_countries = get_eu_countries()
+    
+    # Add Cyprus to the list to exclude
+    eu_countries.append("Cyprus")
+    
+    # Format for SQL NOT IN clause
+    placeholder_list = ', '.join(['%s'] * len(eu_countries))
+    
+    # Non-EU exports - using proper address relationship
+    query = """
         SELECT SUM(si.base_net_total) as amount
         FROM `tabSales Invoice` si
-        INNER JOIN `tabCustomer` c ON si.customer = c.name
+        INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
-        AND c.territory NOT IN (
-            SELECT name FROM `tabTerritory` 
-            WHERE parent_territory = 'European Union'
-        )
-        AND c.territory != 'Cyprus'
-    """, (from_date, to_date, company), as_dict=1)
+        AND addr.country NOT IN ({0})
+    """.format(placeholder_list)
+    
+    # Build parameters list with EU countries for exclusion
+    params = [from_date, to_date, company] + eu_countries
+    
+    exports = frappe.db.sql(query, params, as_dict=1)
     
     return flt(exports[0].amount) if exports and exports[0].amount is not None else 0
 
@@ -466,71 +493,51 @@ def get_out_of_scope_sales(company, from_date, to_date):
     return flt(out_of_scope[0].amount) if out_of_scope and out_of_scope[0].amount is not None else 0
 
 def get_eu_goods_acquisitions(company, from_date, to_date):
-    # Get EU countries list using utility function if available
-    try:
-        from erpnext_cyprus.utils.tax_utils import get_eu_countries
-        eu_countries = get_eu_countries()
-    except (ImportError, AttributeError):
-        # Fallback to hardcoded list if function not available
-        eu_countries = ["Austria", "Belgium", "Bulgaria", "Croatia", "Czech Republic", 
-                        "Denmark", "Estonia", "Finland", "France", "Germany", 
-                        "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
-                        "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", 
-                        "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
+    # Get EU countries list
+    eu_countries = get_eu_countries()
     
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Build query with proper parameterization for all values
+    # Build query with proper address relationships
     query = """
         SELECT SUM(pi.base_net_total) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
-        INNER JOIN `tabSupplier` s ON pi.supplier = s.name
+        INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
-        AND s.country IN ({0})
-        AND s.country != 'Cyprus'
+        AND addr.country IN ({0})
+        AND addr.country != 'Cyprus'
         AND pii.item_code IN (
             SELECT name FROM `tabItem` WHERE item_group = 'Products'
         )
     """.format(placeholder_list)
     
-    # Build parameters list - add EU countries to the parameters
     params = [from_date, to_date, company] + eu_countries
-    
     eu_goods = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_goods[0].amount) if eu_goods and eu_goods[0].amount is not None else 0
 
 def get_eu_services_acquisitions(company, from_date, to_date):
     # Get EU countries list using utility function
-    try:
-        from erpnext_cyprus.utils.tax_utils import get_eu_countries
-        eu_countries = get_eu_countries()
-    except (ImportError, AttributeError):
-        # Fallback to hardcoded list if function not available
-        eu_countries = ["Austria", "Belgium", "Bulgaria", "Croatia", "Czech Republic", 
-                        "Denmark", "Estonia", "Finland", "France", "Germany", 
-                        "Greece", "Hungary", "Ireland", "Italy", "Latvia", 
-                        "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", 
-                        "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
+    eu_countries = get_eu_countries()
     
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Build query with proper parameterization for all values
+    # Build query with proper address relationships
     query = """
         SELECT SUM(pi.base_net_total) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
-        INNER JOIN `tabSupplier` s ON pi.supplier = s.name
+        INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
-        AND s.country IN ({0})
-        AND s.country != 'Cyprus'
+        AND addr.country IN ({0})
+        AND addr.country != 'Cyprus'
         AND pii.item_code IN (
             SELECT name FROM `tabItem` WHERE item_group = 'Services'
         )
