@@ -63,6 +63,14 @@ frappe.ui.form.on('Company', {
                                     } else {
                                         message += '<br><br>' + __('No new tax rules needed to be created.');
                                     }
+
+                                    // Add territories info
+                                    if (r.message.territories_added && r.message.territories_added.length > 0) {
+                                        message += '<br><br><b>' + __('Territories created:') + '</b><br>';
+                                        message += r.message.territories_added.join('<br>');
+                                    } else {
+                                        message += '<br><br>' + __('No new territories needed to be created.');
+                                    }
                                     
                                     frappe.msgprint({
                                         title: __('Success'),

@@ -750,3 +750,42 @@ def setup_item_groups():
                 frappe.log_error(f"Error creating item group {group_data['item_group_name']}: {str(e)}")
     
     return groups_created
+
+def setup_cyprus_territories():
+    """
+    Set up territories needed for Cyprus VAT reporting (simplified structure)
+    """
+    territories_created = []
+    
+    # Define base required territories
+    required_territories = [
+        {
+            "territory_name": "Cyprus",
+            "parent_territory": "All Territories",
+            "is_group": 0
+        },
+        {
+            "territory_name": "EU",
+            "parent_territory": "All Territories",
+            "is_group": 0
+        },
+        {
+            "territory_name": "Rest Of The World",
+            "parent_territory": "All Territories",
+            "is_group": 1
+        }
+    ]
+    
+    # Create territories if they don't exist
+    for territory_data in required_territories:
+        if not frappe.db.exists("Territory", territory_data["territory_name"]):
+            territory = frappe.get_doc({
+                "doctype": "Territory",
+                "territory_name": territory_data["territory_name"],
+                "parent_territory": territory_data["parent_territory"],
+                "is_group": territory_data["is_group"]
+            })
+            territory.insert(ignore_permissions=True)
+            territories_created.append(territory_data["territory_name"])
+    
+    return territories_created

@@ -140,7 +140,10 @@ doctype_js = {"Company" : "public/js/company.js"}
 doc_events = {
     "Customer": {
         "validate": "erpnext_cyprus.utils.customer_group_assignment.assign_customer_group_based_on_vat"
-    }
+    },
+    "Address": {
+        "after_insert": "erpnext_cyprus.utils.customer_group_assignment.assign_customer_territory_based_on_country"
+    },
 }
 
 # Scheduled Tasks
