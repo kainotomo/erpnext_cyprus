@@ -463,28 +463,32 @@ def get_eu_services_supplies(company, from_date, to_date):
 def get_non_eu_exports(company, from_date, to_date):
     # Get EU countries list for exclusion
     eu_countries = get_eu_countries()
-    
-    # Add Cyprus to the list to exclude
     eu_countries.append("Cyprus")
     
-    # Format for SQL NOT IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Non-EU exports - using proper address relationship and handling credit notes
+    # Get company abbreviation to match template names
+    company_abbr = frappe.db.get_value("Company", company, "abbr")
+    
     query = """
         SELECT SUM(
             CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
         ) as amount
         FROM `tabSales Invoice` si
+        INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
         AND addr.country NOT IN ({0})
+        AND sii.item_code IN (
+            SELECT name FROM `tabItem` WHERE item_group = 'Products'
+        )
+        AND (si.taxes_and_charges = %s OR si.taxes_and_charges IS NULL)
     """.format(placeholder_list)
     
-    # Build parameters list with EU countries for exclusion
-    params = [from_date, to_date, company] + eu_countries
+    # Parameters including the non-EU export template name
+    params = [from_date, to_date, company] + eu_countries + [f"Non-EU Export - {company_abbr}"]
     
     exports = frappe.db.sql(query, params, as_dict=1)
     
