@@ -11,12 +11,7 @@ def get_tax_accounts(company):
     
     # Define the accounts we need by name
     required_accounts = {
-        "vat_local_19": "VAT",
-        "vat_reduced_9": "VAT",
-        "vat_super_reduced_5": "VAT",
-        "intra_eu_acquisition": "VAT",
-        "reverse_charge_services": "VAT",
-        "import_vat": "VAT",
+        "vat": "VAT",
         "oss_vat": "OSS VAT"
     }
     
@@ -69,13 +64,13 @@ def setup_purchase_tax_templates(company):
             "description": "For goods acquired from EU suppliers",
             "taxes": [
                 {
-                    "account_head": tax_accounts["intra_eu_acquisition"],
+                    "account_head": tax_accounts["vat"],
                     "description": "EU Acquisition VAT 19%",
                     "rate": 19,
                     "add_deduct_tax": "Add"
                 },
                 {
-                    "account_head": tax_accounts["intra_eu_acquisition"],
+                    "account_head": tax_accounts["vat"],
                     "description": "Reverse EU Acquisition VAT 19%",
                     "rate": 19,
                     "add_deduct_tax": "Deduct"
@@ -89,13 +84,13 @@ def setup_purchase_tax_templates(company):
             "description": "For services from EU suppliers",
             "taxes": [
                 {
-                    "account_head": tax_accounts["reverse_charge_services"],
+                    "account_head": tax_accounts["vat"],
                     "description": "Reverse Charge VAT 19%",
                     "rate": 19,
                     "add_deduct_tax": "Add"
                 },
                 {
-                    "account_head": tax_accounts["reverse_charge_services"],
+                    "account_head": tax_accounts["vat"],
                     "description": "Reverse Charge VAT 19% (Input)",
                     "rate": 19,
                     "add_deduct_tax": "Deduct"
@@ -109,13 +104,13 @@ def setup_purchase_tax_templates(company):
             "description": "For imports from outside the EU",
             "taxes": [
                 {
-                    "account_head": tax_accounts["import_vat"],
+                    "account_head": tax_accounts["vat"],
                     "description": "Import VAT 19%",
                     "rate": 19,
                     "add_deduct_tax": "Add"
                 },
                 {
-                    "account_head": tax_accounts["import_vat"],
+                    "account_head": tax_accounts["vat"],
                     "description": "Import VAT 19% (Input)",
                     "rate": 19,
                     "add_deduct_tax": "Deduct"
@@ -136,7 +131,7 @@ def setup_purchase_tax_templates(company):
             "description": "For domestic purchases with VAT",
             "taxes": [
                 {
-                    "account_head": tax_accounts["vat_local_19"],
+                    "account_head": tax_accounts["vat"],
                     "description": "Input VAT",
                     "rate": 19,
                     "add_deduct_tax": "Add"
@@ -203,7 +198,7 @@ def setup_sales_tax_templates(company):
             "description": "All Cyprus domestic sales VAT rates",
             "taxes": [
                 {
-                    "account_head": tax_accounts["vat_local_19"],
+                    "account_head": tax_accounts["vat"],
                     "description": "VAT 19%",
                     "rate": 19
                 }
@@ -221,7 +216,7 @@ def setup_sales_tax_templates(company):
             "description": "For consumers in EU (with local VAT)",
             "taxes": [
                 {
-                    "account_head": tax_accounts["vat_local_19"],
+                    "account_head": tax_accounts["vat"],
                     "description": "VAT 19%",
                     "rate": 19
                 }
@@ -315,9 +310,7 @@ def setup_item_tax_templates(company):
         return templates_created
     
     # Extract the full account names for use in item tax templates
-    vat_19_account = tax_accounts["vat_local_19"]
-    vat_9_account = tax_accounts["vat_reduced_9"]
-    vat_5_account = tax_accounts["vat_super_reduced_5"]
+    vat_account = tax_accounts["vat"]
     
     # Define the Cyprus-specific item tax templates
     cyprus_item_tax_templates = [
@@ -325,7 +318,7 @@ def setup_item_tax_templates(company):
             "title": "Cyprus Standard 19%",
             "taxes": [
                 {
-                    "tax_type": vat_19_account,
+                    "tax_type": vat_account,
                     "tax_rate": 19
                 }
             ]
@@ -334,7 +327,7 @@ def setup_item_tax_templates(company):
             "title": "Cyprus Reduced 9%",
             "taxes": [
                 {
-                    "tax_type": vat_9_account,
+                    "tax_type": vat_account,
                     "tax_rate": 9
                 }
             ]
@@ -343,7 +336,7 @@ def setup_item_tax_templates(company):
             "title": "Cyprus Super Reduced 5%",
             "taxes": [
                 {
-                    "tax_type": vat_5_account,
+                    "tax_type": vat_account,
                     "tax_rate": 5
                 }
             ]
@@ -352,7 +345,7 @@ def setup_item_tax_templates(company):
             "title": "Zero Rated",
             "taxes": [
                 {
-                    "tax_type": vat_19_account,
+                    "tax_type": vat_account,
                     "tax_rate": 0
                 }
             ]
@@ -361,7 +354,7 @@ def setup_item_tax_templates(company):
             "title": "Exempt",
             "taxes": [
                 {
-                    "tax_type": vat_19_account,
+                    "tax_type": vat_account,
                     "tax_rate": 0
                 }
             ]

@@ -86,7 +86,7 @@ def get_data(filters):
     
     # Add VAT Return fields according to Cyprus tax requirements
     # Box 1: VAT due on sales and other outputs
-    output_vat = get_output_vat(company, from_date, to_date)
+    output_vat = get_box_1(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 1"),
         "description": _("VAT due on sales and other outputs"),
@@ -189,7 +189,7 @@ def get_data(filters):
     
     return vat_return_data
 
-def get_output_vat(company, from_date, to_date):
+def get_box_1(company, from_date, to_date):
     # Get the Cyprus tax accounts
     tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
@@ -197,20 +197,26 @@ def get_output_vat(company, from_date, to_date):
     
     # Get all output VAT accounts
     output_vat_accounts = [
-        tax_accounts["vat_local_19"],
-        tax_accounts["vat_reduced_9"],
-        tax_accounts["vat_super_reduced_5"]
+        tax_accounts["vat"]
     ]
+    
+    # Filter out None values (accounts that might not exist)
+    output_vat_accounts = [acc for acc in output_vat_accounts if acc]
+    
+    if not output_vat_accounts:
+        return 0
     
     # Format for SQL IN clause - converting to a proper list of parameters
     placeholder_list = ', '.join(['%s'] * len(output_vat_accounts))
     
-    # Build query with proper parameterization for all values
-    query = """
+    # Query 1: Standard domestic VAT from Sales Invoices and Journal Entries
+    query1 = """
         SELECT SUM(
             CASE 
                 WHEN voucher_type IN ('Sales Invoice') THEN credit
                 WHEN voucher_type IN ('Sales Invoice Credit Note') THEN -debit
+                WHEN voucher_type IN ('Journal Entry') AND credit > 0 THEN credit
+                WHEN voucher_type IN ('Journal Entry') AND debit > 0 THEN -debit
                 ELSE 0
             END
         ) as vat_amount
@@ -218,15 +224,73 @@ def get_output_vat(company, from_date, to_date):
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
         AND account IN ({0})
+        AND is_cancelled = 0
+        AND docstatus = 1
     """.format(placeholder_list)
     
-    # Build parameters list - add account names to the parameters
-    params = [from_date, to_date, company] + output_vat_accounts
+    # Build parameters list for query1
+    params1 = [from_date, to_date, company] + output_vat_accounts
     
-    # Execute the query with all parameters
-    output_vat = frappe.db.sql(query, params, as_dict=1)
+    # Execute query1
+    output_vat_result = frappe.db.sql(query1, params1, as_dict=1)
+    output_vat = flt(output_vat_result[0].vat_amount) if output_vat_result and output_vat_result[0].vat_amount is not None else 0
     
-    return flt(output_vat[0].vat_amount) if output_vat and output_vat[0].vat_amount is not None else 0
+    # Get EU countries to exclude them
+    eu_countries = get_eu_countries()
+    eu_placeholders = ', '.join(['%s'] * len(eu_countries))
+    
+    # Get all service item groups (parent groups and their children)
+    service_parent_groups = ["Professional Services", "Digital Services"]
+    all_service_groups = []
+    
+    # First add the parent groups
+    all_service_groups.extend(service_parent_groups)
+    
+    # Then find and add all child groups
+    for parent_group in service_parent_groups:
+        child_groups = frappe.get_all(
+            "Item Group", 
+            filters={"parent_item_group": parent_group},
+            fields=["item_group_name"]
+        )
+        all_service_groups.extend([group.item_group_name for group in child_groups])
+    
+    # Create placeholders for the service groups
+    service_placeholders = ', '.join(['%s'] * len(all_service_groups)) if all_service_groups else "''"
+    
+    # Query 2: Reverse charge VAT on services from non-EU suppliers
+    query2 = """
+        SELECT SUM(gle.credit) as vat_amount
+        FROM `tabGL Entry` gle
+        INNER JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
+        INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
+        INNER JOIN `tabItem` item ON pii.item_code = item.name
+        LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        WHERE gle.posting_date BETWEEN %s AND %s
+        AND gle.company = %s
+        AND gle.account IN ({0})
+        AND gle.credit > 0
+        AND gle.is_cancelled = 0
+        AND gle.docstatus = 1
+        AND (
+            (addr.country IS NOT NULL AND addr.country NOT IN ({1}) AND addr.country != 'Cyprus')
+            OR
+            pi.taxes_and_charges = 'Non-EU Import VAT'
+        )
+        AND item.item_group IN ({2})
+    """.format(placeholder_list, eu_placeholders, service_placeholders)
+    
+    # Build parameters list for query2
+    params2 = [from_date, to_date, company] + output_vat_accounts + eu_countries + all_service_groups
+    
+    # Execute query2 only if we have service groups
+    non_eu_service_vat = 0
+    if all_service_groups:
+        non_eu_service_vat_result = frappe.db.sql(query2, params2, as_dict=1)
+        non_eu_service_vat = flt(non_eu_service_vat_result[0].vat_amount) if non_eu_service_vat_result and non_eu_service_vat_result[0].vat_amount is not None else 0
+    
+    # Return combined VAT amount
+    return output_vat + non_eu_service_vat
 
 def get_input_vat(company, from_date, to_date):
     # Get the Cyprus tax accounts
@@ -236,10 +300,7 @@ def get_input_vat(company, from_date, to_date):
     
     # Regular input VAT accounts
     vat_accounts = [
-        tax_accounts["vat_local_19"],
-        tax_accounts["vat_reduced_9"],
-        tax_accounts["vat_super_reduced_5"],
-        tax_accounts["import_vat"]
+        tax_accounts["vat"]
     ]
     
     # Filter out None values (accounts that might not exist)
