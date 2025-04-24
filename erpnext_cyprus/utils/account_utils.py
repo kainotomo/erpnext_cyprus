@@ -14,55 +14,7 @@ def setup_chart_of_accounts(company):
     # Get existing account numbers to avoid conflicts
     existing_account_numbers = get_existing_account_numbers(company)
     
-    cyprus_accounts = [
-        {
-            "account_name": "VAT Cyprus Local (19%)",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "tax_rate": 19.0,
-            "account_number": "2100",
-        },
-        {
-            "account_name": "VAT Cyprus Reduced (9%)",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "tax_rate": 9.0,
-            "account_number": "2110",
-        },
-        {
-            "account_name": "VAT Cyprus Super Reduced (5%)",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "tax_rate": 5.0,
-            "account_number": "2120",
-        },
-        {
-            "account_name": "Intra-EU Acquisition VAT",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "account_number": "2200",
-        },
-        {
-            "account_name": "Reverse Charge VAT B2B Services",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "account_number": "2300",
-        },
-        {
-            "account_name": "Import VAT Non-EU",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "account_number": "2400",
-        },
-        {
-            "account_name": "OSS VAT Digital Services",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "account_number": "2500",
-        }
-    ]
-    
-    cyprus_salary_accounts = [
+    salary_accounts = [
         # Employer contributions
         {
             "account_name": "Employer Social Insurance",
@@ -132,7 +84,7 @@ def setup_chart_of_accounts(company):
     ]
     
     # Combine all accounts
-    all_accounts = cyprus_accounts + cyprus_salary_accounts
+    all_accounts = salary_accounts
     
     # Adjust account numbers based on existing pattern or remove if not used
     if not account_number_info["uses_account_numbers"]:

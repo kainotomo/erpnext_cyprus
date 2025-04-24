@@ -703,24 +703,16 @@ def setup_item_groups():
     # Define the required item groups
     required_item_groups = [
         {
+            "item_group_name": "Professional Services",
+            "parent_item_group": "All Item Groups",
+            "is_group": 1,
+            "description": "These are expertise-driven services that involve specialized knowledge and skills, such as consulting, legal advice, marketing, IT support, and training. They often require direct interaction between the service provider and client, making them distinct from automated digital offerings."
+        },
+        {
             "item_group_name": "Digital Services",
             "parent_item_group": "All Item Groups",
-            "description": "Electronically supplied services (software, streaming, online content)"
-        },
-        {
-            "item_group_name": "Hotel Services",
-            "parent_item_group": "Services",
-            "description": "Hotel accommodation, restaurant services, and similar (9% VAT rate)"
-        },
-        {
-            "item_group_name": "Books and Publications",
-            "parent_item_group": "Products",
-            "description": "Books, newspapers, and other publications (5% VAT rate)"
-        },
-        {
-            "item_group_name": "Services",
-            "parent_item_group": "All Item Groups",
-            "description": "All service offerings"
+            "is_group": 1,
+            "description": "These are technology-based services provided online, including software licensing, cloud hosting, digital content delivery, e-learning, and automated solutions like SaaS (Software as a Service). Digital services are often subscription-based or pay-per-use and fall under specific VAT regulations, such as the OSS scheme for EU sales."
         }
     ]
     
@@ -738,7 +730,7 @@ def setup_item_groups():
                 "doctype": "Item Group",
                 "item_group_name": group_data["item_group_name"],
                 "parent_item_group": parent_group,
-                "is_group": 0,
+                "is_group": group_data["is_group"],
                 "description": group_data["description"]
             })
             
