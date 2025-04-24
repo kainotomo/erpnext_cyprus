@@ -185,7 +185,7 @@ def setup_sales_tax_templates(company):
     # Define the Cyprus-specific sales tax templates - one per use case
     cyprus_sales_tax_templates = [        
         {
-            "title": "Cyprus Sales VAT (All Rates)",
+            "title": "Cyprus Sales VAT",
             "company": company,
             "description": "All Cyprus domestic sales VAT rates",
             "taxes": [
@@ -193,16 +193,6 @@ def setup_sales_tax_templates(company):
                     "account_head": tax_accounts["vat_local_19"],
                     "description": "VAT 19%",
                     "rate": 19
-                },
-                {
-                    "account_head": tax_accounts["vat_reduced_9"],
-                    "description": "VAT 9%",
-                    "rate": 0
-                },
-                {
-                    "account_head": tax_accounts["vat_super_reduced_5"],
-                    "description": "VAT 5%",
-                    "rate": 0
                 }
             ]
         },
