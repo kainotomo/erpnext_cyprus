@@ -141,6 +141,46 @@ def setup_purchase_tax_templates(company):
                     "add_deduct_tax": "Deduct"
                 }
             ]
+        },
+        # Domestic purchase templates
+        {
+            "title": "Cyprus Purchase VAT 19%",
+            "company": company,
+            "description": "For domestic purchases with standard VAT",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["vat_local_19"],
+                    "description": "Input VAT 19%",
+                    "rate": 19,
+                    "add_deduct_tax": "Add"
+                }
+            ]
+        },
+        {
+            "title": "Cyprus Purchase VAT 9%",
+            "company": company,
+            "description": "For domestic purchases with reduced VAT",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["vat_reduced_9"],
+                    "description": "Input VAT 9%",
+                    "rate": 9,
+                    "add_deduct_tax": "Add"
+                }
+            ]
+        },
+        {
+            "title": "Cyprus Purchase VAT 5%",
+            "company": company,
+            "description": "For domestic purchases with super reduced VAT",
+            "taxes": [
+                {
+                    "account_head": tax_accounts["vat_super_reduced_5"],
+                    "description": "Input VAT 5%",
+                    "rate": 5,
+                    "add_deduct_tax": "Add"
+                }
+            ]
         }
     ]
     
