@@ -94,7 +94,7 @@ def get_data(filters):
     })
 
     # Box 2: VAT due on acquisitions from EU countries
-    eu_acquisitions_vat = get_eu_acquisitions_vat(company, from_date, to_date)
+    eu_acquisitions_vat = get_box_2(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 2"),
         "description": _("VAT due on acquisitions from EU countries"),
@@ -373,7 +373,7 @@ def get_input_vat(company, from_date, to_date):
     total_vat = flt(regular_vat[0].vat_amount) if regular_vat and regular_vat[0].vat_amount is not None else 0
     return total_vat + rc_vat_amount
 
-def get_eu_acquisitions_vat(company, from_date, to_date):
+def get_box_2(company, from_date, to_date):
     # Get the Cyprus tax accounts
     tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
