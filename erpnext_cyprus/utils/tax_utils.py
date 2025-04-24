@@ -77,7 +77,7 @@ def setup_purchase_tax_templates(company):
         },
         # EU services template
         {
-            "title": "EU Services Reverse Charge",
+            "title": "EU Reverse Charge",
             "company": company,
             "description": "For services from EU suppliers",
             "taxes": [
@@ -121,63 +121,17 @@ def setup_purchase_tax_templates(company):
             "company": company,
             "description": "For zero-rated or exempt purchases",
             "taxes": []
-        },
-        # Digital services from EU
-        {
-            "title": "Digital Services Purchase - EU",
-            "company": company,
-            "description": "For digital services from EU suppliers",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["reverse_charge_services"],
-                    "description": "Reverse Charge VAT 19%",
-                    "rate": 19,
-                    "add_deduct_tax": "Add"
-                },
-                {
-                    "account_head": tax_accounts["reverse_charge_services"],
-                    "description": "Reverse Charge VAT 19% (Input)",
-                    "rate": 19,
-                    "add_deduct_tax": "Deduct"
-                }
-            ]
-        },
+        },        
         # Domestic purchase templates
         {
-            "title": "Cyprus Purchase VAT 19%",
+            "title": "Cyprus Purchase VAT",
             "company": company,
-            "description": "For domestic purchases with standard VAT",
+            "description": "For domestic purchases with VAT",
             "taxes": [
                 {
                     "account_head": tax_accounts["vat_local_19"],
-                    "description": "Input VAT 19%",
+                    "description": "Input VAT",
                     "rate": 19,
-                    "add_deduct_tax": "Add"
-                }
-            ]
-        },
-        {
-            "title": "Cyprus Purchase VAT 9%",
-            "company": company,
-            "description": "For domestic purchases with reduced VAT",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["vat_reduced_9"],
-                    "description": "Input VAT 9%",
-                    "rate": 9,
-                    "add_deduct_tax": "Add"
-                }
-            ]
-        },
-        {
-            "title": "Cyprus Purchase VAT 5%",
-            "company": company,
-            "description": "For domestic purchases with super reduced VAT",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["vat_super_reduced_5"],
-                    "description": "Input VAT 5%",
-                    "rate": 5,
                     "add_deduct_tax": "Add"
                 }
             ]
