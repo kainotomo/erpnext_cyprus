@@ -356,6 +356,15 @@ def setup_item_tax_templates(company):
                     "tax_rate": 0
                 }
             ]
+        },
+        {
+            "title": "Exempt",
+            "taxes": [
+                {
+                    "tax_type": vat_19_account,
+                    "tax_rate": 0
+                }
+            ]
         }
     ]
     
@@ -470,13 +479,13 @@ def setup_tax_rules(company):
             "priority": 3,
             "use_for_shopping_cart": 1
         },
-        # Non-EU exports (priority 4)
+        # Non-EU exports (priority 2)
         {
             "doctype": "Tax Rule",
             "tax_type": "Sales",
             # No billing_country - applies to any country not matched by higher priority rules
             "sales_tax_template": template_names.get("Non-EU Export"),
-            "priority": 4,
+            "priority": 2,
             "use_for_shopping_cart": 1
         },        
         # Default domestic rule
@@ -484,8 +493,8 @@ def setup_tax_rules(company):
             "doctype": "Tax Rule",
             "tax_type": "Sales",
             "billing_country": "Cyprus",
-            "sales_tax_template": template_names.get("Cyprus Sales VAT (All Rates)"),
-            "priority": 4,
+            "sales_tax_template": template_names.get("Cyprus Sales VAT"),
+            "priority": 5,
             "use_for_shopping_cart": 1
         },
         
@@ -501,8 +510,8 @@ def setup_tax_rules(company):
             "doctype": "Tax Rule",
             "tax_type": "Purchase",
             "billing_country": "EU",
-            "item_group": "Services",
-            "purchase_tax_template": template_names.get("EU Services Reverse Charge"),
+            "item_group": "Professional Services",
+            "purchase_tax_template": template_names.get("EU Reverse Charge"),
             "priority": 2
         },
         {
@@ -511,6 +520,23 @@ def setup_tax_rules(company):
             # No tax_category reference - applies to any country not matched by higher priority rules
             "purchase_tax_template": template_names.get("Non-EU Import VAT"),
             "priority": 3
+        },
+        # Domestic purchases rule
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "billing_country": "Cyprus",
+            "purchase_tax_template": template_names.get("Cyprus Purchase VAT"),
+            "priority": 3
+        },
+        # Zero-rated purchases rule
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "billing_country": "Cyprus",
+            "item_group": "Zero Rated Items",
+            "purchase_tax_template": template_names.get("Zero-Rated Purchase"),
+            "priority": 4
         }
     ]
     
@@ -627,6 +653,12 @@ def setup_item_groups():
             "parent_item_group": "All Item Groups",
             "is_group": 1,
             "description": "These are technology-based services provided online, including software licensing, cloud hosting, digital content delivery, e-learning, and automated solutions like SaaS (Software as a Service). Digital services are often subscription-based or pay-per-use and fall under specific VAT regulations, such as the OSS scheme for EU sales."
+        },
+        {
+            "item_group_name": "Zero Rated Items",
+            "parent_item_group": "All Item Groups",
+            "is_group": 0,
+            "description": "Items that are zero-rated for VAT purposes"
         }
     ]
     
