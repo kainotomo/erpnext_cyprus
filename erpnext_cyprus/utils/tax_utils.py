@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 
-def get_cyprus_tax_accounts(company):
+def get_tax_accounts(company):
     """
     Get the necessary Cyprus tax accounts using exact account_name matches
     """
@@ -11,13 +11,13 @@ def get_cyprus_tax_accounts(company):
     
     # Define the accounts we need by name
     required_accounts = {
-        "vat_local_19": "VAT Cyprus Local (19%)",
-        "vat_reduced_9": "VAT Cyprus Reduced (9%)",
-        "vat_super_reduced_5": "VAT Cyprus Super Reduced (5%)",
-        "intra_eu_acquisition": "Intra-EU Acquisition VAT",
-        "reverse_charge_services": "Reverse Charge VAT B2B Services",
-        "import_vat": "Import VAT Non-EU",
-        "oss_vat": "OSS VAT Digital Services"
+        "vat_local_19": "VAT",
+        "vat_reduced_9": "VAT",
+        "vat_super_reduced_5": "VAT",
+        "intra_eu_acquisition": "VAT",
+        "reverse_charge_services": "VAT",
+        "import_vat": "VAT",
+        "oss_vat": "OSS VAT"
     }
     
     # Simple direct search for each account by exact account_name and company
@@ -48,7 +48,7 @@ def setup_purchase_tax_templates(company):
     templates_created = []
     
     # First ensure we have the required accounts
-    tax_accounts = get_cyprus_tax_accounts(company)
+    tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
         frappe.msgprint(_("Required tax accounts not found. Please set up the chart of accounts first."))
         return templates_created
@@ -199,7 +199,7 @@ def setup_sales_tax_templates(company):
     templates_created = []
     
     # First ensure we have the required accounts
-    tax_accounts = get_cyprus_tax_accounts(company)
+    tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
         frappe.msgprint(_("Required tax accounts not found. Please set up the chart of accounts first."))
         return templates_created
@@ -328,7 +328,7 @@ def setup_item_tax_templates(company):
     templates_created = []
     
     # Get the tax accounts
-    tax_accounts = get_cyprus_tax_accounts(company)
+    tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
         frappe.msgprint(_("Required tax accounts not found. Please set up the chart of accounts first."))
         return templates_created
@@ -346,14 +346,6 @@ def setup_item_tax_templates(company):
                 {
                     "tax_type": vat_19_account,
                     "tax_rate": 19
-                },
-                {
-                    "tax_type": vat_9_account,
-                    "tax_rate": 0
-                },
-                {
-                    "tax_type": vat_5_account,
-                    "tax_rate": 0
                 }
             ]
         },
@@ -361,30 +353,14 @@ def setup_item_tax_templates(company):
             "title": "Cyprus Reduced 9%",
             "taxes": [
                 {
-                    "tax_type": vat_19_account,
-                    "tax_rate": 0
-                },
-                {
                     "tax_type": vat_9_account,
                     "tax_rate": 9
-                },
-                {
-                    "tax_type": vat_5_account,
-                    "tax_rate": 0
                 }
             ]
         },
         {
             "title": "Cyprus Super Reduced 5%",
             "taxes": [
-                {
-                    "tax_type": vat_19_account,
-                    "tax_rate": 0
-                },
-                {
-                    "tax_type": vat_9_account,
-                    "tax_rate": 0
-                },
                 {
                     "tax_type": vat_5_account,
                     "tax_rate": 5
@@ -530,26 +506,7 @@ def setup_tax_rules(company):
             "sales_tax_template": template_names.get("Non-EU Export"),
             "priority": 4,
             "use_for_shopping_cart": 1
-        },
-        # Domestic rules - by item type
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Sales",
-            "billing_country": "Cyprus",
-            "item_group": "Hotel Services",
-            "sales_tax_template": template_names.get("Cyprus Sales VAT (All Rates)"),
-            "priority": 5,
-            "use_for_shopping_cart": 1
-        },
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Sales",
-            "billing_country": "Cyprus",
-            "item_group": "Books and Publications",
-            "sales_tax_template": template_names.get("Cyprus Sales VAT (All Rates)"),
-            "priority": 5,
-            "use_for_shopping_cart": 1
-        },
+        },        
         # Default domestic rule
         {
             "doctype": "Tax Rule",
@@ -582,14 +539,6 @@ def setup_tax_rules(company):
             # No tax_category reference - applies to any country not matched by higher priority rules
             "purchase_tax_template": template_names.get("Non-EU Import VAT"),
             "priority": 3
-        },
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Purchase",
-            "billing_country": "Cyprus",
-            "item_group": "Hotel Services",
-            "purchase_tax_template": template_names.get("Cyprus Purchase VAT (All Rates)"),
-            "priority": 4
         },
         {
             "doctype": "Tax Rule",

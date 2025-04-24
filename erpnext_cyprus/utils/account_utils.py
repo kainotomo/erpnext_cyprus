@@ -14,6 +14,15 @@ def setup_chart_of_accounts(company):
     # Get existing account numbers to avoid conflicts
     existing_account_numbers = get_existing_account_numbers(company)
     
+    vat_accounts = [
+        {
+            "account_name": "OSS VAT",
+            "parent_account": "Duties and Taxes",
+            "account_type": "Tax",
+            "account_number": "2630",
+        }
+    ]
+    
     salary_accounts = [
         # Employer contributions
         {
@@ -84,7 +93,7 @@ def setup_chart_of_accounts(company):
     ]
     
     # Combine all accounts
-    all_accounts = salary_accounts
+    all_accounts = vat_accounts + salary_accounts
     
     # Adjust account numbers based on existing pattern or remove if not used
     if not account_number_info["uses_account_numbers"]:
