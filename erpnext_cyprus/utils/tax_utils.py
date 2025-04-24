@@ -710,7 +710,7 @@ def setup_item_groups():
         },
         {
             "item_group_name": "Digital & Professional Services",
-            "parent_item_group": "Services",
+            "parent_item_group": "All Item Groups",
             "is_group": 1,
             "description": "This would cover non-physical offerings such as software, hosting, consulting, or any specialized expertise you provide."
         }
