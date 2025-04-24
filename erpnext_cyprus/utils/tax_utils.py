@@ -55,29 +55,6 @@ def setup_purchase_tax_templates(company):
     
     # Define the Cyprus-specific purchase tax templates - one per use case
     cyprus_purchase_tax_templates = [        
-        # Main domestic purchase template with all rates
-        {
-            "title": "Cyprus Purchase VAT (All Rates)",
-            "company": company,
-            "description": "All Cyprus domestic purchase VAT rates",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["vat_local_19"],
-                    "description": "VAT 19%",
-                    "rate": 19
-                },
-                {
-                    "account_head": tax_accounts["vat_reduced_9"],
-                    "description": "VAT 9%",
-                    "rate": 0  # Default to 0, controlled by item tax templates
-                },
-                {
-                    "account_head": tax_accounts["vat_super_reduced_5"],
-                    "description": "VAT 5%",
-                    "rate": 0  # Default to 0, controlled by item tax templates
-                }
-            ]
-        },
         # EU acquisition template
         {
             "title": "EU Acquisition VAT 19%",
@@ -127,7 +104,14 @@ def setup_purchase_tax_templates(company):
                 {
                     "account_head": tax_accounts["import_vat"],
                     "description": "Import VAT 19%",
-                    "rate": 19
+                    "rate": 19,
+                    "add_deduct_tax": "Add"
+                },
+                {
+                    "account_head": tax_accounts["import_vat"],
+                    "description": "Import VAT 19% (Input)",
+                    "rate": 19,
+                    "add_deduct_tax": "Deduct"
                 }
             ]
         },
@@ -138,16 +122,23 @@ def setup_purchase_tax_templates(company):
             "description": "For zero-rated or exempt purchases",
             "taxes": []
         },
-        # Digital services
+        # Digital services from EU
         {
-            "title": "Digital Services Purchase",
+            "title": "Digital Services Purchase - EU",
             "company": company,
-            "description": "For digital services purchases",
+            "description": "For digital services from EU suppliers",
             "taxes": [
                 {
-                    "account_head": tax_accounts["oss_vat"],
-                    "description": "OSS VAT",
-                    "rate": 19
+                    "account_head": tax_accounts["reverse_charge_services"],
+                    "description": "Reverse Charge VAT 19%",
+                    "rate": 19,
+                    "add_deduct_tax": "Add"
+                },
+                {
+                    "account_head": tax_accounts["reverse_charge_services"],
+                    "description": "Reverse Charge VAT 19% (Input)",
+                    "rate": 19,
+                    "add_deduct_tax": "Deduct"
                 }
             ]
         }
@@ -525,13 +516,6 @@ def setup_tax_rules(company):
             # No tax_category reference - applies to any country not matched by higher priority rules
             "purchase_tax_template": template_names.get("Non-EU Import VAT"),
             "priority": 3
-        },
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Purchase",
-            "billing_country": "Cyprus",
-            "purchase_tax_template": template_names.get("Cyprus Purchase VAT (All Rates)"),
-            "priority": 5
         }
     ]
     
