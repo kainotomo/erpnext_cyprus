@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 from frappe.utils import cstr
 
-def setup_cyprus_accounts(company):
+def setup_chart_of_accounts(company):
     """
     Set up Cyprus-specific accounts in the chart of accounts
     """
@@ -14,154 +14,98 @@ def setup_cyprus_accounts(company):
     # Get existing account numbers to avoid conflicts
     existing_account_numbers = get_existing_account_numbers(company)
     
-    cyprus_accounts = [
+    vat_accounts = [
         {
-            "account_name": "VAT Cyprus Local (19%)",
+            "account_name": "VAT",
             "parent_account": "Duties and Taxes",
+            "is_group": 1,  # Ensure VAT is a group account
+        },
+        {
+            "account_name": "VAT Output",
+            "parent_account": "VAT",
+            "is_group": 1,  # Ensure VAT Output is a group account
+        },
+        {
+            "account_name": "VAT Input",
+            "parent_account": "VAT",
+            "is_group": 1,  # Ensure VAT Input is a group account
+        },
+        {
+            "account_name": "VAT Output Cyprus Local (19%)",
+            "parent_account": "VAT Output",
             "account_type": "Tax",
             "tax_rate": 19.0,
             "account_number": "2100",
         },
         {
-            "account_name": "VAT Cyprus Reduced (9%)",
-            "parent_account": "Duties and Taxes",
+            "account_name": "VAT Output Cyprus Reduced (9%)",
+            "parent_account": "VAT Output",
             "account_type": "Tax",
             "tax_rate": 9.0,
             "account_number": "2110",
         },
         {
-            "account_name": "VAT Cyprus Super Reduced (5%)",
-            "parent_account": "Duties and Taxes",
+            "account_name": "VAT Output Cyprus Super Reduced (5%)",
+            "parent_account": "VAT Output",
             "account_type": "Tax",
             "tax_rate": 5.0,
             "account_number": "2120",
         },
         {
-            "account_name": "Intra-EU Acquisition VAT",
-            "parent_account": "Duties and Taxes",
+            "account_name": "VAT Input Cyprus Local (19%)",
+            "parent_account": "VAT Input",
             "account_type": "Tax",
-            "account_number": "2200",
+            "tax_rate": 19.0,
+            "account_number": "2150",
         },
         {
-            "account_name": "Reverse Charge VAT B2B Services",
-            "parent_account": "Duties and Taxes",
+            "account_name": "VAT Input Cyprus Reduced (9%)",
+            "parent_account": "VAT Input",
             "account_type": "Tax",
-            "account_number": "2300",
+            "tax_rate": 9.0,
+            "account_number": "2160",
         },
         {
-            "account_name": "Import VAT Non-EU",
-            "parent_account": "Duties and Taxes",
+            "account_name": "VAT Input Cyprus Super Reduced (5%)",
+            "parent_account": "VAT Input",
             "account_type": "Tax",
-            "account_number": "2400",
-        },
-        {
-            "account_name": "OSS VAT Digital Services",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "account_number": "2500",
-        }
-    ]
-    
-    cyprus_salary_accounts = [
-        # Employer contributions
-        {
-            "account_name": "Employer Social Insurance",
-            "parent_account": "Indirect Expenses",
-            "account_number": "6100"
-        },
-        {
-            "account_name": "Employer GESY Contributions",
-            "parent_account": "Indirect Expenses",
-            "account_number": "6110"
-        },
-        {
-            "account_name": "Redundancy Fund",
-            "parent_account": "Indirect Expenses",
-            "account_number": "6120"
-        },
-        {
-            "account_name": "Industrial Training Fund",
-            "parent_account": "Indirect Expenses",
-            "account_number": "6130"
-        },
-        {
-            "account_name": "Social Cohesion Fund",
-            "parent_account": "Indirect Expenses",
-            "account_number": "6140"
-        },
-        
-        # Employee withholdings (liabilities)
-        {
-            "account_name": "Employee Income Tax Payable",
-            "parent_account": "Duties and Taxes",
-            "account_type": "Tax",
-            "account_number": "2600"
-        },
-        {
-            "account_name": "Employee Social Insurance Payable",
-            "parent_account": "Duties and Taxes",
-            "account_number": "2610"
-        },
-        {
-            "account_name": "Employee GESY Payable",
-            "parent_account": "Duties and Taxes",
-            "account_number": "2620"
-        },
-        
-        # Salary types
-        {
-            "account_name": "Basic Salaries",
-            "parent_account": "Salary",
-            "account_number": "6000"
-        },
-        {
-            "account_name": "13th Month Salary",
-            "parent_account": "Salary",
-            "account_number": "6010"
-        },
-        {
-            "account_name": "Bonus Payments",
-            "parent_account": "Salary",
-            "account_number": "6020"
-        },
-        {
-            "account_name": "Director Remuneration",
-            "parent_account": "Salary",
-            "account_number": "6030"
+            "tax_rate": 5.0,
+            "account_number": "2170",
         }
     ]
     
     # Combine all accounts
-    all_accounts = cyprus_accounts + cyprus_salary_accounts
+    all_accounts = vat_accounts
     
     # Adjust account numbers based on existing pattern or remove if not used
     if not account_number_info["uses_account_numbers"]:
-        # If company doesn't use account numbers, remove them
         for account in all_accounts:
             if "account_number" in account:
                 del account["account_number"]
         frappe.msgprint(_("Account numbers removed as the company does not use them"))
     else:
-        # If company uses account numbers, adjust to follow the pattern and resolve conflicts
         adjust_account_numbers(all_accounts, account_number_info, existing_account_numbers)
     
-    # First, ensure all parent accounts exist and are group accounts
+    # Ensure all parent accounts exist and are group accounts
     parent_accounts = set([account["parent_account"] for account in all_accounts])
     for parent_name in parent_accounts:
         ensure_parent_account_is_group(parent_name, company)
     
-    # Iterate through the accounts and create them if they don't exist
+    # Iterate through the accounts and create or update them
     for account_data in all_accounts:
         account_name = account_data["account_name"]
         parent_account = account_data["parent_account"]
         
-        # Check if account already exists by name or by function
+        # Check if account already exists
         existing_account = find_existing_account(account_name, company)
         
         if existing_account:
-            frappe.msgprint(_("Account {0} already exists. Skipping creation.").format(account_name))
+            # If the account exists, ensure it matches the required properties
+            is_group = account_data.get("is_group", 0)
+            frappe.db.set_value("Account", existing_account, "is_group", is_group)
+            frappe.msgprint(_("Account {0} already exists. Updated to match required properties.").format(account_name))
             continue
-            
+        
         # Find the full parent account path
         parent = get_parent_account_path(parent_account, company)
         if not parent:
@@ -176,7 +120,7 @@ def setup_cyprus_accounts(company):
                 "account_name": account_name,
                 "parent_account": parent,
                 "company": company,
-                "is_group": 0,
+                "is_group": account_data.get("is_group", 0),
                 "account_type": account_data.get("account_type", ""),
                 "account_number": account_data.get("account_number", ""),
                 "tax_rate": account_data.get("tax_rate", 0),

@@ -703,24 +703,16 @@ def setup_item_groups():
     # Define the required item groups
     required_item_groups = [
         {
-            "item_group_name": "Digital Services",
+            "item_group_name": "Tangible Goods",
             "parent_item_group": "All Item Groups",
-            "description": "Electronically supplied services (software, streaming, online content)"
+            "is_group": 1,
+            "description": "This includes any physical products you sell, whether locally, within the EU, or imported/exported. Examples might be electronics, furniture, or consumer products."
         },
         {
-            "item_group_name": "Hotel Services",
+            "item_group_name": "Digital & Professional Services",
             "parent_item_group": "Services",
-            "description": "Hotel accommodation, restaurant services, and similar (9% VAT rate)"
-        },
-        {
-            "item_group_name": "Books and Publications",
-            "parent_item_group": "Products",
-            "description": "Books, newspapers, and other publications (5% VAT rate)"
-        },
-        {
-            "item_group_name": "Services",
-            "parent_item_group": "All Item Groups",
-            "description": "All service offerings"
+            "is_group": 1,
+            "description": "This would cover non-physical offerings such as software, hosting, consulting, or any specialized expertise you provide."
         }
     ]
     
@@ -738,7 +730,7 @@ def setup_item_groups():
                 "doctype": "Item Group",
                 "item_group_name": group_data["item_group_name"],
                 "parent_item_group": parent_group,
-                "is_group": 0,
+                "is_group": group_data["is_group"],
                 "description": group_data["description"]
             })
             

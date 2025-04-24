@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 from frappe.utils import cstr
-from erpnext_cyprus.utils.account_utils import setup_cyprus_accounts
+from erpnext_cyprus.utils.account_utils import setup_chart_of_accounts
 from erpnext_cyprus.utils.tax_utils import (
     setup_purchase_tax_templates,
     setup_sales_tax_templates,
@@ -50,7 +50,7 @@ def setup_cyprus_company(company):
     
     # Step 1: Setup chart of accounts
     frappe.msgprint(_("Step 1: Setting up chart of accounts"))
-    accounts_created = setup_cyprus_accounts(company)
+    accounts_created = setup_chart_of_accounts(company)
     results["accounts_added"] = accounts_created
     frappe.msgprint(_("Chart of accounts setup completed. Created: {0}").format(
         ", ".join(accounts_created) if accounts_created else "None"))
