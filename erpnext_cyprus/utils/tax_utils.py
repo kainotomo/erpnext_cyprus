@@ -45,6 +45,13 @@ def setup_purchase_tax_templates(company):
     """
     Set up Cyprus-specific purchase tax templates
     """
+    
+    # First remove the existing template called "Cyprus Tax"
+    existing_template = frappe.db.exists("Purchase Taxes and Charges Template",
+        {"title": "Cyprus Tax", "company": company})
+    if existing_template:   
+        frappe.delete_doc("Purchase Taxes and Charges Template", existing_template)
+
     templates_created = []
     
     # First ensure we have the required accounts
@@ -175,6 +182,12 @@ def setup_sales_tax_templates(company):
     Set up Cyprus-specific sales tax templates
     """
     templates_created = []
+
+    # First remove the existing template called "Cyprus Tax"
+    existing_template = frappe.db.exists("Sales Taxes and Charges Template",
+        {"title": "Cyprus Tax", "company": company})
+    if existing_template:
+        frappe.delete_doc("Sales Taxes and Charges Template", existing_template)
     
     # First ensure we have the required accounts
     tax_accounts = get_tax_accounts(company)
@@ -286,6 +299,13 @@ def setup_item_tax_templates(company):
     """
     Set up Cyprus-specific item tax templates for different VAT rates
     """
+
+    # First remove the existing template called "Cyprus Tax"
+    existing_template = frappe.db.exists("Item Tax Template",
+        {"title": "Cyprus Tax", "company": company})
+    if existing_template:
+        frappe.delete_doc("Item Tax Template", existing_template)
+        
     templates_created = []
     
     # Get the tax accounts
