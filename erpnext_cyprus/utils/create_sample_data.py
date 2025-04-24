@@ -33,7 +33,7 @@ def create_sample_suppliers(company=None):
         },
         {
             "supplier_name": "Cyprus Hotel Association",
-            "supplier_group": "Services", 
+            "supplier_group": "Professional Services", 
             "supplier_type": "Company",
             "country": "Cyprus",
             "tax_id": "CY20023456Y",
@@ -49,7 +49,7 @@ def create_sample_suppliers(company=None):
         },
         {
             "supplier_name": "Cyprus Insurance Agency",
-            "supplier_group": "Services",
+            "supplier_group": "Professional Services",
             "supplier_type": "Company",
             "country": "Cyprus",
             "tax_id": "CY40045678A",
@@ -67,7 +67,7 @@ def create_sample_suppliers(company=None):
         },
         {
             "supplier_name": "French IT Consulting SARL",
-            "supplier_group": "Services",
+            "supplier_group": "Professional Services",
             "supplier_type": "Company",
             "country": "France",
             "tax_id": "FR46482690021",
@@ -93,7 +93,7 @@ def create_sample_suppliers(company=None):
         },
         {
             "supplier_name": "US Software Inc",
-            "supplier_group": "Services", 
+            "supplier_group": "Professional Services", 
             "supplier_type": "Company",
             "country": "United States",
             "description": "Non-EU supplier for digital services"
@@ -102,7 +102,7 @@ def create_sample_suppliers(company=None):
         # Special cases
         {
             "supplier_name": "Global Dropshipping Services",
-            "supplier_group": "Services",
+            "supplier_group": "Professional Services",
             "supplier_type": "Company",
             "country": "Netherlands",
             "tax_id": "NL123456789B01",
@@ -272,7 +272,7 @@ def delete_sample_suppliers(company=None):
 
 def ensure_supplier_groups_exist():
     """Ensure that required supplier groups exist"""
-    required_groups = ["Commercial", "Services", "Raw Material"]
+    required_groups = ["Commercial", "Professional Services", "Raw Material"]
     
     for group in required_groups:
         if not frappe.db.exists("Supplier Group", group):
@@ -644,7 +644,7 @@ def create_sample_items(company=None):
         },
         {
             "item_name": "IT Support Services",
-            "item_group": "Services",
+            "item_group": "Professional Services",
             "item_code": "CY-STD-ITSUPPORT",
             "description": "Technical IT support with standard 19% VAT rate",
             "is_stock_item": 0,
@@ -700,7 +700,7 @@ def create_sample_items(company=None):
         # Zero-rated items
         {
             "item_name": "Export Goods",
-            "item_group": "Products",
+            "item_group": "Zero Rated Items",
             "item_code": "CY-ZERO-EXPORT",
             "description": "Goods for export with zero VAT rate",
             "is_stock_item": 1,
@@ -712,7 +712,7 @@ def create_sample_items(company=None):
         # Exempt items
         {
             "item_name": "Insurance Service",
-            "item_group": "Services",
+            "item_group": "Professional Services",
             "item_code": "CY-EXEMPT-INS",
             "description": "Insurance service exempt from VAT",
             "is_stock_item": 0,
@@ -723,7 +723,7 @@ def create_sample_items(company=None):
         },
         {
             "item_name": "Medical Service",
-            "item_group": "Services",
+            "item_group": "Professional Services",
             "item_code": "CY-EXEMPT-MED",
             "description": "Medical service exempt from VAT",
             "is_stock_item": 0,
@@ -736,7 +736,7 @@ def create_sample_items(company=None):
         # Digital services (for OSS testing)
         {
             "item_name": "Digital Subscription",
-            "item_group": "Services",
+            "item_group": "Digital Services",
             "item_code": "CY-DIG-SUB",
             "description": "Digital subscription service for OSS VAT testing",
             "is_stock_item": 0,
@@ -908,7 +908,7 @@ def delete_sample_items():
 
 def ensure_item_groups_exist():
     """Ensure that required item groups exist"""
-    required_groups = ["Products", "Services"]
+    required_groups = ["Products", "Services", "Professional Services", "Digital Services", "Zero Rated Items"]
     
     for group in required_groups:
         if not frappe.db.exists("Item Group", group):
