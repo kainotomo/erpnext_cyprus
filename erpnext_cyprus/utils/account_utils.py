@@ -74,8 +74,208 @@ def setup_chart_of_accounts(company):
         }
     ]
     
+    income_accounts = [
+        # Tangible Goods Revenue Structure
+        {
+            "account_name": "Tangible Goods Revenue",
+            "parent_account": "Income",
+            "is_group": 1,
+            "account_number": "4000",
+        },
+        {
+            "account_name": "Consumable Products Revenue",
+            "parent_account": "Tangible Goods Revenue",
+            "account_type": "Income Account",
+            "account_number": "4010",
+        },
+        {
+            "account_name": "Raw Material Revenue",
+            "parent_account": "Tangible Goods Revenue",
+            "account_type": "Income Account",
+            "account_number": "4020",
+        },
+        {
+            "account_name": "Sub Assemblies Revenue",
+            "parent_account": "Tangible Goods Revenue",
+            "account_type": "Income Account",
+            "account_number": "4030",
+        },
+        
+        # Services Revenue Structure
+        {
+            "account_name": "Services Revenue",
+            "parent_account": "Income",
+            "is_group": 1,
+            "account_number": "4100",
+        },
+        
+        # Digital Services Revenue
+        {
+            "account_name": "Digital Services Revenue",
+            "parent_account": "Services Revenue",
+            "is_group": 1,
+            "account_number": "4110",
+        },
+        {
+            "account_name": "Software & SaaS Revenue",
+            "parent_account": "Digital Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4111",
+        },
+        {
+            "account_name": "Hosting & Web Services Revenue",
+            "parent_account": "Digital Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4112",
+        },
+        {
+            "account_name": "Digital Media & Content Revenue",
+            "parent_account": "Digital Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4113",
+        },
+        {
+            "account_name": "Online Training & E-Learning Revenue",
+            "parent_account": "Digital Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4114",
+        },
+        
+        # Professional Services Revenue
+        {
+            "account_name": "Professional Services Revenue",
+            "parent_account": "Services Revenue",
+            "is_group": 1,
+            "account_number": "4120",
+        },
+        {
+            "account_name": "Consulting & Business Services Revenue",
+            "parent_account": "Professional Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4121",
+        },
+        {
+            "account_name": "IT & Technical Support Revenue",
+            "parent_account": "Professional Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4122",
+        },
+        {
+            "account_name": "Creative Services Revenue",
+            "parent_account": "Professional Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4123",
+        },
+        {
+            "account_name": "Training & Workshops Revenue",
+            "parent_account": "Professional Services Revenue",
+            "account_type": "Income Account",
+            "account_number": "4124",
+        }
+    ]
+    
+    expense_accounts = [
+        # Tangible Goods Expenses Structure
+        {
+            "account_name": "Tangible Goods Expenses",
+            "parent_account": "Expenses",
+            "is_group": 1,
+            "account_number": "5000",
+        },
+        {
+            "account_name": "Consumable Products Expenses",
+            "parent_account": "Tangible Goods Expenses",
+            "account_type": "Expense Account",
+            "account_number": "5010",
+        },
+        {
+            "account_name": "Raw Material Expenses",
+            "parent_account": "Tangible Goods Expenses",
+            "account_type": "Expense Account",
+            "account_number": "5020",
+        },
+        {
+            "account_name": "Sub Assemblies Expenses",
+            "parent_account": "Tangible Goods Expenses",
+            "account_type": "Expense Account",
+            "account_number": "5030",
+        },
+        
+        # Services Expenses Structure
+        {
+            "account_name": "Services Expenses",
+            "parent_account": "Expenses",
+            "is_group": 1,
+            "account_number": "6000",
+        },
+        
+        # Digital Services Expenses
+        {
+            "account_name": "Digital Services Expenses",
+            "parent_account": "Services Expenses",
+            "is_group": 1,
+            "account_number": "6010",
+        },
+        {
+            "account_name": "Software & SaaS Expenses",
+            "parent_account": "Digital Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6011",
+        },
+        {
+            "account_name": "Hosting & Web Services Expenses",
+            "parent_account": "Digital Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6012",
+        },
+        {
+            "account_name": "Digital Media & Content Expenses",
+            "parent_account": "Digital Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6013",
+        },
+        {
+            "account_name": "Online Training & E-Learning Expenses",
+            "parent_account": "Digital Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6014",
+        },
+        
+        # Professional Services Expenses
+        {
+            "account_name": "Professional Services Expenses",
+            "parent_account": "Services Expenses",
+            "is_group": 1,
+            "account_number": "6020",
+        },
+        {
+            "account_name": "Consulting & Business Services Expenses",
+            "parent_account": "Professional Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6021",
+        },
+        {
+            "account_name": "IT & Technical Support Expenses",
+            "parent_account": "Professional Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6022",
+        },
+        {
+            "account_name": "Creative Services Expenses",
+            "parent_account": "Professional Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6023",
+        },
+        {
+            "account_name": "Training & Workshops Expenses",
+            "parent_account": "Professional Services Expenses",
+            "account_type": "Expense Account",
+            "account_number": "6024",
+        }
+    ]
+    
     # Combine all accounts
-    all_accounts = vat_accounts
+    all_accounts = vat_accounts + income_accounts + expense_accounts
     
     # Adjust account numbers based on existing pattern or remove if not used
     if not account_number_info["uses_account_numbers"]:

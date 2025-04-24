@@ -709,10 +709,88 @@ def setup_item_groups():
             "description": "This includes any physical products you sell, whether locally, within the EU, or imported/exported. Examples might be electronics, furniture, or consumer products."
         },
         {
-            "item_group_name": "Digital & Professional Services",
+            "item_group_name": "Consumable Products",
+            "parent_item_group": "Tangible Goods",
+            "is_group": 0,
+            "description": "Electronics, household items, packaged goods"
+        },
+        {
+            "item_group_name": "Raw Material",
+            "parent_item_group": "Tangible Goods",
+            "is_group": 0,
+            "description": "Raw materials used in production or manufacturing"
+        },
+        {
+            "item_group_name": "Sub Assemblies",
+            "parent_item_group": "Tangible Goods",
+            "is_group": 0,
+            "description": "Sub-assemblies or components that are part of a larger product"
+        },
+        {
+            "item_group_name": "Services",
             "parent_item_group": "All Item Groups",
             "is_group": 1,
             "description": "This would cover non-physical offerings such as software, hosting, consulting, or any specialized expertise you provide."
+        },        
+        {
+            "item_group_name": "Digital Services",
+            "parent_item_group": "Services",
+            "is_group": 1,
+            "description": "This group is specifically for digital services that fall under the OSS (One Stop Shop) regulations. This includes software, e-books, and other digital products sold to consumers in the EU."
+        },
+        {
+            "item_group_name": "Software & SaaS",
+            "parent_item_group": "Digital Services",
+            "is_group": 0,
+            "description": "Cloud-based applications, licensing, subscriptions"
+        },
+        {
+            "item_group_name": "Hosting & Web Services",
+            "parent_item_group": "Digital Services",
+            "is_group": 0,
+            "description": "Domains, server hosting, email services"
+        },
+        {
+            "item_group_name": "Digital Media & Content",
+            "parent_item_group": "Digital Services",
+            "is_group": 0,
+            "description": "Streaming, e-books, design assets"
+        },
+        {
+            "item_group_name": "Online Training & E-Learning",
+            "parent_item_group": "Digital Services",
+            "is_group": 0,
+            "description": "Online courses, webinars, educational content"
+        },
+        {
+            "item_group_name": "Professional Services",
+            "parent_item_group": "Services",
+            "is_group": 1,
+            "description": "This group is for specialized services that may not fall under the OSS regulations, such as legal, accounting, or consulting services."
+        },
+        {
+            "item_group_name": "Consulting & Business Services",
+            "parent_item_group": "Professional Services",
+            "is_group": 0,
+            "description": "Consulting, legal, accounting, or other professional services"
+        },
+        {
+            "item_group_name": "IT & Technical Support",
+            "parent_item_group": "Professional Services",
+            "is_group": 0,
+            "description": "IT support, technical assistance, or software development"
+        },
+        {
+            "item_group_name": "Creative Services",
+            "parent_item_group": "Professional Services",
+            "is_group": 0,
+            "description": "Design, marketing, or other creative services"
+        },
+        {
+            "item_group_name": "Training & Workshops",
+            "parent_item_group": "Professional Services",
+            "is_group": 0,
+            "description": "Training, workshops, or educational services"
         }
     ]
     
