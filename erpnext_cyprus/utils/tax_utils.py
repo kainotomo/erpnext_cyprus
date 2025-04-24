@@ -59,7 +59,6 @@ def setup_purchase_tax_templates(company):
         {
             "title": "Cyprus Purchase VAT (All Rates)",
             "company": company,
-            "is_inter_state": 0,
             "description": "All Cyprus domestic purchase VAT rates",
             "taxes": [
                 {
@@ -83,7 +82,6 @@ def setup_purchase_tax_templates(company):
         {
             "title": "EU Acquisition VAT 19%",
             "company": company,
-            "is_inter_state": 1,
             "description": "For goods acquired from EU suppliers",
             "taxes": [
                 {
@@ -104,7 +102,6 @@ def setup_purchase_tax_templates(company):
         {
             "title": "EU Services Reverse Charge",
             "company": company,
-            "is_inter_state": 1,
             "description": "For services from EU suppliers",
             "taxes": [
                 {
@@ -125,7 +122,6 @@ def setup_purchase_tax_templates(company):
         {
             "title": "Non-EU Import VAT",
             "company": company,
-            "is_inter_state": 1,
             "description": "For imports from outside the EU",
             "taxes": [
                 {
@@ -139,7 +135,6 @@ def setup_purchase_tax_templates(company):
         {
             "title": "Zero-Rated Purchase",
             "company": company,
-            "is_inter_state": 0,
             "description": "For zero-rated or exempt purchases",
             "taxes": []
         },
@@ -147,7 +142,6 @@ def setup_purchase_tax_templates(company):
         {
             "title": "Digital Services Purchase",
             "company": company,
-            "is_inter_state": 1,
             "description": "For digital services purchases",
             "taxes": [
                 {
@@ -170,7 +164,6 @@ def setup_purchase_tax_templates(company):
                 "doctype": "Purchase Taxes and Charges Template",
                 "title": template_data["title"],
                 "company": template_data["company"],
-                "is_inter_state": template_data["is_inter_state"],
                 "disabled": 0,
                 "description": template_data["description"]
             })
@@ -209,7 +202,6 @@ def setup_sales_tax_templates(company):
         {
             "title": "Cyprus Sales VAT (All Rates)",
             "company": company,
-            "is_inter_state": 0,
             "description": "All Cyprus domestic sales VAT rates",
             "taxes": [
                 {
@@ -232,14 +224,12 @@ def setup_sales_tax_templates(company):
         {
             "title": "EU B2B Sales (Reverse Charge)",
             "company": company,
-            "is_inter_state": 1,
             "description": "For VAT-registered businesses in EU (0% with reverse charge)",
             "taxes": []  # Zero-rated
         },
         {
             "title": "EU B2C Sales",
             "company": company,
-            "is_inter_state": 1,
             "description": "For consumers in EU (with local VAT)",
             "taxes": [
                 {
@@ -252,14 +242,12 @@ def setup_sales_tax_templates(company):
         {
             "title": "Non-EU Export",
             "company": company,
-            "is_inter_state": 1,
             "description": "For exports outside the EU (zero-rated)",
             "taxes": []  # Zero-rated
         },
         {
             "title": "VAT Exempt Sales",
             "company": company,
-            "is_inter_state": 0,
             "description": "For VAT-exempt goods and services",
             "taxes": []  # Zero-rated
         }
@@ -276,7 +264,6 @@ def setup_sales_tax_templates(company):
         oss_template = {
             "title": f"OSS Digital Services - {country} ({vat_rate}%)",
             "company": company,
-            "is_inter_state": 1,
             "description": f"Digital services to consumers in {country} (OSS)",
             "taxes": [
                 {
@@ -299,7 +286,6 @@ def setup_sales_tax_templates(company):
                 "doctype": "Sales Taxes and Charges Template",
                 "title": template_data["title"],
                 "company": template_data["company"],
-                "is_inter_state": template_data["is_inter_state"],
                 "disabled": 0,
                 "description": template_data["description"]
             })
