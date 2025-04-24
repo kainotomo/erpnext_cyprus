@@ -260,16 +260,26 @@ def get_box_1(company, from_date, to_date):
     
     # Query 2: Reverse charge VAT on services from non-EU suppliers
     query2 = """
-        SELECT SUM(gle.credit) as vat_amount
+        SELECT SUM(
+            CASE 
+                WHEN gle.voucher_type = 'Purchase Invoice' THEN gle.credit
+                WHEN gle.voucher_type = 'Purchase Invoice Debit Note' THEN -gle.debit
+                ELSE 0
+            END
+        ) as vat_amount
         FROM `tabGL Entry` gle
-        INNER JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
+        INNER JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name 
+            AND (gle.voucher_type = 'Purchase Invoice' OR gle.voucher_type = 'Purchase Invoice Debit Note')
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
         INNER JOIN `tabItem` item ON pii.item_code = item.name
         LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
         WHERE gle.posting_date BETWEEN %s AND %s
         AND gle.company = %s
         AND gle.account IN ({0})
-        AND gle.credit > 0
+        AND (
+            (gle.voucher_type = 'Purchase Invoice' AND gle.credit > 0) OR
+            (gle.voucher_type = 'Purchase Invoice Debit Note' AND gle.debit > 0)
+        )
         AND gle.is_cancelled = 0
         AND gle.docstatus = 1
         AND (
