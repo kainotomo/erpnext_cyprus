@@ -336,15 +336,6 @@ def setup_item_tax_templates(company):
                     "tax_rate": 0
                 }
             ]
-        },
-        {
-            "title": "Exempt",
-            "taxes": [
-                {
-                    "tax_type": vat_19_account,
-                    "tax_rate": 0
-                }
-            ]
         }
     ]
     
