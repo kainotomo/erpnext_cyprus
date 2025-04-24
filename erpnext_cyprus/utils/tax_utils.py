@@ -528,15 +528,6 @@ def setup_tax_rules(company):
             "billing_country": "Cyprus",
             "purchase_tax_template": template_names.get("Cyprus Purchase VAT"),
             "priority": 3
-        },
-        # Zero-rated purchases rule
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Purchase",
-            "billing_country": "Cyprus",
-            "item_group": "Zero Rated Items",
-            "purchase_tax_template": template_names.get("Zero-Rated Purchase"),
-            "priority": 4
         }
     ]
     
@@ -653,12 +644,6 @@ def setup_item_groups():
             "parent_item_group": "All Item Groups",
             "is_group": 1,
             "description": "These are technology-based services provided online, including software licensing, cloud hosting, digital content delivery, e-learning, and automated solutions like SaaS (Software as a Service). Digital services are often subscription-based or pay-per-use and fall under specific VAT regulations, such as the OSS scheme for EU sales."
-        },
-        {
-            "item_group_name": "Zero Rated Items",
-            "parent_item_group": "All Item Groups",
-            "is_group": 0,
-            "description": "Items that are zero-rated for VAT purposes"
         }
     ]
     
