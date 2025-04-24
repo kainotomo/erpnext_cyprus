@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate, get_first_day, get_last_day, add_days, add_months
-from erpnext_cyprus.utils.tax_utils import get_cyprus_tax_accounts
+from erpnext_cyprus.utils.tax_utils import get_tax_accounts
 from erpnext_cyprus.utils.tax_utils import get_eu_countries
 
 def execute(filters=None):
@@ -191,7 +191,7 @@ def get_data(filters):
 
 def get_output_vat(company, from_date, to_date):
     # Get the Cyprus tax accounts
-    tax_accounts = get_cyprus_tax_accounts(company)
+    tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
         return 0
     
@@ -230,7 +230,7 @@ def get_output_vat(company, from_date, to_date):
 
 def get_input_vat(company, from_date, to_date):
     # Get the Cyprus tax accounts
-    tax_accounts = get_cyprus_tax_accounts(company)
+    tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
         return 0
     
@@ -304,7 +304,7 @@ def get_input_vat(company, from_date, to_date):
 
 def get_eu_acquisitions_vat(company, from_date, to_date):
     # Get the Cyprus tax accounts
-    tax_accounts = get_cyprus_tax_accounts(company)
+    tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
         return 0
     
@@ -395,6 +395,10 @@ def get_eu_goods_supplies(company, from_date, to_date):
     # Get EU countries list using utility function
     eu_countries = get_eu_countries()
     
+    # Get service item groups to exclude
+    service_groups = get_service_item_groups()
+    service_placeholders = ', '.join(['%s'] * len(service_groups)) if service_groups else "''"
+    
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
@@ -407,19 +411,18 @@ def get_eu_goods_supplies(company, from_date, to_date):
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
         INNER JOIN `tabCustomer` cust ON si.customer = cust.name
+        INNER JOIN `tabItem` item ON sii.item_code = item.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
         AND addr.country IN ({0})
         AND addr.country != 'Cyprus'
         AND cust.customer_type = 'Company'
-        AND sii.item_code IN (
-            SELECT name FROM `tabItem` WHERE item_group = 'Products'
-        )
-    """.format(placeholder_list)
+        AND item.item_group NOT IN ({1})
+    """.format(placeholder_list, service_placeholders)
     
-    # Build parameters list - add EU countries to the parameters
-    params = [from_date, to_date, company] + eu_countries
+    # Build parameters list - add EU countries and service groups to the parameters
+    params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else [])
     
     eu_goods = frappe.db.sql(query, params, as_dict=1)
     
@@ -429,6 +432,10 @@ def get_eu_services_supplies(company, from_date, to_date):
     # Get EU countries list using utility function
     eu_countries = get_eu_countries()
     
+    # Get service item groups
+    service_groups = get_service_item_groups()
+    service_placeholders = ', '.join(['%s'] * len(service_groups)) if service_groups else "''"
+    
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
@@ -441,19 +448,18 @@ def get_eu_services_supplies(company, from_date, to_date):
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
         INNER JOIN `tabCustomer` cust ON si.customer = cust.name
+        INNER JOIN `tabItem` item ON sii.item_code = item.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
         AND addr.country IN ({0})
         AND addr.country != 'Cyprus'
         AND cust.customer_type = 'Company'
-        AND sii.item_code IN (
-            SELECT name FROM `tabItem` WHERE item_group = 'Services'
-        )
-    """.format(placeholder_list)
+        AND item.item_group IN ({1})
+    """.format(placeholder_list, service_placeholders)
     
-    # Build parameters list - add EU countries to the parameters
-    params = [from_date, to_date, company] + eu_countries
+    # Build parameters list
+    params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else [])
     
     eu_services = frappe.db.sql(query, params, as_dict=1)
     
@@ -463,6 +469,10 @@ def get_non_eu_exports(company, from_date, to_date):
     # Get EU countries list for exclusion
     eu_countries = get_eu_countries()
     eu_countries.append("Cyprus")
+    
+    # Get service item groups to exclude
+    service_groups = get_service_item_groups()
+    service_placeholders = ', '.join(['%s'] * len(service_groups)) if service_groups else "''"
     
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
@@ -476,18 +486,17 @@ def get_non_eu_exports(company, from_date, to_date):
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
+        INNER JOIN `tabItem` item ON sii.item_code = item.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
         AND addr.country NOT IN ({0})
-        AND sii.item_code IN (
-            SELECT name FROM `tabItem` WHERE item_group = 'Products'
-        )
+        AND item.item_group NOT IN ({1})
         AND (si.taxes_and_charges = %s OR si.taxes_and_charges IS NULL)
-    """.format(placeholder_list)
+    """.format(placeholder_list, service_placeholders)
     
     # Parameters including the non-EU export template name
-    params = [from_date, to_date, company] + eu_countries + [f"Non-EU Export - {company_abbr}"]
+    params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else []) + [f"Non-EU Export - {company_abbr}"]
     
     exports = frappe.db.sql(query, params, as_dict=1)
     
@@ -549,6 +558,10 @@ def get_eu_goods_acquisitions(company, from_date, to_date):
     # Get EU countries list
     eu_countries = get_eu_countries()
     
+    # Get service item groups to exclude
+    service_groups = get_service_item_groups()
+    service_placeholders = ', '.join(['%s'] * len(service_groups)) if service_groups else "''"
+    
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
@@ -561,18 +574,17 @@ def get_eu_goods_acquisitions(company, from_date, to_date):
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
         INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
         INNER JOIN `tabSupplier` supp ON pi.supplier = supp.name
-        AND supp.supplier_type = 'Company'
+        INNER JOIN `tabItem` item ON pii.item_code = item.name
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
         AND addr.country IN ({0})
         AND addr.country != 'Cyprus'
-        AND pii.item_code IN (
-            SELECT name FROM `tabItem` WHERE item_group = 'Products'
-        )
-    """.format(placeholder_list)
+        AND supp.supplier_type = 'Company'
+        AND item.item_group NOT IN ({1})
+    """.format(placeholder_list, service_placeholders)
     
-    params = [from_date, to_date, company] + eu_countries
+    params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else [])
     eu_goods = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_goods[0].amount) if eu_goods and eu_goods[0].amount is not None else 0
@@ -655,3 +667,24 @@ def export_vat_return(filters):
     )
     
     return file_url.get('file_url')
+
+def get_service_item_groups():
+    """Get all item groups that represent services (Professional Services, Digital Services and their children)"""
+    service_groups = []
+    
+    # Get Professional Services and all its children
+    prof_services = frappe.get_all("Item Group", 
+        filters={"name": ["in", ["Professional Services", "Digital Services"]]},
+        fields=["name"])
+    
+    # Add the root service groups
+    service_groups.extend([d.name for d in prof_services])
+    
+    # Get all children of service groups
+    for service_group in service_groups.copy():  # Use copy to avoid modifying during iteration
+        children = frappe.get_all("Item Group", 
+            filters={"parent_item_group": service_group},
+            fields=["name"])
+        service_groups.extend([d.name for d in children])
+    
+    return service_groups
