@@ -111,7 +111,7 @@ def get_data(filters):
     })
     
     # Box 4: VAT reclaimed on purchases and other inputs
-    input_vat = get_input_vat(company, from_date, to_date)
+    input_vat = get_box_4(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 4"),
         "description": _("VAT reclaimed on purchases and other inputs"),
@@ -209,100 +209,40 @@ def get_box_1(company, from_date, to_date):
     # Format for SQL IN clause - converting to a proper list of parameters
     placeholder_list = ', '.join(['%s'] * len(output_vat_accounts))
     
-    # Query 1: Standard domestic VAT from Sales Invoices and Journal Entries
-    query1 = """
+    # Query for domestic VAT from sales within Cyprus only
+    query = """
         SELECT SUM(
             CASE 
-                WHEN voucher_type = 'Sales Invoice' AND voucher_subtype = 'Sales Invoice' THEN credit
-                WHEN voucher_type = 'Sales Invoice' AND voucher_subtype = 'Credit Note' THEN -debit
-                WHEN voucher_type = 'Journal Entry' AND credit > 0 THEN credit
-                WHEN voucher_type = 'Journal Entry' AND debit > 0 THEN -debit
-                ELSE 0
-            END
-        ) as vat_amount
-        FROM `tabGL Entry`
-        WHERE posting_date BETWEEN %s AND %s
-        AND company = %s
-        AND account IN ({0})
-        AND is_cancelled = 0
-        AND docstatus = 1
-    """.format(placeholder_list)
-    
-    # Build parameters list for query1
-    params1 = [from_date, to_date, company] + output_vat_accounts
-    
-    # Execute query1
-    output_vat_result = frappe.db.sql(query1, params1, as_dict=1)
-    output_vat = flt(output_vat_result[0].vat_amount) if output_vat_result and output_vat_result[0].vat_amount is not None else 0
-    
-    # Get EU countries to exclude them
-    eu_countries = get_eu_countries()
-    eu_placeholders = ', '.join(['%s'] * len(eu_countries))
-    
-    # Get all service item groups (parent groups and their children)
-    service_parent_groups = ["Professional Services", "Digital Services"]
-    all_service_groups = []
-    
-    # First add the parent groups
-    all_service_groups.extend(service_parent_groups)
-    
-    # Then find and add all child groups
-    for parent_group in service_parent_groups:
-        child_groups = frappe.get_all(
-            "Item Group", 
-            filters={"parent_item_group": parent_group},
-            fields=["item_group_name"]
-        )
-        all_service_groups.extend([group.item_group_name for group in child_groups])
-    
-    # Create placeholders for the service groups
-    service_placeholders = ', '.join(['%s'] * len(all_service_groups)) if all_service_groups else "''"
-    
-    # Query 2: Reverse charge VAT on services from non-EU suppliers
-    query2 = """
-        SELECT SUM(
-            CASE 
-                WHEN gle.voucher_type = 'Purchase Invoice' THEN gle.credit
-                WHEN gle.voucher_type = 'Purchase Invoice Debit Note' THEN -gle.debit
+                WHEN gle.voucher_type = 'Sales Invoice' AND gle.voucher_subtype = 'Sales Invoice' THEN gle.credit
+                WHEN gle.voucher_type = 'Sales Invoice' AND gle.voucher_subtype = 'Credit Note' THEN -gle.debit
+                WHEN gle.voucher_type = 'Journal Entry' AND gle.credit > 0 THEN gle.credit
+                WHEN gle.voucher_type = 'Journal Entry' AND gle.debit > 0 THEN -gle.debit
                 ELSE 0
             END
         ) as vat_amount
         FROM `tabGL Entry` gle
-        INNER JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name 
-            AND (gle.voucher_type = 'Purchase Invoice' OR gle.voucher_type = 'Purchase Invoice Debit Note')
-        INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
-        INNER JOIN `tabItem` item ON pii.item_code = item.name
-        LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        LEFT JOIN `tabSales Invoice` si ON gle.voucher_no = si.name AND gle.voucher_type = 'Sales Invoice'
+        LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE gle.posting_date BETWEEN %s AND %s
         AND gle.company = %s
         AND gle.account IN ({0})
-        AND (
-            (gle.voucher_type = 'Purchase Invoice' AND gle.credit > 0) OR
-            (gle.voucher_type = 'Purchase Invoice Debit Note' AND gle.debit > 0)
-        )
         AND gle.is_cancelled = 0
         AND gle.docstatus = 1
         AND (
-            (addr.country IS NOT NULL AND addr.country NOT IN ({1}) AND addr.country != 'Cyprus')
-            OR
-            pi.taxes_and_charges = 'Non-EU Import VAT'
+            addr.country IS NULL OR addr.country = 'Cyprus' OR gle.voucher_type = 'Journal Entry'
         )
-        AND item.item_group IN ({2})
-    """.format(placeholder_list, eu_placeholders, service_placeholders)
+    """.format(placeholder_list)
     
-    # Build parameters list for query2
-    params2 = [from_date, to_date, company] + output_vat_accounts + eu_countries + all_service_groups
+    # Build parameters list
+    params = [from_date, to_date, company] + output_vat_accounts
     
-    # Execute query2 only if we have service groups
-    non_eu_service_vat = 0
-    if all_service_groups:
-        non_eu_service_vat_result = frappe.db.sql(query2, params2, as_dict=1)
-        non_eu_service_vat = flt(non_eu_service_vat_result[0].vat_amount) if non_eu_service_vat_result and non_eu_service_vat_result[0].vat_amount is not None else 0
+    # Execute query
+    output_vat_result = frappe.db.sql(query, params, as_dict=1)
+    output_vat = flt(output_vat_result[0].vat_amount) if output_vat_result and output_vat_result[0].vat_amount is not None else 0
     
-    # Return combined VAT amount
-    return output_vat + non_eu_service_vat
+    return output_vat
 
-def get_input_vat(company, from_date, to_date):
+def get_box_4(company, from_date, to_date):
     # Get the Cyprus tax accounts
     tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
@@ -322,23 +262,29 @@ def get_input_vat(company, from_date, to_date):
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(vat_accounts))
     
-    # Query for regular input VAT (filtered by voucher_type)
+    # Query for regular input VAT from Cyprus purchases
     query1 = """
         SELECT SUM(
             CASE 
-                WHEN voucher_type IN ('Purchase Invoice') THEN debit
-                WHEN voucher_type IN ('Purchase Invoice Debit Note') THEN -credit
+                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Purchase Invoice' THEN gle.debit
+                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Debit Note' THEN -gle.credit
                 ELSE 0
             END
         ) as vat_amount
-        FROM `tabGL Entry`
-        WHERE posting_date BETWEEN %s AND %s
-        AND company = %s
-        AND account IN ({0})
+        FROM `tabGL Entry` gle
+        LEFT JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
+        LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        WHERE gle.posting_date BETWEEN %s AND %s
+        AND gle.company = %s
+        AND gle.account IN ({0})
+        AND gle.is_cancelled = 0
+        AND gle.docstatus = 1
+        AND (addr.country IS NULL OR addr.country = 'Cyprus')
     """.format(placeholder_list)
     
     params1 = [from_date, to_date, company] + vat_accounts
-    regular_vat = frappe.db.sql(query1, params1, as_dict=1)
+    regular_vat_result = frappe.db.sql(query1, params1, as_dict=1)
+    regular_vat = flt(regular_vat_result[0].vat_amount) if regular_vat_result and regular_vat_result[0].vat_amount is not None else 0
     
     # Get reverse charge VAT accounts
     rc_accounts = []
@@ -347,6 +293,9 @@ def get_input_vat(company, from_date, to_date):
     if "reverse_charge_services" in tax_accounts and tax_accounts["reverse_charge_services"]:
         rc_accounts.append(tax_accounts["reverse_charge_services"])
     
+    # Filter out None values
+    rc_accounts = [acc for acc in rc_accounts if acc]
+    
     # Calculate reverse charge input VAT (where VAT is both paid and reclaimed)
     rc_vat_amount = 0
     if rc_accounts:
@@ -354,24 +303,52 @@ def get_input_vat(company, from_date, to_date):
         query2 = """
             SELECT SUM(
                 CASE 
-                    WHEN voucher_type IN ('Purchase Invoice') THEN debit
-                    WHEN voucher_type IN ('Purchase Invoice Debit Note') THEN -credit
+                    WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Purchase Invoice' THEN gle.debit
+                    WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Debit Note' THEN -gle.credit
                     ELSE 0
                 END
             ) as vat_amount
-            FROM `tabGL Entry`
-            WHERE posting_date BETWEEN %s AND %s
-            AND company = %s
-            AND account IN ({0})
+            FROM `tabGL Entry` gle
+            LEFT JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
+            WHERE gle.posting_date BETWEEN %s AND %s
+            AND gle.company = %s
+            AND gle.account IN ({0})
+            AND gle.is_cancelled = 0
+            AND gle.docstatus = 1
         """.format(rc_placeholder_list)
         
         params2 = [from_date, to_date, company] + rc_accounts
-        rc_vat = frappe.db.sql(query2, params2, as_dict=1)
-        rc_vat_amount = flt(rc_vat[0].vat_amount) if rc_vat and rc_vat[0].vat_amount is not None else 0
+        rc_vat_result = frappe.db.sql(query2, params2, as_dict=1)
+        rc_vat_amount = flt(rc_vat_result[0].vat_amount) if rc_vat_result and rc_vat_result[0].vat_amount is not None else 0
     
-    # Combine regular and reverse charge VAT
-    total_vat = flt(regular_vat[0].vat_amount) if regular_vat and regular_vat[0].vat_amount is not None else 0
-    return total_vat + rc_vat_amount
+    # For domestic reverse charge (sales in Cyprus with reverse charge)
+    domestic_rc_amount = 0
+    if vat_accounts:
+        query3 = """
+            SELECT SUM(
+                CASE 
+                    WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Purchase Invoice' THEN gle.debit
+                    WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Debit Note' THEN -gle.credit
+                    ELSE 0
+                END
+            ) as vat_amount
+            FROM `tabGL Entry` gle
+            LEFT JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
+            LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+            WHERE gle.posting_date BETWEEN %s AND %s
+            AND gle.company = %s
+            AND gle.account IN ({0})
+            AND gle.is_cancelled = 0
+            AND gle.docstatus = 1
+            AND addr.country = 'Cyprus'
+        """.format(placeholder_list)
+        
+        params3 = [from_date, to_date, company] + vat_accounts
+        domestic_rc_result = frappe.db.sql(query3, params3, as_dict=1)
+        domestic_rc_amount = flt(domestic_rc_result[0].vat_amount) if domestic_rc_result and domestic_rc_result[0].vat_amount is not None else 0
+    
+    # Combine all VAT components
+    return regular_vat + rc_vat_amount + domestic_rc_amount
 
 def get_box_2(company, from_date, to_date):
     # Get the Cyprus tax accounts
@@ -379,68 +356,55 @@ def get_box_2(company, from_date, to_date):
     if not tax_accounts:
         return 0
     
-    # Get EU acquisition VAT accounts
-    eu_vat_accounts = []
+    # Get reverse charge VAT accounts
+    rc_accounts = []
     
-    # Add intra-EU acquisition account if available
-    if "vat" in tax_accounts:
-        eu_vat_accounts.append(tax_accounts["vat"])
+    # Add all accounts related to reverse charge (both EU and non-EU)
+    if "intra_eu_acquisition" in tax_accounts and tax_accounts["intra_eu_acquisition"]:
+        rc_accounts.append(tax_accounts["intra_eu_acquisition"])
+    if "reverse_charge_services" in tax_accounts and tax_accounts["reverse_charge_services"]:
+        rc_accounts.append(tax_accounts["reverse_charge_services"])
     
     # Filter out None values
-    eu_vat_accounts = [acc for acc in eu_vat_accounts if acc]
+    rc_accounts = [acc for acc in rc_accounts if acc]
     
-    if not eu_vat_accounts:
+    if not rc_accounts:
         return 0
     
-    # Get EU countries for filtering
-    eu_countries = get_eu_countries()
-    eu_placeholders = ', '.join(['%s'] * len(eu_countries))
-    
-    # Get service item groups to exclude
-    service_groups = get_service_item_groups()
-    service_placeholders = ', '.join(['%s'] * len(service_groups)) if service_groups else "''"
-    
     # Format for SQL IN clause
-    placeholder_list = ', '.join(['%s'] * len(eu_vat_accounts))
+    placeholder_list = ', '.join(['%s'] * len(rc_accounts))
     
-    # Query for EU acquisition VAT
+    # Query for reverse charge VAT (both EU and non-EU)
     query = """
         SELECT SUM(
             CASE 
-                WHEN gle.voucher_type = 'Purchase Invoice' THEN gle.credit
-                WHEN gle.voucher_type = 'Purchase Invoice Debit Note' THEN -gle.debit
+                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Purchase Invoice' THEN gle.credit
+                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Debit Note' THEN -gle.debit
                 ELSE 0
             END
         ) as vat_amount
         FROM `tabGL Entry` gle
-        INNER JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name 
-            AND (gle.voucher_type = 'Purchase Invoice' OR gle.voucher_type = 'Purchase Invoice Debit Note')
-        INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
-        INNER JOIN `tabItem` item ON pii.item_code = item.name
+        LEFT JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name 
+            AND (gle.voucher_type = 'Purchase Invoice')
         LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
-        LEFT JOIN `tabSupplier` supp ON pi.supplier = supp.name
         WHERE gle.posting_date BETWEEN %s AND %s
         AND gle.company = %s
         AND gle.account IN ({0})
-        AND (
-            (gle.voucher_type = 'Purchase Invoice' AND gle.credit > 0) OR
-            (gle.voucher_type = 'Purchase Invoice Debit Note' AND gle.debit > 0)
-        )
         AND gle.is_cancelled = 0
         AND gle.docstatus = 1
-        AND addr.country IN ({1})
-        AND addr.country != 'Cyprus'
-        AND item.item_group NOT IN ({2})
-        AND supp.tax_id IS NOT NULL
-    """.format(placeholder_list, eu_placeholders, service_placeholders)
+        AND (
+            addr.country != 'Cyprus' OR
+            (addr.country = 'Cyprus')
+        )
+    """.format(placeholder_list)
     
     # Build parameters
-    params = [from_date, to_date, company] + eu_vat_accounts + eu_countries + service_groups
+    params = [from_date, to_date, company] + rc_accounts
     
     # Execute query
-    eu_vat_result = frappe.db.sql(query, params, as_dict=1)
+    rc_vat_result = frappe.db.sql(query, params, as_dict=1)
     
-    return flt(eu_vat_result[0].vat_amount) if eu_vat_result and eu_vat_result[0].vat_amount is not None else 0
+    return flt(rc_vat_result[0].vat_amount) if rc_vat_result and rc_vat_result[0].vat_amount is not None else 0
 
 def get_total_sales(company, from_date, to_date):
     # Get total sales excluding VAT (including credit notes)
