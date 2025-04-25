@@ -209,11 +209,17 @@ def get_box_1(company, from_date, to_date):
     # Format for SQL IN clause - converting to a proper list of parameters
     placeholder_list = ', '.join(['%s'] * len(output_vat_accounts))
     
-    # Query for domestic VAT from sales within Cyprus only
+    # Query for VAT due on acquisitions, handling Debit Notes differently
     query = """
-        SELECT SUM(gle.credit - gle.debit) as vat_amount
+        SELECT SUM(
+            CASE 
+                WHEN gle.voucher_subtype = 'Sales Invoice' THEN gle.credit
+                WHEN gle.voucher_subtype = 'Credit Note' THEN -gle.debit
+                ELSE 0
+            END
+        ) as vat_amount
         FROM `tabGL Entry` gle
-        LEFT JOIN `tabSales Invoice` si ON gle.voucher_no = si.name AND gle.voucher_type = 'Sales Invoice'
+        LEFT JOIN `tabSales Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Sales Invoice'
         WHERE gle.posting_date BETWEEN %s AND %s
         AND gle.company = %s
         AND gle.account IN ({0})
@@ -364,7 +370,7 @@ def get_box_2(company, from_date, to_date):
         SELECT SUM(
             CASE 
                 WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.credit
-                WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.credit
+                WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.debit
                 ELSE 0
             END
         ) as vat_amount
