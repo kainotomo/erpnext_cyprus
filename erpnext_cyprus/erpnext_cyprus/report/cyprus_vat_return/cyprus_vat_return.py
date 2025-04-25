@@ -211,15 +211,7 @@ def get_box_1(company, from_date, to_date):
     
     # Query for domestic VAT from sales within Cyprus only
     query = """
-        SELECT SUM(
-            CASE 
-                WHEN gle.voucher_type = 'Sales Invoice' AND gle.voucher_subtype = 'Sales Invoice' THEN gle.credit
-                WHEN gle.voucher_type = 'Sales Invoice' AND gle.voucher_subtype = 'Credit Note' THEN -gle.debit
-                WHEN gle.voucher_type = 'Journal Entry' AND gle.credit > 0 THEN gle.credit
-                WHEN gle.voucher_type = 'Journal Entry' AND gle.debit > 0 THEN -gle.debit
-                ELSE 0
-            END
-        ) as vat_amount
+        SELECT SUM(gle.credit - gle.debit) as vat_amount
         FROM `tabGL Entry` gle
         LEFT JOIN `tabSales Invoice` si ON gle.voucher_no = si.name AND gle.voucher_type = 'Sales Invoice'
         LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
@@ -228,9 +220,8 @@ def get_box_1(company, from_date, to_date):
         AND gle.account IN ({0})
         AND gle.is_cancelled = 0
         AND gle.docstatus = 1
-        AND (
-            addr.country IS NULL OR addr.country = 'Cyprus' OR gle.voucher_type = 'Journal Entry'
-        )
+        AND gle.voucher_type = 'Sales Invoice'
+        AND (addr.country IS NULL OR addr.country = 'Cyprus')
     """.format(placeholder_list)
     
     # Build parameters list
