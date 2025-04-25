@@ -214,14 +214,12 @@ def get_box_1(company, from_date, to_date):
         SELECT SUM(gle.credit - gle.debit) as vat_amount
         FROM `tabGL Entry` gle
         LEFT JOIN `tabSales Invoice` si ON gle.voucher_no = si.name AND gle.voucher_type = 'Sales Invoice'
-        LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
         WHERE gle.posting_date BETWEEN %s AND %s
         AND gle.company = %s
         AND gle.account IN ({0})
         AND gle.is_cancelled = 0
         AND gle.docstatus = 1
         AND gle.voucher_type = 'Sales Invoice'
-        AND (addr.country IS NULL OR addr.country = 'Cyprus')
     """.format(placeholder_list)
     
     # Build parameters list
