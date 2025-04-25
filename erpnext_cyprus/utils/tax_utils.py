@@ -57,61 +57,21 @@ def setup_purchase_tax_templates(company):
     
     # Define the Cyprus-specific purchase tax templates - one per use case
     cyprus_purchase_tax_templates = [        
-        # EU acquisition template
-        {
-            "title": "EU Acquisition VAT 19%",
-            "company": company,
-            "description": "For goods acquired from EU suppliers",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["vat"],
-                    "description": "EU Acquisition VAT 19%",
-                    "rate": 19,
-                    "add_deduct_tax": "Add"
-                },
-                {
-                    "account_head": tax_accounts["vat"],
-                    "description": "Reverse EU Acquisition VAT 19%",
-                    "rate": 19,
-                    "add_deduct_tax": "Deduct"
-                }
-            ]
-        },
         # EU services template
         {
-            "title": "EU Reverse Charge",
+            "title": "Reverse Charge",
             "company": company,
-            "description": "For services from EU suppliers",
+            "description": "Purchases eligible for reverse charge VAT",
             "taxes": [
                 {
                     "account_head": tax_accounts["vat"],
-                    "description": "Reverse Charge VAT 19%",
+                    "description": "Reverse Charge VAT",
                     "rate": 19,
                     "add_deduct_tax": "Add"
                 },
                 {
                     "account_head": tax_accounts["vat"],
-                    "description": "Reverse Charge VAT 19% (Input)",
-                    "rate": 19,
-                    "add_deduct_tax": "Deduct"
-                }
-            ]
-        },
-        # Non-EU import template
-        {
-            "title": "Non-EU Import VAT",
-            "company": company,
-            "description": "For imports from outside the EU",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["vat"],
-                    "description": "Import VAT 19%",
-                    "rate": 19,
-                    "add_deduct_tax": "Add"
-                },
-                {
-                    "account_head": tax_accounts["vat"],
-                    "description": "Import VAT 19% (Input)",
+                    "description": "Reverse Charge VAT",
                     "rate": 19,
                     "add_deduct_tax": "Deduct"
                 }
@@ -119,20 +79,20 @@ def setup_purchase_tax_templates(company):
         },
         # Exempt purchases
         {
-            "title": "Zero-Rated Purchase",
+            "title": "Zero-Rated",
             "company": company,
             "description": "For zero-rated or exempt purchases",
             "taxes": []
         },        
         # Domestic purchase templates
         {
-            "title": "Cyprus Purchase VAT",
+            "title": "Standard Domestic",
             "company": company,
-            "description": "For domestic purchases with VAT",
+            "description": "For ordinary purchases from local (Cypriot) suppliers where the supplier charges VAT at the standard rate",
             "taxes": [
                 {
                     "account_head": tax_accounts["vat"],
-                    "description": "Input VAT",
+                    "description": "VAT",
                     "rate": 19,
                     "add_deduct_tax": "Add"
                 }
@@ -193,46 +153,22 @@ def setup_sales_tax_templates(company):
     # Define the Cyprus-specific sales tax templates - one per use case
     cyprus_sales_tax_templates = [        
         {
-            "title": "Cyprus Sales VAT",
+            "title": "Standard Domestic",
             "company": company,
-            "description": "All Cyprus domestic sales VAT rates",
+            "description": "For local sales with standard VAT.",
             "taxes": [
                 {
                     "account_head": tax_accounts["vat"],
-                    "description": "VAT 19%",
+                    "description": "VAT",
                     "rate": 19
                 }
             ]
         },
         {
-            "title": "EU B2B Sales (Reverse Charge)",
+            "title": "Zero-Rated",
             "company": company,
-            "description": "For VAT-registered businesses in EU (0% with reverse charge)",
-            "taxes": []  # Zero-rated
-        },
-        {
-            "title": "EU B2C Sales",
-            "company": company,
-            "description": "For consumers in EU (with local VAT)",
-            "taxes": [
-                {
-                    "account_head": tax_accounts["vat"],
-                    "description": "VAT 19%",
-                    "rate": 19
-                }
-            ]
-        },
-        {
-            "title": "Non-EU Export",
-            "company": company,
-            "description": "For exports outside the EU (zero-rated)",
-            "taxes": []  # Zero-rated
-        },
-        {
-            "title": "VAT Exempt Sales",
-            "company": company,
-            "description": "For VAT-exempt goods and services",
-            "taxes": []  # Zero-rated
+            "description": "For export sales where VAT is not charged.",
+            "taxes": []
         }
     ]
     
@@ -422,7 +358,7 @@ def setup_tax_rules(company):
     frappe.msgprint(f"Found {len(template_names)} tax templates for company {company}")
     
     # Initialize tax rules list
-    cyprus_tax_rules = []
+    tax_rules = []
     
     # Get EU VAT rates to create country-specific digital services rules
     eu_vat_rates = get_eu_vat_rates()
@@ -433,7 +369,6 @@ def setup_tax_rules(company):
             # For Cyprus, use the standard template
             continue
             
-        country_code = country[:2].upper()
         template_title = f"OSS Digital Services - {country} ({vat_rate}%)"
         template_name = template_names.get(template_title)
         
@@ -443,92 +378,65 @@ def setup_tax_rules(company):
                 "tax_type": "Sales",
                 "customer_group": "Individual", 
                 "billing_country": country,
-                "item_group": "Digital Services", # Re-enable this!
                 "sales_tax_template": template_name,
-                "priority": 10,  # HIGHEST priority - highest number
+                "priority": 2,
                 "use_for_shopping_cart": 1
             }
-            cyprus_tax_rules.append(rule)
+            tax_rules.append(rule)
     
     # Then add the standard rules    
     standard_rules = [
-        # EU B2B - for all EU countries
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Sales",
-            "customer_group": "Commercial", 
-            "billing_country": "EU",
-            "sales_tax_template": template_names.get("EU B2B Sales (Reverse Charge)"),
-            "priority": 8,
-            "use_for_shopping_cart": 1
-        },
-        # EU B2C - non-digital (regular goods)
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Sales",
-            "customer_group": "Individual",
-            "billing_country": "EU",  # Will be expanded to individual countries
-            "sales_tax_template": template_names.get("EU B2C Sales"),
-            "priority": 3,
-            "use_for_shopping_cart": 1
-        },
-        # Non-EU exports (priority 2)
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Sales",
-            # No billing_country - applies to any country not matched by higher priority rules
-            "sales_tax_template": template_names.get("Non-EU Export"),
-            "priority": 2,
-            "use_for_shopping_cart": 1
-        },        
         # Default domestic rule
         {
             "doctype": "Tax Rule",
             "tax_type": "Sales",
             "billing_country": "Cyprus",
-            "sales_tax_template": template_names.get("Cyprus Sales VAT"),
-            "priority": 5,
+            "sales_tax_template": template_names.get("Standard Domestic"),
+            "priority": 2,
+            "use_for_shopping_cart": 1
+        },
+        # EU B2B and other countries
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Sales",
+            "sales_tax_template": template_names.get("Zero-Rated"),
+            "priority": 1,
             "use_for_shopping_cart": 1
         },
         
-        # PURCHASE RULES - modified to use supplier_group instead of tax_category
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Purchase",
-            "billing_country": "EU",
-            "purchase_tax_template": template_names.get("EU Acquisition VAT 19%"),
-            "priority": 1
-        },
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Purchase",
-            "billing_country": "EU",
-            "item_group": "Professional Services",
-            "purchase_tax_template": template_names.get("EU Reverse Charge"),
-            "priority": 2
-        },
-        {
-            "doctype": "Tax Rule",
-            "tax_type": "Purchase",
-            # No tax_category reference - applies to any country not matched by higher priority rules
-            "purchase_tax_template": template_names.get("Non-EU Import VAT"),
-            "priority": 3
-        },
+        # PURCHASE RULES
         # Domestic purchases rule
         {
             "doctype": "Tax Rule",
             "tax_type": "Purchase",
             "billing_country": "Cyprus",
-            "purchase_tax_template": template_names.get("Cyprus Purchase VAT"),
+            "purchase_tax_template": template_names.get("Standard Domestic"),
             "priority": 3
-        }
+        },
+        # EU commercial services rule
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "supplier_group": "Commercial", 
+            "billing_country": "EU",
+            "purchase_tax_template": template_names.get("Reverse Charge"),
+            "priority": 2
+        },        
+        # Zero-rated purchases are handled by the default template
+        {
+            "doctype": "Tax Rule",
+            "tax_type": "Purchase",
+            "purchase_tax_template": template_names.get("Zero-Rated"),
+            "priority": 1,
+            "use_for_shopping_cart": 1
+        },
     ]
     
     # Combine all rules
-    cyprus_tax_rules.extend(standard_rules)
+    tax_rules.extend(standard_rules)
     
     # Create each tax rule if it doesn't already exist
-    for rule_data in cyprus_tax_rules:
+    for rule_data in tax_rules:
         # Add company to rule data
         rule_data["company"] = company
         
@@ -589,7 +497,6 @@ def get_eu_vat_rates():
         "Belgium": 21,
         "Bulgaria": 20,
         "Croatia": 25,
-        "Cyprus": 19,
         "Czech Republic": 21,
         "Denmark": 25,
         "Estonia": 22,
