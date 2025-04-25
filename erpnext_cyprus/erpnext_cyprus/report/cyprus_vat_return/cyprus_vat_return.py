@@ -345,55 +345,41 @@ def get_box_2(company, from_date, to_date):
     if not tax_accounts:
         return 0
     
-    # Get reverse charge VAT accounts
-    rc_accounts = []
+    # Get all output VAT accounts
+    output_vat_accounts = [
+        tax_accounts["vat"]
+    ]
     
-    # Add all accounts related to reverse charge (both EU and non-EU)
-    if "intra_eu_acquisition" in tax_accounts and tax_accounts["intra_eu_acquisition"]:
-        rc_accounts.append(tax_accounts["intra_eu_acquisition"])
-    if "reverse_charge_services" in tax_accounts and tax_accounts["reverse_charge_services"]:
-        rc_accounts.append(tax_accounts["reverse_charge_services"])
+    # Filter out None values (accounts that might not exist)
+    output_vat_accounts = [acc for acc in output_vat_accounts if acc]
     
-    # Filter out None values
-    rc_accounts = [acc for acc in rc_accounts if acc]
-    
-    if not rc_accounts:
+    if not output_vat_accounts:
         return 0
     
-    # Format for SQL IN clause
-    placeholder_list = ', '.join(['%s'] * len(rc_accounts))
+    # Format for SQL IN clause - converting to a proper list of parameters
+    placeholder_list = ', '.join(['%s'] * len(output_vat_accounts))
     
-    # Query for reverse charge VAT (both EU and non-EU)
+    # Query for domestic VAT from sales within Cyprus only
     query = """
-        SELECT SUM(
-            CASE 
-                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Purchase Invoice' THEN gle.credit
-                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.voucher_subtype = 'Debit Note' THEN -gle.debit
-                ELSE 0
-            END
-        ) as vat_amount
+        SELECT SUM(gle.credit - gle.debit) as vat_amount
         FROM `tabGL Entry` gle
-        LEFT JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name 
-            AND (gle.voucher_type = 'Purchase Invoice')
-        LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        LEFT JOIN `tabPurchase Invoice` si ON gle.voucher_no = si.name AND gle.voucher_type = 'Purchase Invoice'
         WHERE gle.posting_date BETWEEN %s AND %s
         AND gle.company = %s
         AND gle.account IN ({0})
         AND gle.is_cancelled = 0
         AND gle.docstatus = 1
-        AND (
-            addr.country != 'Cyprus' OR
-            (addr.country = 'Cyprus')
-        )
+        AND gle.voucher_type = 'Purchase Invoice'
     """.format(placeholder_list)
     
-    # Build parameters
-    params = [from_date, to_date, company] + rc_accounts
+    # Build parameters list
+    params = [from_date, to_date, company] + output_vat_accounts
     
     # Execute query
-    rc_vat_result = frappe.db.sql(query, params, as_dict=1)
+    output_vat_result = frappe.db.sql(query, params, as_dict=1)
+    output_vat = flt(output_vat_result[0].vat_amount) if output_vat_result and output_vat_result[0].vat_amount is not None else 0
     
-    return flt(rc_vat_result[0].vat_amount) if rc_vat_result and rc_vat_result[0].vat_amount is not None else 0
+    return output_vat
 
 def get_total_sales(company, from_date, to_date):
     # Get total sales excluding VAT (including credit notes)
