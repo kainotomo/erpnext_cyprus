@@ -423,9 +423,7 @@ def get_box_8a(company, from_date, to_date):
     
     # Build query with proper address relationships
     query = """
-        SELECT SUM(
-            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
-        ) as amount
+        SELECT SUM(si.base_net_total) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
@@ -460,9 +458,7 @@ def get_box_8b(company, from_date, to_date):
     
     # Build query with proper address relationships
     query = """
-        SELECT SUM(
-            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
-        ) as amount
+        SELECT SUM(si.base_net_total) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
