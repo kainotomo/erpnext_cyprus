@@ -166,7 +166,7 @@ def get_data(filters):
     })
     
     # Box 10: Total value of out-of-scope sales
-    out_of_scope = get_out_of_scope_sales(company, from_date, to_date)
+    out_of_scope = get_box_10(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 10"),
         "description": _("Total value of out-of-scope sales"),
@@ -504,51 +504,29 @@ def get_box_9(company, from_date, to_date):
     
     return flt(eu_services[0].amount) if eu_services and eu_services[0].amount is not None else 0
 
-def get_out_of_scope_sales(company, from_date, to_date):
+def get_box_10(company, from_date, to_date):
     # Get company abbreviation to match template names
     company_abbr = frappe.db.get_value("Company", company, "abbr")
     
-    # Get EU countries for exclusion
-    eu_countries = get_eu_countries()
-    eu_countries.append("Cyprus")  # Add Cyprus to exclusion list
-    
-    # Out of scope templates
-    exempt_templates = [
-        f"Exempt Supply - {company_abbr}",
-        f"Zero Rated - {company_abbr}"
+    # Out of scope template
+    out_of_scope_templates = [
+        f"Out-of-Scope - {company_abbr}"
     ]
     
     # Format for SQL IN clause
-    template_placeholders = ', '.join(['%s'] * len(exempt_templates))
-    eu_placeholder_list = ', '.join(['%s'] * len(eu_countries))
+    template_placeholders = ', '.join(['%s'] * len(out_of_scope_templates))
     
     query = """
-        SELECT SUM(
-            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
-        ) as amount
-        FROM `tabSales Invoice` si
-        LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
-        WHERE si.posting_date BETWEEN %s AND %s
-        AND si.company = %s
-        AND si.docstatus = 1
-        AND si.taxes_and_charges IN ({0})
-        AND (
-            /* Not to EU countries (exclude box 8) */
-            addr.country NOT IN ({1})
-            /* Not products to non-EU (exclude box 9) */
-            OR si.name NOT IN (
-                SELECT si2.name 
-                FROM `tabSales Invoice` si2
-                INNER JOIN `tabSales Invoice Item` sii ON si2.name = sii.parent
-                INNER JOIN `tabAddress` addr2 ON si2.customer_address = addr2.name
-                WHERE sii.item_code IN (SELECT name FROM `tabItem` WHERE item_group = 'Products')
-                AND addr2.country NOT IN ({1})
-            )
-        )
-    """.format(template_placeholders, eu_placeholder_list)
+        SELECT SUM(base_net_total) as amount
+        FROM `tabSales Invoice`
+        WHERE posting_date BETWEEN %s AND %s
+        AND company = %s
+        AND docstatus = 1
+        AND taxes_and_charges IN ({0})
+    """.format(template_placeholders)
     
     # Build parameters list
-    params = [from_date, to_date, company] + exempt_templates + eu_countries + eu_countries
+    params = [from_date, to_date, company] + out_of_scope_templates
     
     # Execute query
     out_of_scope = frappe.db.sql(query, params, as_dict=1)

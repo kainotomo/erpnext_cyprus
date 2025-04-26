@@ -169,6 +169,12 @@ def setup_sales_tax_templates(company):
             "company": company,
             "description": "For export sales where VAT is not charged.",
             "taxes": []
+        },
+        {
+            "title": "Out-of-Scope",
+            "company": company,
+            "description": "For sales out of scope of VAT.",
+            "taxes": []
         }
     ]
     
