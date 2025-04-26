@@ -158,7 +158,7 @@ def get_data(filters):
     })
     
     # Box 9: Total value of exports to non-EU countries
-    non_eu_exports = get_non_eu_exports(company, from_date, to_date)
+    non_eu_exports = get_box_9(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 9"),
         "description": _("Total value of exports to non-EU countries"),
@@ -472,42 +472,37 @@ def get_box_8b(company, from_date, to_date):
     
     return flt(eu_services[0].amount) if eu_services and eu_services[0].amount is not None else 0
 
-def get_non_eu_exports(company, from_date, to_date):
-    # Get EU countries list for exclusion
+def get_box_9(company, from_date, to_date):
+    # Get EU countries list using utility function
     eu_countries = get_eu_countries()
-    eu_countries.append("Cyprus")
     
-    # Get service item groups to exclude
+    # Get service item groups
     service_groups = get_service_item_groups()
     service_placeholders = ', '.join(['%s'] * len(service_groups)) if service_groups else "''"
     
+    # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Get company abbreviation to match template names
-    company_abbr = frappe.db.get_value("Company", company, "abbr")
-    
     query = """
-        SELECT SUM(
-            CASE WHEN si.is_return = 0 THEN si.base_net_total ELSE -si.base_net_total END
-        ) as amount
+        SELECT SUM(sii.base_net_amount) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
-        INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
-        INNER JOIN `tabItem` item ON sii.item_code = item.name
+        LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
+        LEFT JOIN `tabItem` item ON sii.item_code = item.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
+        AND addr.country != "Cyprus"
         AND addr.country NOT IN ({0})
         AND item.item_group NOT IN ({1})
-        AND (si.taxes_and_charges = %s OR si.taxes_and_charges IS NULL)
     """.format(placeholder_list, service_placeholders)
     
-    # Parameters including the non-EU export template name
-    params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else []) + [f"Non-EU Export - {company_abbr}"]
+    # Build parameters list
+    params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else [])
     
-    exports = frappe.db.sql(query, params, as_dict=1)
+    eu_services = frappe.db.sql(query, params, as_dict=1)
     
-    return flt(exports[0].amount) if exports and exports[0].amount is not None else 0
+    return flt(eu_services[0].amount) if eu_services and eu_services[0].amount is not None else 0
 
 def get_out_of_scope_sales(company, from_date, to_date):
     # Get company abbreviation to match template names
