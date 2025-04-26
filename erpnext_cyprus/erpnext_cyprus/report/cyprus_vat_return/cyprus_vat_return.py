@@ -353,7 +353,7 @@ def get_box_4(company, from_date, to_date):
     return sales_vat + purchase_vat
 
 def get_box_6(company, from_date, to_date):
-    # Get total sales excluding VAT directly from Sales Invoice table
+    # Part 1: Get regular sales excluding VAT directly from Sales Invoice table
     sales_query = """
         SELECT SUM(base_net_total) as amount
         FROM `tabSales Invoice`
@@ -362,11 +362,37 @@ def get_box_6(company, from_date, to_date):
         AND docstatus = 1
     """
     
-    # Execute query
+    # Execute query for sales invoices
     sales_result = frappe.db.sql(sales_query, [from_date, to_date, company], as_dict=1)
     total_sales = flt(sales_result[0].amount) if sales_result and sales_result[0].amount is not None else 0
     
-    return total_sales
+    # Part 2: Include Purchase Invoices with specific tax templates
+    # Get company abbreviation to match template names
+    company_abbr = frappe.db.get_value("Company", company, "abbr")
+    
+    # Template patterns to search for
+    special_templates = [
+        f"Reverse Charge - {company_abbr}"
+    ]
+    
+    template_placeholders = ', '.join(['%s'] * len(special_templates))
+    
+    purchase_query = """
+        SELECT SUM(base_net_total) as amount
+        FROM `tabPurchase Invoice`
+        WHERE posting_date BETWEEN %s AND %s
+        AND company = %s
+        AND taxes_and_charges IN ({0})
+        AND docstatus = 1
+    """.format(template_placeholders)
+    
+    # Execute query for purchase invoices with special templates
+    purchase_params = [from_date, to_date, company] + special_templates
+    purchase_result = frappe.db.sql(purchase_query, purchase_params, as_dict=1)
+    special_purchase_amount = flt(purchase_result[0].amount) if purchase_result and purchase_result[0].amount is not None else 0
+    
+    # Combine both components
+    return total_sales + special_purchase_amount
 
 def get_box_7(company, from_date, to_date):
     # Get total purchases excluding VAT directly from Purchase Invoice table
