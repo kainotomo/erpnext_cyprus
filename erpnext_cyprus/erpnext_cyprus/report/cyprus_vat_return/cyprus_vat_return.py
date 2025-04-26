@@ -423,7 +423,8 @@ def get_box_8a(company, from_date, to_date):
     
     # Build simplified query using LEFT JOINs instead of INNER JOINs
     query = """
-        SELECT SUM(sii.base_net_amount) as amount
+        SELECT SUM(
+        .base_net_amount) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
         LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
@@ -432,7 +433,6 @@ def get_box_8a(company, from_date, to_date):
         AND si.company = %s
         AND si.docstatus = 1
         AND addr.country IN ({0})
-        AND addr.country != 'Cyprus'
         AND (item.item_group IS NULL OR item.item_group NOT IN ({1}))
     """.format(placeholder_list, service_placeholders)
     
@@ -466,8 +466,6 @@ def get_box_8b(company, from_date, to_date):
         AND si.company = %s
         AND si.docstatus = 1
         AND addr.country IN ({0})
-        AND addr.country != 'Cyprus'
-        AND cust.customer_type = 'Company'
         AND item.item_group IN ({1})
     """.format(placeholder_list, service_placeholders)
     
