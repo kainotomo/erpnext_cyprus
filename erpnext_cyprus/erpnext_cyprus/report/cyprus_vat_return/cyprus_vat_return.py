@@ -422,17 +422,47 @@ def get_box_6(company, from_date, to_date):
     return regular_sales + special_sales_amount
 
 def get_box_7(company, from_date, to_date):
-    # Get total purchases excluding VAT (including debit notes)
-    purchases = frappe.db.sql("""
-        SELECT 
-            SUM(CASE WHEN is_return = 0 THEN base_net_total ELSE -base_net_total END) as amount
-        FROM `tabPurchase Invoice`
-        WHERE posting_date BETWEEN %s AND %s
+    # Get all expense accounts
+    expense_accounts = frappe.db.sql("""
+        SELECT name FROM `tabAccount`
+        WHERE root_type = 'Expense' 
         AND company = %s
-        AND docstatus = 1
-    """, (from_date, to_date, company), as_dict=1)
+        AND is_group = 0
+    """, company, as_dict=1)
     
-    return flt(purchases[0].amount) if purchases and purchases[0].amount is not None else 0
+    expense_accounts = [account.name for account in expense_accounts]
+    
+    if not expense_accounts:
+        return 0
+    
+    # Format for SQL IN clause
+    placeholder_list = ', '.join(['%s'] * len(expense_accounts))
+    
+    # Query GL entries for expense accounts - debits increase expenses, credits decrease expenses
+    query = """
+        SELECT SUM(
+            CASE 
+                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.debit > 0 THEN gle.debit
+                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.credit > 0 THEN -gle.credit
+                ELSE 0
+            END
+        ) as amount
+        FROM `tabGL Entry` gle
+        WHERE gle.posting_date BETWEEN %s AND %s
+        AND gle.company = %s
+        AND gle.account IN ({0})
+        AND gle.is_cancelled = 0
+        AND gle.docstatus = 1
+    """.format(placeholder_list)
+    
+    # Build parameters list
+    params = [from_date, to_date, company] + expense_accounts
+    
+    # Execute query
+    expense_result = frappe.db.sql(query, params, as_dict=1)
+    expense_amount = flt(expense_result[0].amount) if expense_result and expense_result[0].amount is not None else 0
+    
+    return expense_amount
 
 def get_eu_goods_supplies(company, from_date, to_date):
     # Get EU countries list using utility function
