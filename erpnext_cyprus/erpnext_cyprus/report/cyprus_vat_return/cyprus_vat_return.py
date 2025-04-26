@@ -353,7 +353,7 @@ def get_box_4(company, from_date, to_date):
     return sales_vat + purchase_vat
 
 def get_box_6(company, from_date, to_date):
-    # Get income accounts for the company
+    # Part 1: Get regular income from income accounts via GL entries
     income_accounts = frappe.db.sql("""
         SELECT name FROM `tabAccount`
         WHERE root_type = 'Income' 
@@ -364,36 +364,62 @@ def get_box_6(company, from_date, to_date):
     income_accounts = [account.name for account in income_accounts]
     
     if not income_accounts:
-        return 0
+        regular_sales = 0
+    else:
+        # Format for SQL IN clause
+        placeholder_list = ', '.join(['%s'] * len(income_accounts))
+        
+        # Query GL entries for income accounts - credits increase income, debits decrease income
+        query = """
+            SELECT SUM(
+                CASE 
+                    WHEN gle.voucher_type = 'Sales Invoice' AND gle.credit > 0 THEN gle.credit
+                    WHEN gle.voucher_type = 'Sales Invoice' AND gle.debit > 0 THEN -gle.debit
+                    ELSE 0
+                END
+            ) as amount
+            FROM `tabGL Entry` gle
+            WHERE gle.posting_date BETWEEN %s AND %s
+            AND gle.company = %s
+            AND gle.account IN ({0})
+            AND gle.is_cancelled = 0
+            AND gle.docstatus = 1
+        """.format(placeholder_list)
+        
+        # Build parameters list
+        params = [from_date, to_date, company] + income_accounts
+        
+        # Execute query
+        income_result = frappe.db.sql(query, params, as_dict=1)
+        regular_sales = flt(income_result[0].amount) if income_result and income_result[0].amount is not None else 0
     
-    # Format for SQL IN clause
-    placeholder_list = ', '.join(['%s'] * len(income_accounts))
+    # Part 2: Get special case sales from purchase invoices with specific tax templates
+    # Get company abbreviation to match template names
+    company_abbr = frappe.db.get_value("Company", company, "abbr")
     
-    # Query GL entries for income accounts - credits increase income, debits decrease income
-    query = """
-        SELECT SUM(
-            CASE 
-                WHEN gle.voucher_type = 'Sales Invoice' AND gle.credit > 0 THEN gle.credit
-                WHEN gle.voucher_type = 'Sales Invoice' AND gle.debit > 0 THEN -gle.debit
-                ELSE 0
-            END
-        ) as amount
-        FROM `tabGL Entry` gle
-        WHERE gle.posting_date BETWEEN %s AND %s
-        AND gle.company = %s
-        AND gle.account IN ({0})
-        AND gle.is_cancelled = 0
-        AND gle.docstatus = 1
-    """.format(placeholder_list)
+    # Template patterns to search for
+    special_templates = [
+        f"Reverse Charge - {company_abbr}", 
+        f"Zero-Rated - {company_abbr}"
+    ]
     
-    # Build parameters list
-    params = [from_date, to_date, company] + income_accounts
+    placeholder_list = ', '.join(['%s'] * len(special_templates))
     
-    # Execute query
-    income_result = frappe.db.sql(query, params, as_dict=1)
-    income_amount = flt(income_result[0].amount) if income_result and income_result[0].amount is not None else 0
+    special_sales = frappe.db.sql("""
+        SELECT SUM(base_net_total) as amount
+        FROM `tabPurchase Invoice`
+        WHERE posting_date BETWEEN %s AND %s
+        AND company = %s
+        AND taxes_and_charges IN ({0})
+        AND docstatus = 1
+        AND is_return = 0
+    """.format(placeholder_list), 
+    [from_date, to_date, company] + special_templates, as_dict=1)
     
-    return income_amount
+    special_sales_amount = flt(special_sales[0].amount) if special_sales and special_sales[0].amount is not None else 0
+    
+    # Combine both components
+    return regular_sales + special_sales_amount
 
 def get_box_7(company, from_date, to_date):
     # Get total purchases excluding VAT (including debit notes)
