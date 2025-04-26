@@ -421,21 +421,19 @@ def get_box_8a(company, from_date, to_date):
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Build query with proper address relationships
+    # Build simplified query using LEFT JOINs instead of INNER JOINs
     query = """
-        SELECT SUM(si.base_net_total) as amount
+        SELECT SUM(sii.base_net_amount) as amount
         FROM `tabSales Invoice` si
         INNER JOIN `tabSales Invoice Item` sii ON si.name = sii.parent
-        INNER JOIN `tabAddress` addr ON si.customer_address = addr.name
-        INNER JOIN `tabCustomer` cust ON si.customer = cust.name
-        INNER JOIN `tabItem` item ON sii.item_code = item.name
+        LEFT JOIN `tabAddress` addr ON si.customer_address = addr.name
+        LEFT JOIN `tabItem` item ON sii.item_code = item.name
         WHERE si.posting_date BETWEEN %s AND %s
         AND si.company = %s
         AND si.docstatus = 1
         AND addr.country IN ({0})
         AND addr.country != 'Cyprus'
-        AND cust.customer_type = 'Company'
-        AND item.item_group NOT IN ({1})
+        AND (item.item_group IS NULL OR item.item_group NOT IN ({1}))
     """.format(placeholder_list, service_placeholders)
     
     # Build parameters list - add EU countries and service groups to the parameters
