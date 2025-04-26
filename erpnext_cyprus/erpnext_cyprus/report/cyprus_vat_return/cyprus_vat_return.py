@@ -128,7 +128,7 @@ def get_data(filters):
     })
     
     # Box 6: Total value of sales and other outputs excluding VAT
-    total_sales = get_total_sales(company, from_date, to_date)
+    total_sales = get_box_6(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 6"),
         "description": _("Total value of sales and other outputs excluding VAT"),
@@ -136,7 +136,7 @@ def get_data(filters):
     })
     
     # Box 7: Total value of purchases and inputs excluding VAT
-    total_purchases = get_total_purchases(company, from_date, to_date)
+    total_purchases = get_box_7(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 7"),
         "description": _("Total value of purchases and inputs excluding VAT"),
@@ -352,7 +352,7 @@ def get_box_4(company, from_date, to_date):
     # Combine both VAT components
     return sales_vat + purchase_vat
 
-def get_total_sales(company, from_date, to_date):
+def get_box_6(company, from_date, to_date):
     # Get total sales excluding VAT (including credit notes)
     sales = frappe.db.sql("""
         SELECT 
@@ -365,7 +365,7 @@ def get_total_sales(company, from_date, to_date):
     
     return flt(sales[0].amount) if sales and sales[0].amount is not None else 0
 
-def get_total_purchases(company, from_date, to_date):
+def get_box_7(company, from_date, to_date):
     # Get total purchases excluding VAT (including debit notes)
     purchases = frappe.db.sql("""
         SELECT 
