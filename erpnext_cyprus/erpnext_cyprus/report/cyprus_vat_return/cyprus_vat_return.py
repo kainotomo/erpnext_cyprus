@@ -174,8 +174,8 @@ def get_data(filters):
     })
     
     # Box 11A & 11B: EU goods and services acquisitions
-    eu_acquisitions_goods = get_eu_goods_acquisitions(company, from_date, to_date)
-    eu_acquisitions_services = get_eu_services_acquisitions(company, from_date, to_date)
+    eu_acquisitions_goods = get_box_11a(company, from_date, to_date)
+    eu_acquisitions_services = get_box_11b(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 11A"),
         "description": _("Total value of acquisitions of goods from EU countries"),
@@ -534,7 +534,7 @@ def get_box_10(company, from_date, to_date):
     # Return result
     return flt(out_of_scope[0].amount) if out_of_scope and out_of_scope[0].amount is not None else 0
 
-def get_eu_goods_acquisitions(company, from_date, to_date):
+def get_box_11a(company, from_date, to_date):
     # Get EU countries list
     eu_countries = get_eu_countries()
     
@@ -545,59 +545,54 @@ def get_eu_goods_acquisitions(company, from_date, to_date):
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Build query with proper address relationships
+    # Build query using same pattern as get_box_8a but for purchase invoices
     query = """
-        SELECT SUM(
-            CASE WHEN pi.is_return = 0 THEN pi.base_net_total ELSE -pi.base_net_total END
-        ) as amount
+        SELECT SUM(pii.base_net_amount) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
-        INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
-        INNER JOIN `tabSupplier` supp ON pi.supplier = supp.name
-        INNER JOIN `tabItem` item ON pii.item_code = item.name
+        LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        LEFT JOIN `tabItem` item ON pii.item_code = item.name
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
         AND addr.country IN ({0})
-        AND addr.country != 'Cyprus'
-        AND supp.supplier_type = 'Company'
         AND item.item_group NOT IN ({1})
     """.format(placeholder_list, service_placeholders)
     
+    # Build parameters list
     params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else [])
+    
     eu_goods = frappe.db.sql(query, params, as_dict=1)
     
     return flt(eu_goods[0].amount) if eu_goods and eu_goods[0].amount is not None else 0
 
-def get_eu_services_acquisitions(company, from_date, to_date):
-    # Get EU countries list using utility function
+def get_box_11b(company, from_date, to_date):
+    # Get EU countries list
     eu_countries = get_eu_countries()
+    
+    # Get service item groups
+    service_groups = get_service_item_groups()
+    service_placeholders = ', '.join(['%s'] * len(service_groups)) if service_groups else "''"
     
     # Format for SQL IN clause
     placeholder_list = ', '.join(['%s'] * len(eu_countries))
     
-    # Build query with proper address relationships
+    # Build query using same pattern as get_box_8b but for purchase invoices
     query = """
-        SELECT SUM(
-            CASE WHEN pi.is_return = 0 THEN pi.base_net_total ELSE -pi.base_net_total END
-        ) as amount
+        SELECT SUM(pii.base_net_amount) as amount
         FROM `tabPurchase Invoice` pi
         INNER JOIN `tabPurchase Invoice Item` pii ON pi.name = pii.parent
-        INNER JOIN `tabAddress` addr ON pi.supplier_address = addr.name
-        INNER JOIN `tabSupplier` supp ON pi.supplier = supp.name
-        AND supp.supplier_type = 'Company'
+        LEFT JOIN `tabAddress` addr ON pi.supplier_address = addr.name
+        LEFT JOIN `tabItem` item ON pii.item_code = item.name
         WHERE pi.posting_date BETWEEN %s AND %s
         AND pi.company = %s
         AND pi.docstatus = 1
         AND addr.country IN ({0})
-        AND addr.country != 'Cyprus'
-        AND pii.item_code IN (
-            SELECT name FROM `tabItem` WHERE item_group = 'Services'
-        )
-    """.format(placeholder_list)
+        AND item.item_group IN ({1})
+    """.format(placeholder_list, service_placeholders)
     
-    # Build parameters list - add EU countries to the parameters
-    params = [from_date, to_date, company] + eu_countries
+    # Build parameters list
+    params = [from_date, to_date, company] + eu_countries + (service_groups if service_groups else [])
     
     eu_services = frappe.db.sql(query, params, as_dict=1)
     
