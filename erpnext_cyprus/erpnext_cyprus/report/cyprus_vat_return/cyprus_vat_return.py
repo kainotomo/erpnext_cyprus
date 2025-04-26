@@ -144,8 +144,8 @@ def get_data(filters):
     })
     
     # Box 8A & 8B: EU goods and services supplies
-    eu_supplies_goods = get_eu_goods_supplies(company, from_date, to_date)
-    eu_supplies_services = get_eu_services_supplies(company, from_date, to_date)
+    eu_supplies_goods = get_box_8a(company, from_date, to_date)
+    eu_supplies_services = get_box_8b(company, from_date, to_date)
     vat_return_data.append({
         "vat_field": _("Box 8A"),
         "description": _("Total value of supplies of goods to EU countries"),
@@ -410,7 +410,7 @@ def get_box_7(company, from_date, to_date):
     
     return total_purchases
 
-def get_eu_goods_supplies(company, from_date, to_date):
+def get_box_8a(company, from_date, to_date):
     # Get EU countries list using utility function
     eu_countries = get_eu_countries()
     
@@ -447,7 +447,7 @@ def get_eu_goods_supplies(company, from_date, to_date):
     
     return flt(eu_goods[0].amount) if eu_goods and eu_goods[0].amount is not None else 0
 
-def get_eu_services_supplies(company, from_date, to_date):
+def get_box_8b(company, from_date, to_date):
     # Get EU countries list using utility function
     eu_countries = get_eu_countries()
     
