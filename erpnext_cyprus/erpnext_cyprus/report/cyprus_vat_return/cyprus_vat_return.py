@@ -353,116 +353,36 @@ def get_box_4(company, from_date, to_date):
     return sales_vat + purchase_vat
 
 def get_box_6(company, from_date, to_date):
-    # Part 1: Get regular income from income accounts via GL entries
-    income_accounts = frappe.db.sql("""
-        SELECT name FROM `tabAccount`
-        WHERE root_type = 'Income' 
+    # Get total sales excluding VAT directly from Sales Invoice table
+    sales_query = """
+        SELECT SUM(base_net_total) as amount
+        FROM `tabSales Invoice`
+        WHERE posting_date BETWEEN %s AND %s
         AND company = %s
-        AND is_group = 0
-    """, company, as_dict=1)
+        AND docstatus = 1
+    """
     
-    income_accounts = [account.name for account in income_accounts]
+    # Execute query
+    sales_result = frappe.db.sql(sales_query, [from_date, to_date, company], as_dict=1)
+    total_sales = flt(sales_result[0].amount) if sales_result and sales_result[0].amount is not None else 0
     
-    if not income_accounts:
-        regular_sales = 0
-    else:
-        # Format for SQL IN clause
-        placeholder_list = ', '.join(['%s'] * len(income_accounts))
-        
-        # Query GL entries for income accounts - credits increase income, debits decrease income
-        query = """
-            SELECT SUM(
-                CASE 
-                    WHEN gle.voucher_type = 'Sales Invoice' AND gle.credit > 0 THEN gle.credit
-                    WHEN gle.voucher_type = 'Sales Invoice' AND gle.debit > 0 THEN -gle.debit
-                    ELSE 0
-                END
-            ) as amount
-            FROM `tabGL Entry` gle
-            WHERE gle.posting_date BETWEEN %s AND %s
-            AND gle.company = %s
-            AND gle.account IN ({0})
-            AND gle.is_cancelled = 0
-            AND gle.docstatus = 1
-        """.format(placeholder_list)
-        
-        # Build parameters list
-        params = [from_date, to_date, company] + income_accounts
-        
-        # Execute query
-        income_result = frappe.db.sql(query, params, as_dict=1)
-        regular_sales = flt(income_result[0].amount) if income_result and income_result[0].amount is not None else 0
-    
-    # Part 2: Get special case sales from purchase invoices with specific tax templates
-    # Get company abbreviation to match template names
-    company_abbr = frappe.db.get_value("Company", company, "abbr")
-    
-    # Template patterns to search for
-    special_templates = [
-        f"Reverse Charge - {company_abbr}", 
-        f"Zero-Rated - {company_abbr}"
-    ]
-    
-    placeholder_list = ', '.join(['%s'] * len(special_templates))
-    
-    special_sales = frappe.db.sql("""
+    return total_sales
+
+def get_box_7(company, from_date, to_date):
+    # Get total purchases excluding VAT directly from Purchase Invoice table
+    purchase_query = """
         SELECT SUM(base_net_total) as amount
         FROM `tabPurchase Invoice`
         WHERE posting_date BETWEEN %s AND %s
         AND company = %s
-        AND taxes_and_charges IN ({0})
         AND docstatus = 1
-        AND is_return = 0
-    """.format(placeholder_list), 
-    [from_date, to_date, company] + special_templates, as_dict=1)
-    
-    special_sales_amount = flt(special_sales[0].amount) if special_sales and special_sales[0].amount is not None else 0
-    
-    # Combine both components
-    return regular_sales + special_sales_amount
-
-def get_box_7(company, from_date, to_date):
-    # Get all expense accounts
-    expense_accounts = frappe.db.sql("""
-        SELECT name FROM `tabAccount`
-        WHERE root_type = 'Expense' 
-        AND company = %s
-        AND is_group = 0
-    """, company, as_dict=1)
-    
-    expense_accounts = [account.name for account in expense_accounts]
-    
-    if not expense_accounts:
-        return 0
-    
-    # Format for SQL IN clause
-    placeholder_list = ', '.join(['%s'] * len(expense_accounts))
-    
-    # Query GL entries for expense accounts - debits increase expenses, credits decrease expenses
-    query = """
-        SELECT SUM(
-            CASE 
-                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.debit > 0 THEN gle.debit
-                WHEN gle.voucher_type = 'Purchase Invoice' AND gle.credit > 0 THEN -gle.credit
-                ELSE 0
-            END
-        ) as amount
-        FROM `tabGL Entry` gle
-        WHERE gle.posting_date BETWEEN %s AND %s
-        AND gle.company = %s
-        AND gle.account IN ({0})
-        AND gle.is_cancelled = 0
-        AND gle.docstatus = 1
-    """.format(placeholder_list)
-    
-    # Build parameters list
-    params = [from_date, to_date, company] + expense_accounts
+    """
     
     # Execute query
-    expense_result = frappe.db.sql(query, params, as_dict=1)
-    expense_amount = flt(expense_result[0].amount) if expense_result and expense_result[0].amount is not None else 0
+    purchase_result = frappe.db.sql(purchase_query, [from_date, to_date, company], as_dict=1)
+    total_purchases = flt(purchase_result[0].amount) if purchase_result and purchase_result[0].amount is not None else 0
     
-    return expense_amount
+    return total_purchases
 
 def get_eu_goods_supplies(company, from_date, to_date):
     # Get EU countries list using utility function
