@@ -1,122 +1,213 @@
-# VAT Statement Guide for Cyprus
+# Cyprus VAT Return Guide
 
-The VAT Statement report in ERPNext Cyprus helps businesses prepare accurate VAT returns according to Cyprus tax regulations. This guide explains how to properly mark transactions to ensure your VAT statement is correct.
+The Cyprus VAT Return report in ERPNext Cyprus helps businesses prepare and submit their mandatory VAT returns to the Cyprus Tax Department. This guide explains how the report works, how to properly configure your system for accurate reporting, and how to interpret the results.
 
 ## Table of Contents
-1. [Setting Up Your Company](#setting-up-your-company)
-2. [Customer and Supplier Setup](#customer-and-supplier-setup)
-3. [Item Configuration](#item-configuration)
-4. [Sales Transactions](#sales-transactions)
-5. [Purchase Transactions](#purchase-transactions)
-6. [Special Scenarios](#special-scenarios)
-7. [VAT Return Boxes Explained](#vat-return-boxes-explained)
+1. [Understanding the Cyprus VAT Return](#understanding-the-cyprus-vat-return)
+2. [Company Configuration](#company-configuration)
+3. [Tax Account Setup](#tax-account-setup)
+4. [Transaction Configuration](#transaction-configuration)
+5. [Report Structure](#report-structure)
+6. [Report Interpretation](#report-interpretation)
+7. [Filing Requirements](#filing-requirements)
 
-## Setting Up Your Company
+## Understanding the Cyprus VAT Return
 
-Before recording transactions, ensure your company is correctly set up:
+The Cyprus VAT Return (Form VAT 4) is a mandatory tax filing that all VAT-registered businesses in Cyprus must submit. The return:
 
-1. Configure your company's Tax ID with the proper Cyprus format (CY followed by numbers)
-2. Set up VAT accounts:
-   - Cyprus VAT Output Account (for collecting VAT on sales)
-   - Cyprus VAT Input Account (for reclaiming VAT on purchases)
+- Reports VAT collected on sales and services (output tax)
+- Reports VAT paid on purchases and expenses (input tax)
+- Calculates net VAT payable or refundable
+- Reports values of domestic sales, exports, and acquisitions
+- Includes special categories for EU transactions and reverse charge scenarios
 
-## Customer and Supplier Setup
+VAT returns in Cyprus must typically be filed quarterly, though monthly filings may be required for businesses with high turnover or specific profiles.
 
-### Domestic Customers
-- Set Tax ID for Cyprus customers with "CY" prefix
-- Apply standard Cyprus VAT rates in sales transactions
+## Company Configuration
 
-### EU Customers
-- Enter Tax ID with correct country code (e.g., "DE" for Germany)
-- For B2B transactions to EU businesses, zero-rate VAT (reverse charge)
+Before using the Cyprus VAT Return report:
 
-### Non-EU Customers
-- Enter Tax ID if available
-- Zero-rate VAT for exports outside the EU
+1. Configure your company settings:
+   - Ensure your company's Tax ID is properly set up with the CY prefix
+   - Set up default currency as EUR
+   - Configure your fiscal year to match Cyprus tax calendar
 
-### Suppliers
-- For Cyprus suppliers: Enter Tax ID with "CY" prefix
-- For EU suppliers: Enter Tax ID with correct country code
-- For non-EU suppliers: Enter Tax ID if available
+2. VAT registration details:
+   - Enter your VAT registration number correctly
+   - Set up VAT filing frequency (monthly or quarterly)
+   - Configure tax calculation settings to match Cyprus requirements (19% standard rate, 9% reduced rate, 5% reduced rate, and 0% for zero-rated supplies)
 
-## Item Configuration
+## Tax Account Setup
 
-Correctly classify your items as goods or services:
+The ERPNext Cyprus app automatically configures the necessary tax accounts and templates for accurate VAT reporting:
 
-1. Navigate to Item master
-2. Enable the "Is Service" custom field:
-   - Set to "Yes" for services
-   - Set to "No" for physical goods
+1. **Tax Accounts**:
+   - **VAT Account**: Used for both input and output VAT transactions
+   - **OSS VAT Account**: Specifically for Mini One Stop Shop reporting for B2C digital services to EU consumers
 
-This distinction is crucial for EU sales and purchases reporting (Boxes 8A/8B and 11A/11B).
+2. **Tax Templates**:
+   - **Purchase Tax Templates**:
+     - **Reverse Charge**: Double-entry template with 19% VAT for EU acquisitions (adds and deducts VAT in the same transaction)
+     - **Standard Domestic**: For local purchases with 19% VAT
+     - **Zero-Rated**: For exempt purchases or imports
 
-## Sales Transactions
+   - **Sales Tax Templates**:
+     - **Standard Domestic**: For local sales with 19% VAT
+     - **Zero-Rated**: For EU B2B sales and exports
+     - **Out-of-Scope**: For transactions outside the VAT system
+     - **OSS Digital Services templates**: Country-specific templates for each EU member state with appropriate VAT rates
 
-### Domestic Sales
-- Apply standard Cyprus VAT rates
-- System will automatically calculate Box 1 (VAT due on sales)
+3. **Item Tax Templates**:
+   - **Cyprus Standard 19%**: For standard-rated goods and services
+   - **Cyprus Reduced 9%**: For reduced-rate items (e.g., restaurant services)
+   - **Cyprus Super Reduced 5%**: For super reduced-rate items (e.g., books, medicines)
+   - **Zero Rated**: For zero-rated supplies
+   - **Exempt**: For exempt supplies
 
-### EU Sales
-- For B2B transactions to VAT-registered EU businesses:
-  - Verify the customer has a valid EU Tax ID
-  - Zero-rate the invoice (no VAT)
-  - These will appear in Box 8A (goods) or 8B (services)
+4. **Tax Rules**:
+   The system automatically applies the correct tax template based on:
+   - Customer/supplier country
+   - Whether the transaction is B2B or B2C
+   - Type of goods/services
 
-### Exports Outside EU
-- Zero-rate the invoice
-- These will be reported in Box 9
+5. **Item Groups**:
+   Two special item groups are crucial for proper VAT reporting:
+   - **Professional Services**: For consulting, legal services, etc.
+   - **Digital Services**: For software, digital content, etc.
+   
+   These groups determine how transactions are reported in boxes 8A/8B (supply of goods vs services) and 11A/11B (acquisition of goods vs services) of the VAT return.
 
-### Out-of-Scope Sales
-- For transactions outside the scope of VAT but eligible for input tax deduction
-- Zero-rate the invoice
-- These will be reported in Box 10
+## Transaction Configuration
 
-## Purchase Transactions
+For accurate VAT reporting, ensure your transactions are properly categorized:
 
-### Domestic Purchases
-- Include VAT as charged by supplier
-- System will automatically include in Box 4 (VAT reclaimed)
+1. Sales Invoices:
+   - Apply the correct tax template based on the nature of the sale
+   - For EU B2B sales, use zero-rated templates and include customer VAT numbers
+   - For exports outside the EU, use zero-rated export templates
+   - For local sales, use the appropriate VAT rate template
 
-### EU Purchases (Reverse Charge)
-- Record the purchase without VAT
-- Create a reverse charge entry to account for both output VAT (Box 2) and input VAT (Box 4)
-- These will appear in Box 11A (goods) or 11B (services)
+2. Purchase Invoices:
+   - Apply the correct tax template based on the nature of the purchase
+   - For EU acquisitions, use reverse charge templates
+   - For local purchases, use standard VAT templates
+   - For imports from outside the EU, correctly record import VAT
 
-### Imports from Outside EU
-- Record import VAT paid
-- These will be included in Box 4 (VAT reclaimed)
+3. Item Configuration:
+   - Mark items as goods or services using the "Is Service" field
+   - This distinction is critical for EU reporting (Boxes 8A/8B and 11A/11B)
 
-## Special Scenarios
+4. Customer/Supplier Configuration:
+   - Properly record country and tax ID information
+   - For EU businesses, ensure the tax ID includes the correct country prefix
 
-### Reverse Charge Mechanism
-For EU purchases subject to reverse charge:
-1. Create a purchase invoice with zero VAT
-2. Create a journal entry to:
-   - Debit the VAT Input Account
-   - Credit the VAT Output Account
-   - Use the same amount for both
+## Report Structure
 
-### Partial Exemption
-If your business has exempt activities:
-- Consult with your accountant about partial exemption calculations
-- Adjust Box 4 (VAT reclaimed) accordingly
+The Cyprus VAT Return report includes the following boxes:
 
-## VAT Return Boxes Explained
+1. **Box 1**: VAT due on sales and other outputs
+   - Reports output VAT collected on domestic sales
+   - Includes adjustments for credit notes
 
-The system automatically calculates these values based on your transactions:
+2. **Box 2**: VAT due on acquisitions from EU countries
+   - Reports VAT due under reverse charge for EU acquisitions
+   - Represents the output portion of the reverse charge mechanism
 
-- **Box 1**: VAT due on sales and other outputs
-- **Box 2**: VAT due on acquisitions from other EU Member States
-- **Box 3**: Total VAT due (Box 1 + Box 2)
-- **Box 4**: VAT reclaimed on purchases and inputs
-- **Box 5**: Net VAT payable or reclaimable (Box 3 - Box 4)
-- **Box 6**: Total value of sales excluding VAT
-- **Box 7**: Total value of purchases excluding VAT
-- **Box 8A**: Value of goods supplied to EU Member States
-- **Box 8B**: Value of services supplied to EU Member States
-- **Box 9**: Value of zero-rated supplies (exports outside EU)
-- **Box 10**: Value of out-of-scope sales with right to deduct input tax
-- **Box 11A**: Value of goods acquired from EU Member States
-- **Box 11B**: Value of services received from anywhere
+3. **Box 3**: Total VAT due (sum of boxes 1 and 2)
+   - Total output VAT liability for the period
 
-By following these guidelines, your VAT statement report will accurately reflect your business transactions according to Cyprus tax regulations.
+4. **Box 4**: VAT reclaimed on purchases and other inputs
+   - Reports input VAT paid on domestic purchases and expenses
+   - Includes VAT reclaimed on imports and EU acquisitions
+   - Includes adjustments for debit notes
+
+5. **Box 5**: Net VAT to be paid or reclaimed
+   - The difference between Box 3 and Box 4
+   - Represents final VAT payable (if positive) or refundable (if negative)
+
+6. **Box 6**: Total value of sales and other outputs excluding VAT
+   - Reports net value of all sales and outputs (excluding VAT)
+   - Includes domestic sales, EU supplies, exports, and out-of-scope sales
+
+7. **Box 7**: Total value of purchases and inputs excluding VAT
+   - Reports net value of all purchases and inputs (excluding VAT)
+   - Includes domestic purchases, EU acquisitions, and imports
+
+8. **Box 8A**: Total value of supplies of goods to EU countries
+   - Reports value of goods supplied to VAT-registered businesses in other EU countries
+   - Must be reported separately for EU Intrastat reporting
+
+9. **Box 8B**: Total value of supplies of services to EU countries
+   - Reports value of services supplied to VAT-registered businesses in other EU countries
+   - Subject to place of supply rules
+
+10. **Box 9**: Total value of exports to non-EU countries
+    - Reports value of goods exported to countries outside the EU
+    - Zero-rated for VAT purposes
+
+11. **Box 10**: Total value of out-of-scope sales
+    - Reports value of sales that are outside the scope of VAT but with right to input tax deduction
+
+12. **Box 11A**: Total value of acquisitions of goods from EU countries
+    - Reports value of goods acquired from VAT-registered businesses in other EU countries
+    - Subject to reverse charge mechanism
+
+13. **Box 11B**: Total value of acquisitions of services from EU countries
+    - Reports value of services acquired from VAT-registered businesses in other EU countries
+    - Subject to reverse charge mechanism and place of supply rules
+
+## Report Interpretation
+
+The Cyprus VAT Return report provides:
+
+- **Field**: Box number as referenced in the official VAT return form
+- **Description**: Explanation of what the box represents
+- **Amount (EUR)**: The calculated value for the reporting period
+
+Key points to understand:
+
+1. **VAT Payment/Refund**: Box 5 shows whether you need to pay VAT (positive number) or are entitled to a refund (negative number)
+
+2. **EU Reporting**: Boxes 8A, 8B, 11A, and 11B help identify transactions that may need to be included in VIES statements
+
+3. **Cross-Validation**: You should verify that:
+   - Box 6 includes the values from Boxes 8A, 8B, 9, 10, and the domestic supplies
+   - Box 7 includes the values from Boxes 11A and 11B, plus domestic purchases
+   - Box 2 represents the output VAT equivalent for the values in Boxes 11A and 11B
+   
+4. **Common Issues**:
+   - Mismatch between VAT return and your VIES statements
+   - Missing reverse charge entries for EU acquisitions
+   - Incorrect tax templates applied to transactions
+
+## Filing Requirements
+
+Filing requirements for Cyprus VAT returns:
+
+1. **Submission Frequency**:
+   - Quarterly for most businesses
+   - Monthly for businesses with annual turnover exceeding €1,500,000
+
+2. **Filing Deadlines**:
+   - Within 40 days from the end of the VAT period
+   - Payment must be made by the same deadline
+
+3. **Filing Methods**:
+   - Electronic filing through the TAXISnet system
+   - Paper submission is no longer accepted for most businesses
+
+4. **Documentation**:
+   - Keep all supporting documentation for at least 6 years
+   - This includes invoices, credit notes, import documents, etc.
+
+5. **Penalties**:
+   - Late filing penalties: €51 per return
+   - Late payment penalties: 10% of unpaid tax
+   - Interest on late payments: Currently 1.75% per annum
+
+6. **VAT Adjustments**:
+   - If you discover errors in previous returns, corrections should be made
+   - Minor errors can be adjusted in the current return
+   - Major errors require submission of revised returns
+
+By following these guidelines and properly configuring your ERPNext Cyprus system, your Cyprus VAT Return report will accurately reflect your VAT obligations, helping you maintain compliance with Cyprus tax regulations and avoid potential penalties.
