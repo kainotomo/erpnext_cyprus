@@ -57,23 +57,6 @@ frappe.query_reports["Cyprus VAT Return"] = {
     "onload": function(report) {
         // Find and set the current fiscal year
         setCurrentFiscalYear();
-        
-        report.page.add_inner_button(__("Download Cyprus VAT Format"), function() {
-            // This would generate the official VAT format download
-            let filters = report.get_values();
-            
-            frappe.call({
-                method: "erpnext_cyprus.erpnext_cyprus.report.cyprus_vat_return.cyprus_vat_return.export_vat_return",
-                args: {
-                    filters: filters
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        window.open(r.message);
-                    }
-                }
-            });
-        });
     }
 };
 

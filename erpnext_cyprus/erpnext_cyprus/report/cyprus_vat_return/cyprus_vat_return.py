@@ -598,51 +598,6 @@ def get_box_11b(company, from_date, to_date):
     
     return flt(eu_services[0].amount) if eu_services and eu_services[0].amount is not None else 0
 
-@frappe.whitelist()
-def export_vat_return(filters):
-    """
-    Export VAT return in the format required by Cyprus tax authorities
-    """
-    import json
-    if isinstance(filters, str):
-        filters = json.loads(filters)
-    
-    # Get the tax ID from the company - no longer passed as a filter
-    company = filters.get('company')
-    tax_id = frappe.db.get_value("Company", company, "tax_id")
-    
-    # Ensure dates are set if using fiscal_year and quarter
-    if not filters.get('from_date') or not filters.get('to_date'):
-        fiscal_year = filters.get('fiscal_year')
-        quarter = filters.get('quarter')
-        if fiscal_year and quarter:
-            dates = get_quarter_dates(fiscal_year, quarter)
-            filters['from_date'] = dates['from_date']
-            filters['to_date'] = dates['to_date']
-    
-    # Generate the file content based on Cyprus Tax Authority requirements
-    content = "Cyprus VAT Return\n"
-    content += f"Company: {company}\n"
-    content += f"Tax ID: {tax_id}\n"
-    content += f"Period: {filters.get('from_date')} to {filters.get('to_date')}\n\n"
-    
-    # Add VAT details - actual implementation would format this according to Cyprus tax authority specs
-    data = get_data(filters)
-    for row in data:
-        content += f"{row['vat_field']}: {row['description']}: {row['amount']}\n"
-    
-    # Save the file
-    file_name = f"cyprus_vat_return_{filters.get('from_date')}_{filters.get('to_date')}.txt"
-    file_url = frappe.utils.file_manager.save_file(
-        file_name, 
-        content, 
-        "Company", 
-        company, 
-        is_private=1
-    )
-    
-    return file_url.get('file_url')
-
 def get_service_item_groups():
     """Get all item groups that represent services (Professional Services, Digital Services and their children)"""
     service_groups = []
