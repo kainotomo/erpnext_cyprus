@@ -130,9 +130,23 @@ function updateDateRange() {
     
     // Get the year part from fiscal year
     frappe.db.get_value("Fiscal Year", fiscal_year, ["year_start_date", "year_end_date"], function(value) {
-        if (!value) return;
+        let year;
         
-        let year = new Date(value.message.year_start_date).getFullYear();
+        // Try to get year from fiscal year value or fallback to extracting from fiscal year name
+        if (!value || !value.message || !value.message.year_start_date) {
+            
+            // Try to extract the year from fiscal year name (which often includes the year)
+            const yearMatch = fiscal_year.match(/\d{4}/);
+            if (yearMatch) {
+                year = yearMatch[0];
+            } else {
+                // If we can't extract year from name, use current year
+                year = new Date().getFullYear();
+            }
+        } else {
+            year = new Date(value.message.year_start_date).getFullYear();
+        }
+        
         let from_date, to_date;
         
         // Extract quarter value from the display string
@@ -159,5 +173,6 @@ function updateDateRange() {
         
         frappe.query_report.set_filter_value('from_date', from_date);
         frappe.query_report.set_filter_value('to_date', to_date);
+        frappe.query_report.refresh();
     });
 }
