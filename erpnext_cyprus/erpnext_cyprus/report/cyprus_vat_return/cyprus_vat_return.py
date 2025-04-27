@@ -8,47 +8,14 @@ from erpnext_cyprus.utils.tax_utils import get_tax_accounts
 from erpnext_cyprus.utils.tax_utils import get_eu_countries
 
 def execute(filters=None):
-    # Ensure from_date and to_date are set
-    if not filters.get('from_date') or not filters.get('to_date'):
-        fiscal_year = filters.get('fiscal_year')
-        quarter = filters.get('quarter')
-        if fiscal_year and quarter:
-            dates = get_quarter_dates(fiscal_year, quarter)
-            filters['from_date'] = dates['from_date']
-            filters['to_date'] = dates['to_date']
-    
     return get_columns(), get_data(filters)
 
-def get_quarter_dates(fiscal_year, quarter):
-    """Get the start and end dates for the specified quarter"""
-    if not fiscal_year or not quarter:
-        return {'from_date': None, 'to_date': None}
-    
-    # Get fiscal year start date
-    year_details = frappe.get_doc("Fiscal Year", fiscal_year)
-    year = getdate(year_details.year_start_date).year
-    
-    # Extract quarter info
-    quarter_start = None
-    quarter_end = None
-    
-    if "Q1" in quarter:
-        quarter_start = f"{year}-01-01"
-        quarter_end = f"{year}-03-31"
-    elif "Q2" in quarter:
-        quarter_start = f"{year}-04-01"
-        quarter_end = f"{year}-06-30"
-    elif "Q3" in quarter:
-        quarter_start = f"{year}-07-01"
-        quarter_end = f"{year}-09-30"
-    elif "Q4" in quarter:
-        quarter_start = f"{year}-10-01"
-        quarter_end = f"{year}-12-31"
-    
-    return {
-        'from_date': quarter_start,
-        'to_date': quarter_end
-    }
+def get_filters(filters):
+	company = filters.get("company")
+	date_range = filters.get("date_range")
+	from_date, to_date = date_range if date_range else (None, None)
+	cost_center = filters.get("cost_center")
+	return company, from_date, to_date, cost_center
 
 def get_columns():
     return [
@@ -75,8 +42,8 @@ def get_columns():
 
 def get_data(filters):
     company = filters.get("company")
-    from_date = filters.get("from_date")
-    to_date = filters.get("to_date")
+    date_range = filters.get("date_range")
+    from_date, to_date = date_range if date_range else (None, None)
     
     if not company or not from_date or not to_date:
         return []
