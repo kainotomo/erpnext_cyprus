@@ -10,18 +10,6 @@ from erpnext_cyprus.utils.tax_utils import (
     setup_item_groups,
     setup_cyprus_territories
 )
-from erpnext_cyprus.utils.create_sample_data import (
-    create_sample_suppliers,
-    delete_sample_suppliers,
-    create_sample_customers,
-    delete_sample_customers,
-    create_sample_items,
-    delete_sample_items,
-    create_sample_purchase_invoices,
-    delete_sample_purchase_invoices,
-    create_sample_sales_invoices,
-    delete_sample_sales_invoices
-)
 
 @frappe.whitelist()
 def setup_cyprus_company(company):
