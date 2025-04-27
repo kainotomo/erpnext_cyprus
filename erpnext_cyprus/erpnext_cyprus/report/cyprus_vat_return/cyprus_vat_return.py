@@ -10,13 +10,6 @@ from erpnext_cyprus.utils.tax_utils import get_eu_countries
 def execute(filters=None):
     return get_columns(), get_data(filters)
 
-def get_filters(filters):
-	company = filters.get("company")
-	date_range = filters.get("date_range")
-	from_date, to_date = date_range if date_range else (None, None)
-	cost_center = filters.get("cost_center")
-	return company, from_date, to_date, cost_center
-
 def get_columns():
     return [
         {
@@ -44,6 +37,7 @@ def get_data(filters):
     company = filters.get("company")
     date_range = filters.get("date_range")
     from_date, to_date = date_range if date_range else (None, None)
+    cost_center = filters.get("cost_center")
     
     if not company or not from_date or not to_date:
         return []
