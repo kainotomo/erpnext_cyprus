@@ -13,20 +13,6 @@ frappe.query_reports["Cyprus VAT Return"] = {
             label: __("Date Range"),
             fieldtype: "DateRange",
             reqd: 1
-        },
-        {
-            fieldname: "cost_center",
-            label: __("Cost Center"),
-            fieldtype: "Link",
-            options: "Cost Center",
-            reqd: 0,
-            get_query: function() {
-                return {
-                    filters: {
-                        company: frappe.query_report.get_filter_value("company")
-                    }
-                };
-            }
         }
     ],
     "formatter": function(value, row, column, data, default_formatter) {

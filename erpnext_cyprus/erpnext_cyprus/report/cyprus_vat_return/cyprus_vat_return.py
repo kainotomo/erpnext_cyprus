@@ -37,7 +37,6 @@ def get_data(filters):
     company = filters.get("company")
     date_range = filters.get("date_range")
     from_date, to_date = date_range if date_range else (None, None)
-    cost_center = filters.get("cost_center")
     
     if not company or not from_date or not to_date:
         return []
