@@ -215,9 +215,6 @@ def create_sample_customers(company=None):
     if company and not frappe.db.exists("Company", company):
         frappe.throw(_("Company {0} does not exist").format(company))
     
-    # Make sure customer groups exist
-    ensure_customer_groups_exist()
-    
     # Define the sample customers to create
     sample_customers = [
         # Local customers (Cyprus)
@@ -444,18 +441,6 @@ def delete_sample_customers(company=None):
         "errors": errors,
         "message": _("Successfully deleted {0} sample customers").format(len(deletion_log))
     }
-
-def ensure_customer_groups_exist():
-    """Ensure that required customer groups exist"""
-    required_groups = ["Individual", "Commercial"]
-    
-    for group in required_groups:
-        if not frappe.db.exists("Customer Group", group):
-            frappe.get_doc({
-                "doctype": "Customer Group",
-                "customer_group_name": group,
-                "is_group": 0
-            }).insert()
 
 # Helper function to provide appropriate city names for different countries
 def get_default_city_for_country(country):
