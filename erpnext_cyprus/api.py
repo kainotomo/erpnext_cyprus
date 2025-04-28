@@ -6,9 +6,7 @@ from erpnext_cyprus.utils.tax_utils import (
     setup_purchase_tax_templates,
     setup_sales_tax_templates,
     setup_item_tax_templates,
-    setup_tax_rules,
-    setup_item_groups,
-    setup_cyprus_territories
+    setup_tax_rules
 )
 from erpnext_cyprus.utils.create_sample_data import (
     create_sample_suppliers,
@@ -44,8 +42,7 @@ def setup_cyprus_company(company):
         "purchase_templates_added": [],
         "sales_templates_added": [],
         "item_tax_templates_added": [],
-        "tax_rules_added": [],
-        "territories_added": []
+        "tax_rules_added": []
     }
     
     # Step 1: Setup chart of accounts
@@ -54,26 +51,6 @@ def setup_cyprus_company(company):
     results["accounts_added"] = accounts_created
     frappe.msgprint(_("Chart of accounts setup completed. Created: {0}").format(
         ", ".join(accounts_created) if accounts_created else "None"))
-    
-    # Commit changes before proceeding
-    frappe.db.commit()
-    
-    # Step 1.5: Setup territories (between steps 1 and 2)
-    frappe.msgprint(_("Setting up territories"))
-    territories_created = setup_cyprus_territories()
-    results["territories_added"] = territories_created
-    frappe.msgprint(_("Territories setup completed. Created: {0}").format(
-        ", ".join(territories_created) if territories_created else "None"))
-    
-    # Commit changes before proceeding
-    frappe.db.commit()
-    
-    # Step 2: Setup required item groups
-    frappe.msgprint(_("Step 2: Setting up required item groups"))
-    item_groups_created = setup_item_groups()  # Corrected
-    results["item_groups_added"] = item_groups_created
-    frappe.msgprint(_("Item groups setup completed. Created: {0}").format(
-        ", ".join(item_groups_created) if item_groups_created else "None"))
     
     # Commit changes before proceeding
     frappe.db.commit()

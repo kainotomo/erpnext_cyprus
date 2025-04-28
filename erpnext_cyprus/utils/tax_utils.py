@@ -77,7 +77,7 @@ def setup_purchase_tax_templates(company):
                 }
             ]
         },
-        # Exempt purchases
+        # Zero-rated purchases
         {
             "title": "Zero-Rated",
             "company": company,
@@ -291,15 +291,6 @@ def setup_item_tax_templates(company):
                     "tax_rate": 0
                 }
             ]
-        },
-        {
-            "title": "Exempt",
-            "taxes": [
-                {
-                    "tax_type": vat_account,
-                    "tax_rate": 0
-                }
-            ]
         }
     ]
     
@@ -458,9 +449,6 @@ def setup_tax_rules(company):
         if "customer_group" in rule_data:
             filters["customer_group"] = rule_data["customer_group"]
             
-        if "supplier_group" in rule_data:
-            filters["supplier_group"] = rule_data["supplier_group"]
-            
         existing_rule = frappe.db.exists("Tax Rule", filters)
         
         if not existing_rule:
@@ -529,91 +517,3 @@ def get_eu_vat_rates():
 def get_eu_countries():
     """Return a list of EU countries"""
     return list(get_eu_vat_rates().keys())
-
-def setup_item_groups():
-    """
-    Set up the required item groups for Cyprus tax rules
-    """
-    groups_created = []
-    
-    # Define the required item groups
-    required_item_groups = [
-        {
-            "item_group_name": "Professional Services",
-            "parent_item_group": "All Item Groups",
-            "is_group": 1,
-            "description": "These are expertise-driven services that involve specialized knowledge and skills, such as consulting, legal advice, marketing, IT support, and training. They often require direct interaction between the service provider and client, making them distinct from automated digital offerings."
-        },
-        {
-            "item_group_name": "Digital Services",
-            "parent_item_group": "All Item Groups",
-            "is_group": 1,
-            "description": "These are technology-based services provided online, including software licensing, cloud hosting, digital content delivery, e-learning, and automated solutions like SaaS (Software as a Service). Digital services are often subscription-based or pay-per-use and fall under specific VAT regulations, such as the OSS scheme for EU sales."
-        }
-    ]
-    
-    # Create each item group if it doesn't already exist
-    for group_data in required_item_groups:
-        existing_group = frappe.db.exists("Item Group", group_data["item_group_name"])
-        
-        if not existing_group:
-            # Check if parent exists, default to "All Item Groups" if not
-            parent_exists = frappe.db.exists("Item Group", group_data["parent_item_group"])
-            parent_group = group_data["parent_item_group"] if parent_exists else "All Item Groups"
-            
-            # Create the item group
-            new_group = frappe.get_doc({
-                "doctype": "Item Group",
-                "item_group_name": group_data["item_group_name"],
-                "parent_item_group": parent_group,
-                "is_group": group_data["is_group"],
-                "description": group_data["description"]
-            })
-            
-            try:
-                new_group.insert()
-                groups_created.append(group_data["item_group_name"])
-                frappe.db.commit()
-            except Exception as e:
-                frappe.log_error(f"Error creating item group {group_data['item_group_name']}: {str(e)}")
-    
-    return groups_created
-
-def setup_cyprus_territories():
-    """
-    Set up territories needed for Cyprus VAT reporting (simplified structure)
-    """
-    territories_created = []
-    
-    # Define base required territories
-    required_territories = [
-        {
-            "territory_name": "Cyprus",
-            "parent_territory": "All Territories",
-            "is_group": 0
-        },
-        {
-            "territory_name": "EU",
-            "parent_territory": "All Territories",
-            "is_group": 0
-        },
-        {
-            "territory_name": "Rest Of The World",
-            "parent_territory": "All Territories",
-            "is_group": 1
-        }
-    ]
-    
-    # Create territories if they don't exist
-    for territory_data in required_territories:
-        if not frappe.db.exists("Territory", territory_data["territory_name"]):
-            territory = frappe.get_doc({
-                "doctype": "Territory",
-                "territory_name": territory_data["territory_name"],
-                "parent_territory": territory_data["parent_territory"],
-                "is_group": territory_data["is_group"]
-            })
-            territory.insert(ignore_permissions=True)
-            territories_created.append(territory_data["territory_name"])
-    
-    return territories_created
