@@ -83,7 +83,7 @@ frappe.ui.form.on('Company', {
                         });
                     }
                 );
-            }, __('Utilities'));
+            }, __('Cyprus Specifics'));
 
             frm.add_custom_button(__('Create Sample Data'), function() {
                 frappe.confirm(
@@ -111,7 +111,7 @@ frappe.ui.form.on('Company', {
                         });
                     }
                 );
-            }, __('Utilities'));
+            }, __('Cyprus Specifics'));
 
             frm.add_custom_button(__('Delete Sample Data'), function() {
                 frappe.confirm(
@@ -139,7 +139,7 @@ frappe.ui.form.on('Company', {
                         });
                     }
                 );
-            }, __('Utilities'));
+            }, __('Cyprus Specifics'));
         }
     },
     
