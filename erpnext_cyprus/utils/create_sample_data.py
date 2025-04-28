@@ -524,12 +524,13 @@ def create_sample_items(company=None):
             "vat_rate": 0,
         },
         
-        # Digital services (for OSS testing)
+        # Service items (non-stock)
         {
-            "item_name": "Sample Item Digital",
+            "item_name": "Sample Item Service",
             "item_group": "All Item Groups",
             "item_code": "E2C-5",
             "is_stock_item": 0,
+            "custom_is_service": 1,
             "standard_rate": 100,
             "stock_uom": "Nos"
         },
@@ -743,6 +744,13 @@ def create_sample_purchase_invoices(company=None):
             "items": ["E2C-3"],  # Super-reduced VAT item
             "description": "Purchase from local supplier with super-reduced VAT rate (5%)"
         },
+        # 4. Service purchase from local supplier
+        {
+            "title": "Local Service Purchase",
+            "supplier": "Cyprus Supplier - E2C",
+            "items": ["E2C-5"],  # Service item
+            "description": "Purchase of services from local supplier"
+        },
         # 5. Within EU B2B
         {
             "title": "EU B2B Purchase (Reverse Charge)",
@@ -750,12 +758,26 @@ def create_sample_purchase_invoices(company=None):
             "items": ["E2C-1"],
             "description": "Purchase from EU business with reverse charge"
         },
+        # 6. EU B2B Service Purchase
+        {
+            "title": "EU B2B Service Purchase (Reverse Charge)",
+            "supplier": "EU Supplier - E2C",
+            "items": ["E2C-5"],  # Service item
+            "description": "Purchase of services from EU business with reverse charge"
+        },
         # 7. Outside EU
         {
             "title": "Non-EU Purchase",
             "supplier": "US Supplier - E2C",
             "items": ["E2C-1"],
             "description": "Purchase from outside EU"
+        },
+        # 8. Non-EU Service Purchase
+        {
+            "title": "Non-EU Service Purchase",
+            "supplier": "US Supplier - E2C",
+            "items": ["E2C-5"],  # Service item
+            "description": "Purchase of services from non-EU supplier"
         }
     ]
     
