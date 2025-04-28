@@ -940,7 +940,7 @@ def delete_sample_purchase_invoices():
 @frappe.whitelist()
 def create_sample_sales_invoices(company=None):
     """
-    Create sample sales invoices covering all Cyprus VAT scenarios
+    Create sample sales invoices covering specific Cyprus VAT scenarios
     
     Args:
         company: Company to create sales invoices for (required)
@@ -962,145 +962,76 @@ def create_sample_sales_invoices(company=None):
     if not default_income_account:
         frappe.throw(_("Please set default income account for company {0}").format(company))
     
-    # Test scenarios
+    # Test scenarios for specific VAT cases
     sales_scenarios = [
-        # 1. Local sales with different VAT rates
+        # 1. Domestic standard VAT (19%)
         {
-            "title": "Local B2C Sale (19% VAT)",
-            "customer": "Cyprus Retail Consumer - E2C",
+            "title": "Domestic Standard VAT (19%)",
+            "customer": "Cyprus B2C Customer - E2C",
             "items": [
-                {"item_code": "CY-STD-DESK", "qty": 1, "rate": 450},
-                {"item_code": "CY-STD-LAPTOP", "qty": 1, "rate": 999}
+                {"item_code": "E2C-1", "qty": 1, "rate": 100}
             ],
             "description": "Sale to local consumer with standard VAT rate (19%)"
         },
+        
+        # 2. Domestic reduced VAT (9%)
         {
-            "title": "Local B2B Sale (19% VAT)",
-            "customer": "Cyprus Business Ltd - E2C",
+            "title": "Domestic Reduced VAT (9%)",
+            "customer": "Cyprus B2C Customer - E2C",
             "items": [
-                {"item_code": "CY-STD-DESK", "qty": 5, "rate": 400},
-                {"item_code": "CY-STD-ITSUPPORT", "qty": 10, "rate": 90}
+                {"item_code": "E2C-2", "qty": 1, "rate": 100}
             ],
-            "description": "Sale to local business with standard VAT rate (19%)"
-        },
-        {
-            "title": "Local Sale with Reduced VAT (9%)",
-            "customer": "Cyprus Retail Consumer - E2C",
-            "items": [
-                {"item_code": "CY-RED-HOTEL", "qty": 3, "rate": 150},
-                {"item_code": "CY-RED-MEAL", "qty": 4, "rate": 35}
-            ],
-            "description": "Sale of hotel services and restaurant meals with reduced VAT rate (9%)"
-        },
-        {
-            "title": "Local Sale with Super-reduced VAT (5%)",
-            "customer": "Cyprus Retail Consumer - E2C",
-            "items": [
-                {"item_code": "CY-SRED-BOOK", "qty": 5, "rate": 45},
-                {"item_code": "CY-SRED-PHARMA", "qty": 2, "rate": 25}
-            ],
-            "description": "Sale of books and pharmaceuticals with super-reduced VAT rate (5%)"
-        },
-        {
-            "title": "Local Sale of Exempt Items",
-            "customer": "Cyprus Business Ltd - E2C",
-            "items": [
-                {"item_code": "CY-EXEMPT-INS", "qty": 1, "rate": 200},
-                {"item_code": "CY-EXEMPT-MED", "qty": 5, "rate": 95}
-            ],
-            "description": "Sale of exempt services (insurance, medical)"
-        },
-        {
-            "title": "Mixed Local Sale (Multiple VAT Rates)",
-            "customer": "Cyprus Business Ltd - E2C",
-            "items": [
-                {"item_code": "CY-STD-LAPTOP", "qty": 1, "rate": 999},  # 19%
-                {"item_code": "CY-RED-MEAL", "qty": 2, "rate": 35},     # 9%
-                {"item_code": "CY-SRED-BOOK", "qty": 3, "rate": 45},    # 5%
-                {"item_code": "CY-EXEMPT-INS", "qty": 1, "rate": 200}   # Exempt
-            ],
-            "description": "Sale with multiple VAT rates (19%, 9%, 5%, exempt)"
+            "description": "Sale to local consumer with reduced VAT rate (9%)"
         },
         
-        # 2. EU sales
+        # 3. Domestic super-reduced VAT (5%)
         {
-            "title": "EU B2B Sale (Reverse Charge)",
-            "customer": "German Corporation GmbH - E2C",
+            "title": "Domestic Super-reduced VAT (5%)",
+            "customer": "Cyprus B2C Customer - E2C",
             "items": [
-                {"item_code": "CY-STD-DESK", "qty": 10, "rate": 380},
-                {"item_code": "CY-STD-LAPTOP", "qty": 5, "rate": 950}
+                {"item_code": "E2C-3", "qty": 1, "rate": 100}
             ],
-            "description": "Sale to EU business with VAT number (reverse charge)"
-        },
-        {
-            "title": "EU B2B Services (Reverse Charge)",
-            "customer": "French Enterprise SARL - E2C",
-            "items": [
-                {"item_code": "CY-STD-ITSUPPORT", "qty": 20, "rate": 85}
-            ],
-            "description": "Sale of services to EU business with VAT number (reverse charge)"
-        },
-        {
-            "title": "EU B2C Sale",
-            "customer": "Maria Schmidt - E2C",
-            "items": [
-                {"item_code": "CY-STD-DESK", "qty": 1, "rate": 450}
-            ],
-            "description": "Sale of goods to EU customer without VAT number"
-        },
-        {
-            "title": "EU B2C Digital Service (OSS)",
-            "customer": "Pierre Dubois - E2C",
-            "items": [
-                {"item_code": "CY-DIG-SUB", "qty": 1, "rate": 12.99}
-            ],
-            "description": "Sale of digital services to EU consumer (OSS rules)"
-        },
-        {
-            "title": "EU Distance Selling",
-            "customer": "Italian Small Business - E2C",
-            "items": [
-                {"item_code": "CY-SRED-BOOK", "qty": 20, "rate": 40},
-                {"item_code": "CY-STD-DESK", "qty": 2, "rate": 430}
-            ],
-            "description": "Distance selling to EU business without VAT number"
+            "description": "Sale to local consumer with super-reduced VAT rate (5%)"
         },
         
-        # 3. Non-EU sales (exports)
+        # 4. Domestic service item
+        {
+            "title": "Domestic Service Item",
+            "customer": "Cyprus B2B Customer - E2C",
+            "items": [
+                {"item_code": "E2C-5", "qty": 1, "rate": 100}
+            ],
+            "description": "Sale of service to local business with standard VAT rate"
+        },
+        
+        # 5. EU B2B non-service item (reverse charge)
+        {
+            "title": "EU B2B Goods (Reverse Charge)",
+            "customer": "EU B2B Customer - E2C",
+            "items": [
+                {"item_code": "E2C-1", "qty": 1, "rate": 100}
+            ],
+            "description": "Sale of goods to EU business with VAT number (reverse charge)"
+        },
+        
+        # 6. EU B2C service item
+        {
+            "title": "EU B2C Service",
+            "customer": "EU B2C Customer - E2C",
+            "items": [
+                {"item_code": "E2C-5", "qty": 1, "rate": 100}
+            ],
+            "description": "Sale of service to EU consumer (B2C)"
+        },
+        
+        # 7. Outside EU (export - zero-rated)
         {
             "title": "Non-EU Export (Zero-rated)",
-            "customer": "UK Trading Ltd - E2C",
+            "customer": "US Customer - E2C",
             "items": [
-                {"item_code": "CY-ZERO-EXPORT", "qty": 10, "rate": 210},
-                {"item_code": "CY-STD-LAPTOP", "qty": 3, "rate": 880}
+                {"item_code": "E2C-4", "qty": 1, "rate": 100}
             ],
             "description": "Export of goods to non-EU country (zero-rated)"
-        },
-        {
-            "title": "Non-EU B2B Services",
-            "customer": "US Corporation Inc - E2C",
-            "items": [
-                {"item_code": "CY-STD-ITSUPPORT", "qty": 15, "rate": 95}
-            ],
-            "description": "Sale of services to non-EU business"
-        },
-        {
-            "title": "Non-EU B2C Digital Service",
-            "customer": "John Smith - E2C",
-            "items": [
-                {"item_code": "CY-DIG-SUB", "qty": 1, "rate": 12.99}
-            ],
-            "description": "Sale of digital services to non-EU consumer"
-        },
-        
-        # 4. Special cases
-        {
-            "title": "Triangulation Sale",
-            "customer": "French Enterprise SARL - E2C",
-            "items": [
-                {"item_code": "CY-TRI-GOODS", "qty": 5, "rate": 480}
-            ],
-            "description": "Sale in triangulation arrangement (middleman scenario)"
         }
     ]
     
@@ -1114,6 +1045,7 @@ def create_sample_sales_invoices(company=None):
         # Check if customer exists
         customer_exists = frappe.db.exists("Customer", {"customer_name": scenario["customer"]})
         if not customer_exists:
+            frappe.log_error(f"Customer {scenario['customer']} not found for scenario {scenario['title']}")
             continue
             
         customer = frappe.get_doc("Customer", {"customer_name": scenario["customer"]})
@@ -1134,6 +1066,7 @@ def create_sample_sales_invoices(company=None):
         # Add items
         for item_data in scenario["items"]:
             if not frappe.db.exists("Item", item_data["item_code"]):
+                frappe.log_error(f"Item {item_data['item_code']} not found for scenario {scenario['title']}")
                 continue
                 
             si.append("items", {
@@ -1146,6 +1079,7 @@ def create_sample_sales_invoices(company=None):
         
         # If no valid items, skip this scenario
         if not si.items:
+            frappe.log_error(f"No valid items for scenario {scenario['title']}")
             continue
         
         # Save and submit the sales invoice
@@ -1162,10 +1096,11 @@ def create_sample_sales_invoices(company=None):
             invoices_created.append({
                 "name": si.name,
                 "customer": customer.customer_name,
-                "country": customer.territory,  # Using territory as customer doesn't directly have country
+                "country": customer.country if hasattr(customer, "country") else "Not specified",
                 "title": scenario["title"],
                 "total": si.grand_total,
-                "tax_amount": si.total_taxes_and_charges
+                "tax_amount": si.total_taxes_and_charges,
+                "tax_template": si.taxes_and_charges or "None"
             })
             
         except Exception as e:
