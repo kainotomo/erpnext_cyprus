@@ -473,147 +473,58 @@ def create_sample_items(company=None):
     sample_items = [
         # Standard rate (19%) items
         {
-            "item_name": "Office Desk",
-            "item_group": "Products",
-            "item_code": "CY-STD-DESK",
-            "description": "Office desk with standard 19% VAT rate",
-            "is_stock_item": 1,
-            "standard_rate": 350.00,
-            "vat_rate": 19,
-            "stock_uom": "Nos"
-        },
-        {
-            "item_name": "Laptop Computer",
-            "item_group": "Products",
-            "item_code": "CY-STD-LAPTOP",
-            "description": "Business laptop with standard 19% VAT rate",
-            "is_stock_item": 1,
-            "standard_rate": 850.00,
-            "vat_rate": 19,
-            "stock_uom": "Nos"
-        },
-        {
-            "item_name": "IT Support Services",
-            "item_group": "Professional Services",
-            "item_code": "CY-STD-ITSUPPORT",
-            "description": "Technical IT support with standard 19% VAT rate",
+            "item_name": "Sample Item Standard Rate",
+            "item_group": "All Item Groups",
+            "item_code": "E2C-1",
             "is_stock_item": 0,
-            "standard_rate": 80.00,
-            "vat_rate": 19,
-            "stock_uom": "Hour"
+            "standard_rate": 100,
+            "stock_uom": "Nos"
         },
         
         # Reduced rate (9%) items
         {
-            "item_name": "Hotel Accommodation",
-            "item_group": "Services",
-            "item_code": "CY-RED-HOTEL",
-            "description": "Hotel accommodation with reduced 9% VAT rate",
+            "item_name": "Sample Item Reduced Rate",
+            "item_group": "All Item Groups",
+            "item_code": "E2C-2",
             "is_stock_item": 0,
-            "standard_rate": 120.00,
-            "vat_rate": 9,
-            "stock_uom": "Day"
-        },
-        {
-            "item_name": "Restaurant Meal",
-            "item_group": "Products",
-            "item_code": "CY-RED-MEAL",
-            "description": "Restaurant meal with reduced 9% VAT rate",
-            "is_stock_item": 1,
-            "standard_rate": 25.00,
-            "vat_rate": 9,
-            "stock_uom": "Nos"
+            "standard_rate": 100,
+            "stock_uom": "Nos",
         },
         
         # Super-reduced rate (5%) items
         {
-            "item_name": "Educational Book",
-            "item_group": "Products",
-            "item_code": "CY-SRED-BOOK",
-            "description": "Educational book with super-reduced 5% VAT rate",
-            "is_stock_item": 1,
-            "standard_rate": 35.00,
-            "vat_rate": 5,
-            "stock_uom": "Nos"
-        },
-        {
-            "item_name": "Pharmaceutical Product",
-            "item_group": "Products",
-            "item_code": "CY-SRED-PHARMA",
-            "description": "Pharmaceutical product with super-reduced 5% VAT rate",
-            "is_stock_item": 1,
-            "standard_rate": 18.50,
-            "vat_rate": 5,
+            "item_name": "Sample Item Super-reduced Rate",
+            "item_group": "All Item Groups",
+            "item_code": "E2C-3",
+            "is_stock_item": 0,
+            "standard_rate": 100,
             "stock_uom": "Nos"
         },
         
         # Zero-rated items
         {
-            "item_name": "Export Goods",
-            "item_group": "Zero Rated Items",
-            "item_code": "CY-ZERO-EXPORT",
-            "description": "Goods for export with zero VAT rate",
-            "is_stock_item": 1,
-            "standard_rate": 200.00,
-            "vat_rate": 0,
-            "stock_uom": "Nos"
-        },
-        
-        # Exempt items
-        {
-            "item_name": "Insurance Service",
-            "item_group": "Professional Services",
-            "item_code": "CY-EXEMPT-INS",
-            "description": "Insurance service exempt from VAT",
+            "item_name": "Sample Item Zero-rated Rate",
+            "item_group": "All Item Groups",
+            "item_code": "E2C-4",
             "is_stock_item": 0,
-            "standard_rate": 150.00,
-            "vat_rate": 0,
-            "is_exempt": 1,
+            "standard_rate": 100,
             "stock_uom": "Nos"
-        },
-        {
-            "item_name": "Medical Service",
-            "item_group": "Professional Services",
-            "item_code": "CY-EXEMPT-MED",
-            "description": "Medical service exempt from VAT",
-            "is_stock_item": 0,
-            "standard_rate": 80.00,
-            "vat_rate": 0,
-            "is_exempt": 1,
-            "stock_uom": "Hour"
         },
         
         # Digital services (for OSS testing)
         {
-            "item_name": "Digital Subscription",
-            "item_group": "Digital Services",
-            "item_code": "CY-DIG-SUB",
-            "description": "Digital subscription service for OSS VAT testing",
+            "item_name": "Sample Item Digital",
+            "item_group": "All Item Groups",
+            "item_code": "E2C-5",
             "is_stock_item": 0,
-            "standard_rate": 9.99,
-            "vat_rate": 19,  # Default Cyprus rate, but will be taxed at destination rate
-            "is_digital": 1,
+            "standard_rate": 100,
             "stock_uom": "Nos"
         },
-        
-        # Items for triangular transactions
-        {
-            "item_name": "Triangulation Goods",
-            "item_group": "Products",
-            "item_code": "CY-TRI-GOODS",
-            "description": "Goods for testing triangulation scenarios",
-            "is_stock_item": 1,
-            "standard_rate": 450.00,
-            "vat_rate": 0,  # Zero-rated for triangulation
-            "stock_uom": "Nos"
-        }
+
     ]
     
     # Create the items
     items_created = []
-    
-    # Ensure required item groups exist
-    ensure_item_groups_exist()
     
     for item_data in sample_items:
         # Check if item already exists by item code
@@ -755,19 +666,6 @@ def delete_sample_items():
         "errors": errors,
         "message": _("Successfully deleted {0} sample items").format(len(deletion_log))
     }
-
-def ensure_item_groups_exist():
-    """Ensure that required item groups exist"""
-    required_groups = ["Products", "Services", "Professional Services", "Digital Services", "Zero Rated Items"]
-    
-    for group in required_groups:
-        if not frappe.db.exists("Item Group", group):
-            frappe.get_doc({
-                "doctype": "Item Group",
-                "item_group_name": group,
-                "is_group": 0,
-                "parent_item_group": "All Item Groups"
-            }).insert()
 
 def link_item_tax_template(item, company, vat_rate, is_exempt=False):
     """
