@@ -21,7 +21,7 @@ def create_sample_suppliers(company=None):
     sample_suppliers = [
         # Local suppliers (Cyprus VAT registered)
         {
-            "supplier_name": "Cyprus Supplier Ltd",
+            "supplier_name": "Cyprus Supplier",
             "supplier_group": "Commercial",
             "supplier_type": "Company",
             "country": "Cyprus",
@@ -30,7 +30,7 @@ def create_sample_suppliers(company=None):
         
         # EU suppliers (for Intra-EU acquisition & B2B services)
         {
-            "supplier_name": "EU Supplier Ltd",
+            "supplier_name": "EU Supplier",
             "supplier_group": "Commercial",
             "supplier_type": "Company",
             "country": "Germany",
@@ -39,7 +39,7 @@ def create_sample_suppliers(company=None):
         
         # Non-EU suppliers (for imports)
         {
-            "supplier_name": "US Supplier Inc",
+            "supplier_name": "US Supplier",
             "supplier_group": "Commercial", 
             "supplier_type": "Company",
             "country": "United States",
@@ -136,9 +136,9 @@ def delete_sample_suppliers(company=None):
     """
     # Get base names from the same list used to create them
     base_supplier_names = [
-        "Cyprus Supplier Ltd",
-        "EU Supplier Ltd",
-        "US Supplier Inc"
+        "Cyprus Supplier",
+        "EU Supplier",
+        "US Supplier"
     ]
 
     # Track deletion results
@@ -222,7 +222,7 @@ def create_sample_customers(company=None):
     sample_customers = [
         # Local customers (Cyprus)
         {
-            "customer_name": "Cyprus Retail Consumer",
+            "customer_name": "Cyprus B2C Customer",
             "customer_group": "Individual",
             "customer_type": "Individual",
             "country": "Cyprus",
@@ -230,7 +230,7 @@ def create_sample_customers(company=None):
             "description": "Local consumer for standard domestic sales"
         },
         {
-            "customer_name": "Cyprus Business Ltd",
+            "customer_name": "Cyprus B2B Customer",
             "customer_group": "Commercial",
             "customer_type": "Company",
             "country": "Cyprus",
@@ -240,74 +240,32 @@ def create_sample_customers(company=None):
         
         # EU customers - B2B with VAT numbers
         {
-            "customer_name": "German Corporation GmbH",
+            "customer_name": "EU B2B Customer",
             "customer_group": "Commercial",
             "customer_type": "Company",
             "country": "Germany",
             "tax_id": "DE813164483",
             "description": "EU B2B customer with valid VAT (reverse charge)"
         },
-        {
-            "customer_name": "French Enterprise SARL",
-            "customer_group": "Commercial", 
-            "customer_type": "Company",
-            "country": "France",
-            "tax_id": "FR46482690021",
-            "description": "EU B2B customer with valid VAT (reverse charge)"
-        },
         
         # EU customers - B2C without VAT numbers
         {
-            "customer_name": "Maria Schmidt",
+            "customer_name": "EU B2C Customer",
             "customer_group": "Individual",
             "customer_type": "Individual",
             "country": "Germany",
             "tax_id": "",
             "description": "EU individual consumer (B2C) - subject to OSS for digital services"
         },
-        {
-            "customer_name": "Pierre Dubois",
-            "customer_group": "Individual",
-            "customer_type": "Individual",
-            "country": "France",
-            "tax_id": "",
-            "description": "EU individual consumer (B2C) - subject to OSS for digital services"
-        },
-        
-        # EU Distance Selling customer
-        {
-            "customer_name": "Italian Small Business",
-            "customer_group": "Individual",  # Treated as B2C until VAT threshold
-            "customer_type": "Company",
-            "country": "Italy",
-            "tax_id": "",  # No VAT number
-            "description": "EU business without VAT registration (distance selling rules)"
-        },
         
         # Non-EU customers
         {
-            "customer_name": "UK Trading Ltd",
-            "customer_group": "Commercial",
-            "customer_type": "Company",
-            "country": "United Kingdom",
-            "tax_id": "GB123456789",
-            "description": "Non-EU business customer (export)"
-        },
-        {
-            "customer_name": "US Corporation Inc",
+            "customer_name": "US Customer",
             "customer_group": "Commercial", 
             "customer_type": "Company",
             "country": "United States",
             "tax_id": "",
-            "description": "Non-EU business customer (export)"
-        },
-        {
-            "customer_name": "John Smith",
-            "customer_group": "Individual",
-            "customer_type": "Individual",
-            "country": "United States",
-            "tax_id": "",
-            "description": "Non-EU individual customer (export)"
+            "description": "Non-EU customer (export)"
         }
     ]
     
@@ -405,22 +363,17 @@ def delete_sample_customers(company=None):
     """
     # Get base names from the same list used to create them
     base_customer_names = [
-        "Cyprus Retail Consumer",
-        "Cyprus Business Ltd",
-        "German Corporation GmbH",
-        "French Enterprise SARL",
-        "Maria Schmidt",
-        "Pierre Dubois",
-        "Italian Small Business",
-        "UK Trading Ltd",
-        "US Corporation Inc",
-        "John Smith"
+        "Cyprus B2C Customer",
+        "Cyprus B2B Customer",
+        "EU B2B Customer",
+        "EU B2C Customer",
+        "US Customer"
     ]
     
     # Track deletion results
     deletion_log = []
     errors = []
-    
+
     # Find and delete customers that match the base names with any suffix
     for base_name in base_customer_names:
         # Find all customers that start with this base name
