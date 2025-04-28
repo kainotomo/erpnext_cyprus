@@ -705,7 +705,7 @@ def link_item_tax_template(item, company, vat_rate):
 def create_sample_purchase_invoices(company=None):
     """
     Create sample purchase invoices covering all Cyprus VAT scenarios
-    using ERPNext's built-in tax template selection
+    using the suppliers and items previously created
     """
     if not company:
         frappe.throw(_("Company is required to create sample purchase invoices"))
@@ -714,107 +714,48 @@ def create_sample_purchase_invoices(company=None):
         frappe.throw(_("Company {0} does not exist").format(company))
     
     # Get default accounts
-    company_doc = frappe.get_doc("Company", company)
     default_expense_account = frappe.db.get_value("Company", company, "default_expense_account")
     default_cost_center = frappe.db.get_value("Company", company, "cost_center")
     
     if not default_expense_account:
         frappe.throw(_("Please set default expense account for company {0}").format(company))
     
-    # Test scenarios
+    # Test scenarios - without explicitly specifying tax templates to test tax rules
     purchase_scenarios = [
-        # 1. Local purchases with different VAT rates
+        # 1. Domestic purchase standard VAT (19%)
         {
             "title": "Local Standard VAT (19%) Purchase",
-            "supplier": "Cyprus Office Supplies Ltd - E2C",
-            "items": [
-                {"item_code": "CY-STD-DESK", "qty": 2, "rate": 350},
-                {"item_code": "CY-STD-LAPTOP", "qty": 1, "rate": 850}
-            ],
-            "description": "Purchase of office equipment with standard VAT rate (19%)"
+            "supplier": "Cyprus Supplier - E2C",
+            "items": ["E2C-1"],  # Standard VAT item
+            "description": "Purchase from local supplier with standard VAT rate (19%)"
         },
+        # 2. Domestic purchase reduced VAT (9%)
         {
             "title": "Local Reduced VAT (9%) Purchase",
-            "supplier": "Cyprus Hotel Association - E2C",
-            "items": [
-                {"item_code": "CY-RED-HOTEL", "qty": 3, "rate": 120},
-                {"item_code": "CY-RED-MEAL", "qty": 5, "rate": 25}
-            ],
-            "description": "Purchase of hotel services with reduced VAT rate (9%)"
+            "supplier": "Cyprus Supplier - E2C",
+            "items": ["E2C-2"],  # Reduced VAT item
+            "description": "Purchase from local supplier with reduced VAT rate (9%)"
         },
+        # 3. Domestic purchase super-reduced VAT (5%)
         {
             "title": "Local Super-reduced VAT (5%) Purchase",
-            "supplier": "Cyprus Books & Publishing - E2C",
-            "items": [
-                {"item_code": "CY-SRED-BOOK", "qty": 10, "rate": 35},
-                {"item_code": "CY-SRED-PHARMA", "qty": 5, "rate": 18.5}
-            ],
-            "description": "Purchase of books and pharmaceuticals with super-reduced VAT rate (5%)"
+            "supplier": "Cyprus Supplier - E2C",
+            "items": ["E2C-3"],  # Super-reduced VAT item
+            "description": "Purchase from local supplier with super-reduced VAT rate (5%)"
         },
+        # 5. Within EU B2B
         {
-            "title": "Local Exempt Purchase",
-            "supplier": "Cyprus Insurance Agency - E2C",
-            "items": [
-                {"item_code": "CY-EXEMPT-INS", "qty": 1, "rate": 150},
-                {"item_code": "CY-EXEMPT-MED", "qty": 2, "rate": 80}
-            ],
-            "description": "Purchase of exempt services (insurance, medical)"
+            "title": "EU B2B Purchase (Reverse Charge)",
+            "supplier": "EU Supplier - E2C",
+            "items": ["E2C-1"],
+            "description": "Purchase from EU business with reverse charge"
         },
-        
-        # 2. EU purchases (reverse charge)
+        # 7. Outside EU
         {
-            "title": "EU Goods Purchase (Reverse Charge)",
-            "supplier": "German Electronics GmbH - E2C",
-            "items": [
-                {"item_code": "CY-STD-LAPTOP", "qty": 3, "rate": 800},
-                {"item_code": "CY-STD-DESK", "qty": 2, "rate": 320}
-            ],
-            "description": "Purchase of goods from EU with reverse charge"
-        },
-        {
-            "title": "EU Services Purchase (Reverse Charge)",
-            "supplier": "French IT Consulting SARL - E2C",
-            "items": [
-                {"item_code": "CY-STD-ITSUPPORT", "qty": 10, "rate": 75}
-            ],
-            "description": "Purchase of services from EU with reverse charge"
-        },
-        {
-            "title": "EU Special Case Purchase",
-            "supplier": "Italian Furniture Design SpA - E2C",
-            "items": [
-                {"item_code": "CY-STD-DESK", "qty": 5, "rate": 310}
-            ],
-            "description": "Purchase of goods with installation from EU supplier"
-        },
-        
-        # 3. Non-EU purchases (imports)
-        {
-            "title": "Non-EU Goods Import",
-            "supplier": "UK Manufacturing Ltd - E2C",
-            "items": [
-                {"item_code": "CY-STD-DESK", "qty": 4, "rate": 300},
-                {"item_code": "CY-ZERO-EXPORT", "qty": 2, "rate": 190}
-            ],
-            "description": "Import of goods from non-EU country with import VAT"
-        },
-        {
-            "title": "Non-EU Services Import",
-            "supplier": "US Software Inc - E2C",
-            "items": [
-                {"item_code": "CY-DIG-SUB", "qty": 5, "rate": 9.99}
-            ],
-            "description": "Import of digital services from non-EU with reverse charge"
-        },
-        
-        # 4. Special cases
-        {
-            "title": "Triangulation Purchase",
-            "supplier": "Global Dropshipping Services - E2C",
-            "items": [
-                {"item_code": "CY-TRI-GOODS", "qty": 3, "rate": 450}
-            ],
-            "description": "Purchase in triangulation arrangement (middleman scenario)"
+            "title": "Non-EU Purchase",
+            "supplier": "US Supplier - E2C",
+            "items": ["E2C-1"],
+            "description": "Purchase from outside EU"
         }
     ]
     
@@ -838,20 +779,19 @@ def create_sample_purchase_invoices(company=None):
         pi.posting_date = posting_date
         pi.set_posting_time = 1
         pi.company = company
-        pi.currency = company_doc.default_currency
         pi.title = f"Test: {scenario['title']}"
         pi.remarks = scenario["description"]
         pi.naming_series = "CYT-PI-.YYYY.-"
         
         # Add items
-        for item_data in scenario["items"]:
-            if not frappe.db.exists("Item", item_data["item_code"]):
+        for item_code in scenario["items"]:
+            if not frappe.db.exists("Item", item_code):
                 continue
                 
             pi.append("items", {
-                "item_code": item_data["item_code"],
-                "qty": item_data["qty"],
-                "rate": item_data["rate"],
+                "item_code": item_code,
+                "qty": 1,                 # Consistent quantity
+                "rate": 100,              # Consistent rate
                 "expense_account": default_expense_account,
                 "cost_center": default_cost_center
             })
@@ -863,7 +803,8 @@ def create_sample_purchase_invoices(company=None):
         # Save and submit the purchase invoice
         try:
             pi.set_missing_values()
-            pi.set_taxes()
+            
+            # Let the system determine taxes based on tax rules
             pi.calculate_taxes_and_totals()
             pi.insert()
             pi.submit()
@@ -878,7 +819,8 @@ def create_sample_purchase_invoices(company=None):
                 "country": supplier.country,
                 "title": scenario["title"],
                 "total": pi.grand_total,
-                "tax_amount": pi.total_taxes_and_charges
+                "tax_amount": pi.total_taxes_and_charges,
+                "tax_template": pi.taxes_and_charges or "None"  # Capture which tax template was applied
             })
             
         except Exception as e:
@@ -967,7 +909,6 @@ def delete_sample_purchase_invoices():
         "errors": errors,
         "message": _("Successfully deleted {0} sample purchase invoices").format(len(deletion_log))
     }
-
 
 @frappe.whitelist()
 def create_sample_sales_invoices(company=None):
