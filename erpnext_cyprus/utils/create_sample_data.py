@@ -17,97 +17,34 @@ def create_sample_suppliers(company=None):
     if company and not frappe.db.exists("Company", company):
         frappe.throw(_("Company {0} does not exist").format(company))
     
-    # Make sure supplier groups exist
-    ensure_supplier_groups_exist()
-    
     # Define the sample suppliers to create
     sample_suppliers = [
         # Local suppliers (Cyprus VAT registered)
         {
-            "supplier_name": "Cyprus Office Supplies Ltd",
+            "supplier_name": "Cyprus Supplier Ltd",
             "supplier_group": "Commercial",
             "supplier_type": "Company",
             "country": "Cyprus",
             "tax_id": "CY10073946N",
-            "description": "Local supplier for standard rate (19%) VAT"
-        },
-        {
-            "supplier_name": "Cyprus Hotel Association",
-            "supplier_group": "Professional Services", 
-            "supplier_type": "Company",
-            "country": "Cyprus",
-            "tax_id": "CY20023456Y",
-            "description": "Local supplier for reduced rate (9%) VAT"
-        },
-        {
-            "supplier_name": "Cyprus Books & Publishing",
-            "supplier_group": "Raw Material",
-            "supplier_type": "Company", 
-            "country": "Cyprus",
-            "tax_id": "CY30034567Z",
-            "description": "Local supplier for super-reduced rate (5%) VAT"
-        },
-        {
-            "supplier_name": "Cyprus Insurance Agency",
-            "supplier_group": "Professional Services",
-            "supplier_type": "Company",
-            "country": "Cyprus",
-            "tax_id": "CY40045678A",
-            "description": "Local supplier for exempt services"
         },
         
         # EU suppliers (for Intra-EU acquisition & B2B services)
         {
-            "supplier_name": "German Electronics GmbH",
+            "supplier_name": "EU Supplier Ltd",
             "supplier_group": "Commercial",
             "supplier_type": "Company",
             "country": "Germany",
             "tax_id": "DE813164483",
-            "description": "EU supplier for goods (intra-EU acquisition)"
-        },
-        {
-            "supplier_name": "French IT Consulting SARL",
-            "supplier_group": "Professional Services",
-            "supplier_type": "Company",
-            "country": "France",
-            "tax_id": "FR46482690021",
-            "description": "EU supplier for services (reverse charge)"
-        },
-        {
-            "supplier_name": "Italian Furniture Design SpA",
-            "supplier_group": "Raw Material",
-            "supplier_type": "Company",
-            "country": "Italy",
-            "tax_id": "IT12345678901",
-            "description": "EU supplier for goods and installation (special case)"
         },
         
         # Non-EU suppliers (for imports)
         {
-            "supplier_name": "UK Manufacturing Ltd",
-            "supplier_group": "Commercial",
-            "supplier_type": "Company",
-            "country": "United Kingdom",
-            "tax_id": "GB123456789",
-            "description": "Non-EU supplier for import goods"
-        },
-        {
-            "supplier_name": "US Software Inc",
-            "supplier_group": "Professional Services", 
+            "supplier_name": "US Supplier Inc",
+            "supplier_group": "Commercial", 
             "supplier_type": "Company",
             "country": "United States",
-            "description": "Non-EU supplier for digital services"
-        },
-        
-        # Special cases
-        {
-            "supplier_name": "Global Dropshipping Services",
-            "supplier_group": "Professional Services",
-            "supplier_type": "Company",
-            "country": "Netherlands",
-            "tax_id": "NL123456789B01",
-            "description": "Triangulation case supplier"
         }
+
     ]
     
     # Create the suppliers
@@ -190,31 +127,24 @@ def delete_sample_suppliers(company=None):
     """
     Delete sample suppliers that were created for testing Cyprus VAT scenarios
     Uses the same list as create_sample_suppliers for consistency
-    
+
     Args:
         company: Optional company (not used in this implementation)
-        
+
     Returns:
         Dict with information about deleted suppliers
     """
     # Get base names from the same list used to create them
     base_supplier_names = [
-        "Cyprus Office Supplies Ltd",
-        "Cyprus Hotel Association",
-        "Cyprus Books & Publishing",
-        "Cyprus Insurance Agency",
-        "German Electronics GmbH",
-        "French IT Consulting SARL",
-        "Italian Furniture Design SpA",
-        "UK Manufacturing Ltd",
-        "US Software Inc",
-        "Global Dropshipping Services"
+        "Cyprus Supplier Ltd",
+        "EU Supplier Ltd",
+        "US Supplier Inc"
     ]
-    
+
     # Track deletion results
     deletion_log = []
     errors = []
-    
+
     # Find and delete suppliers that match the base names with any suffix
     for base_name in base_supplier_names:
         # Find all suppliers that start with this base name
@@ -223,7 +153,7 @@ def delete_sample_suppliers(company=None):
             filters={"supplier_name": ["like", f"{base_name} - %"]},
             fields=["name", "supplier_name", "country", "tax_id", "supplier_details"]
         )
-        
+
         # Delete each matching supplier
         for supplier in suppliers:
             try:
@@ -237,10 +167,10 @@ def delete_sample_suppliers(company=None):
                             "error": f"Cannot delete {supplier.supplier_name} as it has linked {doctype} documents"
                         })
                         break
-                
+
                 if has_links:
                     continue
-                
+
                 # Collect info before deletion
                 deletion_log.append({
                     "name": supplier.name,
@@ -249,38 +179,26 @@ def delete_sample_suppliers(company=None):
                     "tax_id": supplier.tax_id if supplier.tax_id else "N/A",
                     "description": supplier.supplier_details
                 })
-                
+
                 # Delete the supplier
                 frappe.delete_doc("Supplier", supplier.name)
-                
+
             except Exception as e:
                 errors.append({
                     "supplier": supplier.name,
                     "error": str(e)
                 })
-    
+
     # Commit changes
     frappe.db.commit()
-    
+
     # Return results
     return {
         "deleted": deletion_log,
         "count": len(deletion_log),
         "errors": errors,
-        "message": _("Successfully deleted {0} sample suppliers").format(len(deletion_log))
+        "message": _(f"Successfully deleted {len(deletion_log)} sample suppliers")
     }
-
-def ensure_supplier_groups_exist():
-    """Ensure that required supplier groups exist"""
-    required_groups = ["Commercial", "Professional Services", "Raw Material"]
-    
-    for group in required_groups:
-        if not frappe.db.exists("Supplier Group", group):
-            frappe.get_doc({
-                "doctype": "Supplier Group",
-                "supplier_group_name": group,
-                "is_group": 0
-            }).insert()
 
 @frappe.whitelist()
 def create_sample_customers(company=None):
