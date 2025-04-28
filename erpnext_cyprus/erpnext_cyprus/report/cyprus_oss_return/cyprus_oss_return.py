@@ -73,14 +73,14 @@ def get_data(filters):
 	# Get EU countries except Cyprus
 	eu_countries = get_eu_countries()
 	
-	# Query to get sales invoices grouped by customer
-	customer_totals = frappe.db.sql(
+	# Fetch and group data in a single query
+	results = frappe.db.sql(
 		"""
 		SELECT 
 			addr.country,
 			SUM(si.net_total) as net_total,
 			SUM(si.total_taxes_and_charges) as total_taxes_and_charges,
-			ROUND(SUM(si.total_taxes_and_charges / si.net_total * 100)) as tax_rate,
+			ROUND((SUM(si.total_taxes_and_charges) / SUM(si.net_total) * 100), 0) as tax_rate,
 			SUM(si.grand_total) as grand_total
 		FROM 
 			`tabSales Invoice` si
@@ -107,5 +107,5 @@ def get_data(filters):
 		as_dict=1,
 	)
 	
-	return customer_totals
+	return results
 
