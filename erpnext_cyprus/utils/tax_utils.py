@@ -258,6 +258,7 @@ def setup_item_tax_templates(company):
     cyprus_item_tax_templates = [
         {
             "title": "Cyprus Standard",
+            "company": company,
             "taxes": [
                 {
                     "tax_type": vat_account,
@@ -267,6 +268,7 @@ def setup_item_tax_templates(company):
         },
         {
             "title": "Cyprus Reduced",
+            "company": company,
             "taxes": [
                 {
                     "tax_type": vat_account,
@@ -276,6 +278,7 @@ def setup_item_tax_templates(company):
         },
         {
             "title": "Cyprus Super Reduced",
+            "company": company,
             "taxes": [
                 {
                     "tax_type": vat_account,
@@ -285,6 +288,7 @@ def setup_item_tax_templates(company):
         },
         {
             "title": "Zero Rated",
+            "company": company,
             "taxes": [
                 {
                     "tax_type": vat_account,
@@ -297,7 +301,7 @@ def setup_item_tax_templates(company):
     # Create each item tax template if it doesn't already exist
     for template_data in cyprus_item_tax_templates:
         existing_template = frappe.db.exists("Item Tax Template", 
-            {"title": template_data["title"]})
+            {"title": template_data["title"], "company": company})
         
         if not existing_template:
             # Create the template
@@ -305,7 +309,7 @@ def setup_item_tax_templates(company):
                 "doctype": "Item Tax Template",
                 "title": template_data["title"],
                 "disabled": 0,
-                "company": company  # Item tax templates should be company-specific
+                "company": company
             })
             
             # Add the taxes
