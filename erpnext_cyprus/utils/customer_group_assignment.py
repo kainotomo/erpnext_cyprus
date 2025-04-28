@@ -34,8 +34,21 @@ def is_valid_vies_vat(vat_number: str) -> bool:
 def assign_customer_group_based_on_vat(doc, method=None):
 	"""
 	Assigns 'Commercial' group if tax_id is a valid VIES VAT number, else 'Individual'.
+	Only proceeds if tax_id field is modified (dirty) and not empty.
 	"""
-	if doc.tax_id and is_valid_vies_vat(doc.tax_id):
+	# For new documents, simply check if tax_id exists
+	# For existing documents, check if tax_id has changed
+	tax_id_changed = True
+	if not doc.is_new():
+		previous_doc = doc.get_doc_before_save()
+		if previous_doc and previous_doc.tax_id == doc.tax_id:
+			tax_id_changed = False
+	
+	# Only proceed if tax_id changed and is not empty
+	if not tax_id_changed or not doc.tax_id:
+		return
+		
+	if is_valid_vies_vat(doc.tax_id):
 		doc.customer_group = "Commercial"
 		doc.customer_type = "Company"
 	else:
