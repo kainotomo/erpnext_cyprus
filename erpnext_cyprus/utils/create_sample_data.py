@@ -22,8 +22,6 @@ def create_sample_suppliers(company=None):
         # Local suppliers (Cyprus VAT registered)
         {
             "supplier_name": "Cyprus Supplier",
-            "supplier_group": "Commercial",
-            "supplier_type": "Company",
             "country": "Cyprus",
             "tax_id": "CY10073946N",
         },
@@ -31,8 +29,6 @@ def create_sample_suppliers(company=None):
         # EU suppliers (for Intra-EU acquisition & B2B services)
         {
             "supplier_name": "EU Supplier",
-            "supplier_group": "Commercial",
-            "supplier_type": "Company",
             "country": "Germany",
             "tax_id": "DE813164483",
         },
@@ -40,8 +36,6 @@ def create_sample_suppliers(company=None):
         # Non-EU suppliers (for imports)
         {
             "supplier_name": "US Supplier",
-            "supplier_group": "Commercial", 
-            "supplier_type": "Company",
             "country": "United States",
         }
 

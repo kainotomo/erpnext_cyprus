@@ -423,7 +423,6 @@ def setup_tax_rules(company):
         {
             "doctype": "Tax Rule",
             "tax_type": "Purchase",
-            "supplier_group": "Commercial", 
             "billing_country": "EU",
             "purchase_tax_template": template_names.get("Reverse Charge"),
             "priority": 2
