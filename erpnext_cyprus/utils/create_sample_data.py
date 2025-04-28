@@ -810,6 +810,10 @@ def create_sample_purchase_invoices(company=None):
         pi.remarks = scenario["description"]
         pi.naming_series = "CYT-PI-.YYYY.-"
         
+        # Add tax_id from supplier to invoice if available
+        if supplier.tax_id:
+            pi.tax_id = supplier.tax_id
+        
         # Add items
         for item_code in scenario["items"]:
             if not frappe.db.exists("Item", item_code):
@@ -1059,6 +1063,10 @@ def create_sample_sales_invoices(company=None):
         si.currency = company_doc.default_currency
         si.title = f"Test: {scenario['title']}"
         si.remarks = scenario["description"]
+        
+        # Add tax_id from customer to invoice if available
+        if customer.tax_id:
+            si.tax_id = customer.tax_id
         
         # Add prefix to invoice number for easy identification
         si.naming_series = "CYT-SI-.YYYY.-"
