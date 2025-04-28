@@ -22,6 +22,8 @@ def create_sample_suppliers(company=None):
         # Local suppliers (Cyprus VAT registered)
         {
             "supplier_name": "Cyprus Supplier",
+            "supplier_group": "All Supplier Groups",
+            "supplier_type": "Company",
             "country": "Cyprus",
             "tax_id": "CY10073946N",
         },
@@ -29,6 +31,8 @@ def create_sample_suppliers(company=None):
         # EU suppliers (for Intra-EU acquisition & B2B services)
         {
             "supplier_name": "EU Supplier",
+            "supplier_group": "All Supplier Groups",
+            "supplier_type": "Company",
             "country": "Germany",
             "tax_id": "DE813164483",
         },
@@ -36,6 +40,8 @@ def create_sample_suppliers(company=None):
         # Non-EU suppliers (for imports)
         {
             "supplier_name": "US Supplier",
+            "supplier_group": "All Supplier Groups",
+            "supplier_type": "Company",
             "country": "United States",
         }
 
@@ -468,6 +474,8 @@ def create_sample_items(company=None):
     # Validate company if provided
     if company and not frappe.db.exists("Company", company):
         frappe.throw(_("Company {0} does not exist").format(company))
+
+    company_abbr = frappe.db.get_value("Company", company, "abbr")
     
     # Define the sample items to create
     sample_items = [
@@ -478,7 +486,9 @@ def create_sample_items(company=None):
             "item_code": "E2C-1",
             "is_stock_item": 0,
             "standard_rate": 100,
-            "stock_uom": "Nos"
+            "stock_uom": "Nos",
+            "description": "Standard rate item for testing",
+            "vat_rate": 19,
         },
         
         # Reduced rate (9%) items
@@ -489,6 +499,7 @@ def create_sample_items(company=None):
             "is_stock_item": 0,
             "standard_rate": 100,
             "stock_uom": "Nos",
+            "vat_rate": 9,
         },
         
         # Super-reduced rate (5%) items
@@ -498,7 +509,8 @@ def create_sample_items(company=None):
             "item_code": "E2C-3",
             "is_stock_item": 0,
             "standard_rate": 100,
-            "stock_uom": "Nos"
+            "stock_uom": "Nos",
+            "vat_rate": 5,
         },
         
         # Zero-rated items
@@ -508,7 +520,8 @@ def create_sample_items(company=None):
             "item_code": "E2C-4",
             "is_stock_item": 0,
             "standard_rate": 100,
-            "stock_uom": "Nos"
+            "stock_uom": "Nos",
+            "vat_rate": 0,
         },
         
         # Digital services (for OSS testing)
@@ -531,58 +544,29 @@ def create_sample_items(company=None):
         existing = frappe.db.exists("Item", item_data["item_code"])
         
         if existing:
-            # Update existing item instead of creating new
-            item = frappe.get_doc("Item", existing)
-            item.item_name = item_data["item_name"]
-            item.description = item_data["description"]
-            item.item_group = item_data["item_group"]
-            item.is_stock_item = item_data["is_stock_item"]
-            item.standard_rate = item_data["standard_rate"]
-            item.save()
+            continue
         else:
             # Create new item
             item = frappe.get_doc({
                 "doctype": "Item",
                 "item_code": item_data["item_code"],
                 "item_name": item_data["item_name"],
-                "description": item_data["description"],
                 "item_group": item_data["item_group"],
                 "is_stock_item": item_data["is_stock_item"],
                 "stock_uom": item_data["stock_uom"],
                 "standard_rate": item_data["standard_rate"]
             })
             
-            # Add VAT/tax classification in item flags or custom fields
-            if item_data.get("is_exempt"):
-                item.is_exempted = 1
-            
-            if item_data.get("is_digital"):
-                # Flag for digital services if your system supports it
-                # This might be a custom field in your implementation
-                # item.digital_service = 1
-                pass
-                
-            # If company is provided, add item defaults
-            if company:
-                item.append("item_defaults", {
-                    "company": company,
-                    "default_warehouse": frappe.db.get_value("Warehouse", {"company": company, "is_group": 0}, "name"),
-                    "default_price_list": frappe.db.get_value("Price List", {"selling": 1}, "name")
-                })
-            
             item.insert()
             
-            # Create and link item tax template based on VAT rate
-            link_item_tax_template(item, company, item_data["vat_rate"], item_data.get("is_exempt"))
+            if "vat_rate" in item_data:
+                link_item_tax_template(item, company, item_data["vat_rate"])
         
         # Add to created items list
         items_created.append({
             "item_code": item.item_code,
             "item_name": item.item_name,
             "item_group": item.item_group,
-            "vat_rate": item_data["vat_rate"],
-            "exempt": item_data.get("is_exempt", 0),
-            "digital": item_data.get("is_digital", 0)
         })
     
     # Commit to save changes
@@ -603,21 +587,20 @@ def delete_sample_items():
     Returns:
         Dict with information about deleted items
     """
-    # Get item codes from the list we created
-    item_codes = [
-        "CY-STD-DESK", "CY-STD-LAPTOP", "CY-STD-ITSUPPORT", 
-        "CY-RED-HOTEL", "CY-RED-MEAL",
-        "CY-SRED-BOOK", "CY-SRED-PHARMA", 
-        "CY-ZERO-EXPORT", 
-        "CY-EXEMPT-INS", "CY-EXEMPT-MED", 
-        "CY-DIG-SUB", 
-        "CY-TRI-GOODS"
+    # Retrieve item codes from the create_sample_items method
+    sample_items = [
+        {"item_code": "E2C-1"},
+        {"item_code": "E2C-2"},
+        {"item_code": "E2C-3"},
+        {"item_code": "E2C-4"},
+        {"item_code": "E2C-5"}
     ]
-    
+    item_codes = [item["item_code"] for item in sample_items]
+
     # Track deletion results
     deletion_log = []
     errors = []
-    
+
     # Try to delete each item
     for item_code in item_codes:
         if frappe.db.exists("Item", item_code):
@@ -633,32 +616,32 @@ def delete_sample_items():
                             "error": f"Cannot delete {item_code} as it has linked {doctype} entries"
                         })
                         break
-                
+
                 if has_links:
                     continue
-                
+
                 # Get item details before deletion
                 item = frappe.get_doc("Item", item_code)
-                
+
                 # Delete the item
                 frappe.delete_doc("Item", item_code)
-                
+
                 # Record the deletion
                 deletion_log.append({
                     "item_code": item_code,
                     "item_name": item.item_name,
                     "item_group": item.item_group
                 })
-                
+
             except Exception as e:
                 errors.append({
                     "item_code": item_code,
                     "error": str(e)
                 })
-    
+
     # Commit changes
     frappe.db.commit()
-    
+
     # Return results
     return {
         "deleted": deletion_log,
@@ -667,7 +650,7 @@ def delete_sample_items():
         "message": _("Successfully deleted {0} sample items").format(len(deletion_log))
     }
 
-def link_item_tax_template(item, company, vat_rate, is_exempt=False):
+def link_item_tax_template(item, company, vat_rate):
     """
     Link the appropriate tax template to an item based on VAT rate
     
@@ -682,10 +665,10 @@ def link_item_tax_template(item, company, vat_rate, is_exempt=False):
     
     # Map VAT rates to likely template names (adjust as needed)
     template_map = {
-        19: "Cyprus Standard 19%",
-        9: "Cyprus Reduced 9%",
-        5: "Cyprus Super Reduced 5%",
-        0: "Zero Rated" if not is_exempt else "Exempt"
+        19: "Cyprus Standard",
+        9: "Cyprus Reduced",
+        5: "Cyprus Super Reduced",
+        0: "Zero Rated"
     }
     
     template_name = template_map.get(vat_rate)
@@ -710,7 +693,6 @@ def link_item_tax_template(item, company, vat_rate, is_exempt=False):
         # Add the tax template to item taxes table
         item_with_taxes.append("taxes", {
             "item_tax_template": templates[0].name,
-            "valid_from": frappe.utils.nowdate(),
             "company": company
         })
         

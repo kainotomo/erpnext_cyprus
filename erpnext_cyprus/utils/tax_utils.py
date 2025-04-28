@@ -257,7 +257,7 @@ def setup_item_tax_templates(company):
     # Define the Cyprus-specific item tax templates
     cyprus_item_tax_templates = [
         {
-            "title": "Cyprus Standard 19%",
+            "title": "Cyprus Standard",
             "taxes": [
                 {
                     "tax_type": vat_account,
@@ -266,7 +266,7 @@ def setup_item_tax_templates(company):
             ]
         },
         {
-            "title": "Cyprus Reduced 9%",
+            "title": "Cyprus Reduced",
             "taxes": [
                 {
                     "tax_type": vat_account,
@@ -275,7 +275,7 @@ def setup_item_tax_templates(company):
             ]
         },
         {
-            "title": "Cyprus Super Reduced 5%",
+            "title": "Cyprus Super Reduced",
             "taxes": [
                 {
                     "tax_type": vat_account,

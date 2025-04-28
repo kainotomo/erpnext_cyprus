@@ -157,6 +157,7 @@ def create_sample_data(company=None):
     item_results = create_sample_items(company)
     results["items"] = item_results["items"]
     results["items_count"] = item_results["count"]
+    return
     
     # Step 4: Create purchase invoices
     frappe.publish_progress(
