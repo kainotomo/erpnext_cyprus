@@ -4,7 +4,6 @@
 import frappe
 from frappe import _
 from frappe.utils import flt
-from erpnext_cyprus.utils.tax_utils import get_tax_accounts
 from erpnext_cyprus.utils.tax_utils import get_eu_countries
 
 def execute(filters=None):
@@ -20,7 +19,7 @@ def get_columns():
 			"width": 300,
 		},
 		{
-			"label": _("Billing Country"),
+			"label": _("Country"),
 			"fieldname": "country",
 			"fieldtype": "Data",
 			"width": 150
@@ -56,22 +55,6 @@ def get_data(filters):
 	if not company or not from_date or not to_date:
 		return []
 	
-	# Get VAT tax accounts for the company
-	tax_accounts = get_tax_accounts(company)
-	if not tax_accounts:
-		frappe.msgprint(_("No tax accounts found for company {0}").format(company))
-		return []
-	
-	# Get all output VAT accounts
-	output_vat_accounts = [
-		tax_accounts["vat"]
-	]
-	if "oss_vat" in tax_accounts and tax_accounts["oss_vat"]:
-		output_vat_accounts.append(tax_accounts["oss_vat"])
-	
-	# Filter out None values (accounts that might not exist)
-	output_vat_accounts = [acc for acc in output_vat_accounts if acc]
-	
 	# Get EU countries except Cyprus
 	eu_countries = get_eu_countries()
 	
@@ -96,6 +79,7 @@ def get_data(filters):
 			si.docstatus = 1
 			AND si.company = %s
 			AND si.posting_date BETWEEN %s AND %s
+			AND si.total_taxes_and_charges = 0
 			AND c.customer_group = 'Commercial'
 			AND c.tax_id IS NOT NULL AND c.tax_id != ''
 			AND addr.country IN %s
@@ -109,4 +93,3 @@ def get_data(filters):
 	)
 	
 	return customer_totals
-
