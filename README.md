@@ -53,9 +53,8 @@ Automatically applies correct tax templates based on:
 - Whether the transaction is B2B or B2C
 - Type of goods/services
 
-### Item Groups
-- Professional Services
-- Digital Services
+### Service Items
+- Any product that is not a tangible product should be marked as "Is Service" in order
 
 These are used to differentiate between goods and services for proper VAT reporting in boxes 8A/8B and 11A/11B of the VAT Return.
 

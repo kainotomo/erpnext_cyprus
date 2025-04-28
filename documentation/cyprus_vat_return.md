@@ -70,12 +70,10 @@ The ERPNext Cyprus app automatically configures the necessary tax accounts and t
    - Whether the transaction is B2B or B2C
    - Type of goods/services
 
-5. **Item Groups**:
-   Two special item groups are crucial for proper VAT reporting:
-   - **Professional Services**: For consulting, legal services, etc.
-   - **Digital Services**: For software, digital content, etc.
+5. **Service Items**:
+   - Any product that is not a tangible product should be marked as "Is Service" in order
    
-   These groups determine how transactions are reported in boxes 8A/8B (supply of goods vs services) and 11A/11B (acquisition of goods vs services) of the VAT return.
+   These field determine how transactions are reported in boxes 8A/8B (supply of goods vs services) and 11A/11B (acquisition of goods vs services) of the VAT return.
 
 ## Transaction Configuration
 
