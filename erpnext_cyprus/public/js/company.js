@@ -83,7 +83,63 @@ frappe.ui.form.on('Company', {
                         });
                     }
                 );
-            }, __('Manage'));
+            }, __('Utilities'));
+
+            frm.add_custom_button(__('Create Sample Data'), function() {
+                frappe.confirm(
+                    __('This will create sample data. Proceed?'),
+                    function() {
+                        frappe.call({
+                            method: 'erpnext_cyprus.api.create_sample_data',
+                            args: {
+                                company: frm.doc.name
+                            },
+                            freeze: true,
+                            freeze_message: __('Creating data...'),
+                            callback: function(r) {
+                                if (!r.exc) {
+                                    let message = __('Data created successfully.');
+                                    
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        indicator: 'green',
+                                        message: message
+                                    });
+                                    frm.refresh();
+                                }
+                            }
+                        });
+                    }
+                );
+            }, __('Utilities'));
+
+            frm.add_custom_button(__('Delete Sample Data'), function() {
+                frappe.confirm(
+                    __('This will delete the sample data. Proceed?'),
+                    function() {
+                        frappe.call({
+                            method: 'erpnext_cyprus.api.delete_sample_data',
+                            args: {
+                                company: frm.doc.name
+                            },
+                            freeze: true,
+                            freeze_message: __('Deleting data...'),
+                            callback: function(r) {
+                                if (!r.exc) {
+                                    let message = __('Data deleted successfully.');
+                                    
+                                    frappe.msgprint({
+                                        title: __('Success'),
+                                        indicator: 'green',
+                                        message: message
+                                    });
+                                    frm.refresh();
+                                }
+                            }
+                        });
+                    }
+                );
+            }, __('Utilities'));
         }
     },
     
