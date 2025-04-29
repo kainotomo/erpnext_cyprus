@@ -16,7 +16,13 @@ def setup_chart_of_accounts(company):
     
     vat_accounts = [
         {
-            "account_name": "OSS VAT",
+            "account_name": "Cyprus VAT",
+            "parent_account": "Duties and Taxes",
+            "account_type": "Tax",
+            "account_number": "2620",
+        },
+        {
+            "account_name": "VAT OSS",
             "parent_account": "Duties and Taxes",
             "account_type": "Tax",
             "account_number": "2630",

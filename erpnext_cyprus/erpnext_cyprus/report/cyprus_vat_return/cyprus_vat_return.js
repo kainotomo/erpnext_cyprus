@@ -23,7 +23,8 @@ frappe.query_reports["Cyprus VAT Return"] = {
                 return {
                     filters: {
                         'account_type': 'Tax',
-                        'is_group': ['in', [0, 1]]
+                        'is_group': ['in', [0, 1]],
+                        'company': frappe.query_report.get_filter_value("company")
                     }
                 };
             },

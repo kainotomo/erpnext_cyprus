@@ -26,7 +26,7 @@ The app automatically configures the following tax-related components:
 
 ### Tax Accounts
 - **VAT** - Standard account for Cyprus VAT operations
-- **OSS VAT** - For Mini One Stop Shop reporting for B2C digital services
+- **VAT OSS** - For Mini One Stop Shop reporting for B2C digital services
 
 ### Tax Templates
 - **Purchase Tax Templates**: 

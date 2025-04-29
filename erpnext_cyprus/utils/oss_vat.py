@@ -39,7 +39,7 @@ def get_customer_billing_country(doc):
 
 def set_oss_vat_rate(doc, method=None):
     """
-    Set the OSS VAT rate based on the customer's billing country
+    Set the VAT OSS rate based on the customer's billing country
     Only applies to sales documents with the Digital Services tax category
     """
     if not (hasattr(doc, "tax_category") and doc.tax_category == "Digital Services" and hasattr(doc, "taxes")):
@@ -58,12 +58,12 @@ def set_oss_vat_rate(doc, method=None):
     eu_vat_rates = get_eu_vat_rates()
     rate = eu_vat_rates.get(country, 19)  # Default to 19% if country not found
     
-    # Find and update the OSS VAT line
+    # Find and update the VAT OSS line
     for tax_row in doc.taxes:
-        if hasattr(tax_row, "description") and "OSS VAT" in tax_row.description:
+        if hasattr(tax_row, "description") and "VAT OSS" in tax_row.description:
             if tax_row.rate != rate:
                 tax_row.rate = rate
-                tax_row.description = f"OSS VAT {country} ({rate}%)"
+                tax_row.description = f"VAT OSS {country} ({rate}%)"
                 
                 # Log the change for audit purposes
-                frappe.msgprint(f"Applied {country} OSS VAT rate: {rate}%")
+                frappe.msgprint(f"Applied {country} VAT OSS rate: {rate}%")

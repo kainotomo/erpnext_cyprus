@@ -11,8 +11,8 @@ def get_tax_accounts(company):
     
     # Define the accounts we need by name
     required_accounts = {
-        "vat": "VAT",
-        "oss_vat": "OSS VAT"
+        "vat": "Cyprus VAT",
+        "oss_vat": "VAT OSS"
     }
     
     # Simple direct search for each account by exact account_name and company
@@ -46,8 +46,7 @@ def setup_purchase_tax_templates(company):
     # First ensure we have the required accounts
     tax_accounts = get_tax_accounts(company)
     if not tax_accounts:
-        frappe.msgprint(_("Required tax accounts not found. Please set up the chart of accounts first."))
-        return templates_created
+        frappe.throw(_("Required tax accounts not found. Please set up the chart of accounts first."))
     
     # Define the Cyprus-specific purchase tax templates - one per use case
     cyprus_purchase_tax_templates = [        
@@ -181,7 +180,7 @@ def setup_sales_tax_templates(company):
             "taxes": [
                 {
                     "account_head": tax_accounts["oss_vat"],
-                    "description": f"OSS VAT {country} {vat_rate}%",
+                    "description": f"VAT OSS {country} {vat_rate}%",
                     "rate": vat_rate
                 }
             ]
