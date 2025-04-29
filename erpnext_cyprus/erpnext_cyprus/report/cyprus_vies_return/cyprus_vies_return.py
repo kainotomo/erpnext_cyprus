@@ -72,9 +72,7 @@ def get_data(filters):
 		INNER JOIN 
 			`tabCustomer` c ON si.customer = c.name
 		LEFT JOIN
-			`tabDynamic Link` dl ON dl.link_doctype = 'Customer' AND dl.link_name = si.customer AND dl.parenttype = 'Address'
-		LEFT JOIN
-			`tabAddress` addr ON addr.name = dl.parent
+			`tabAddress` addr ON addr.name = si.customer_address
 		WHERE 
 			si.docstatus = 1
 			AND si.company = %s
