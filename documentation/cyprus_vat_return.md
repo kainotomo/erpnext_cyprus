@@ -43,7 +43,7 @@ The ERPNext Cyprus app automatically configures the necessary tax accounts and t
 
 1. **Tax Accounts**:
    - **VAT Account**: Used for both input and output VAT transactions
-   - **VAT OSS Account**: Specifically for Mini One Stop Shop reporting for B2C digital services to EU consumers
+   - **OSS VAT Account**: Specifically for Mini One Stop Shop reporting for B2C digital services to EU consumers
 
 2. **Tax Templates**:
    - **Purchase Tax Templates**:

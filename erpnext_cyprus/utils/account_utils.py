@@ -22,7 +22,7 @@ def setup_chart_of_accounts(company):
             "account_number": "2620",
         },
         {
-            "account_name": "VAT OSS",
+            "account_name": "OSS VAT",
             "parent_account": "Duties and Taxes",
             "account_type": "Tax",
             "account_number": "2630",

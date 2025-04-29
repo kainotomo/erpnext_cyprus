@@ -12,7 +12,7 @@ def get_tax_accounts(company):
     # Define the accounts we need by name
     required_accounts = {
         "vat": "Cyprus VAT",
-        "oss_vat": "VAT OSS"
+        "oss_vat": "OSS VAT"
     }
     
     # Simple direct search for each account by exact account_name and company
@@ -180,7 +180,7 @@ def setup_sales_tax_templates(company):
             "taxes": [
                 {
                     "account_head": tax_accounts["oss_vat"],
-                    "description": f"VAT OSS {country} {vat_rate}%",
+                    "description": f"OSS VAT {country} {vat_rate}%",
                     "rate": vat_rate
                 }
             ]
