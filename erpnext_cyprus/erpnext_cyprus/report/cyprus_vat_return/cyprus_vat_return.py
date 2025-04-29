@@ -4,7 +4,6 @@
 import frappe
 from frappe import _
 from frappe.utils import flt
-from erpnext_cyprus.utils.tax_utils import get_tax_accounts
 from erpnext_cyprus.utils.tax_utils import get_eu_countries
 
 def execute(filters=None):
@@ -22,7 +21,7 @@ def get_columns():
 			"fieldname": "description",
 			"label": _("Description"),
 			"fieldtype": "Data",
-			"width": 300
+			"width": 800
 		},
 		{
 			"fieldname": "amount",
@@ -37,8 +36,9 @@ def get_data(filters):
 	company = filters.get("company")
 	date_range = filters.get("date_range")
 	from_date, to_date = date_range if date_range else (None, None)
-	
-	if not company or not from_date or not to_date:
+	vat_account = filters.get("vat_account")
+	vat_accounts = get_vat_accounts_from_filter(company, vat_account)
+	if not company or not from_date or not to_date or not vat_account or not vat_accounts:
 		return []
 	
 	# Initialize VAT return data
@@ -46,18 +46,18 @@ def get_data(filters):
 	
 	# Add VAT Return fields according to Cyprus tax requirements
 	# Box 1: VAT due on sales and other outputs
-	output_vat = get_box_1(company, from_date, to_date)
+	output_vat = get_box_1(company, from_date, to_date, vat_accounts)
 	vat_return_data.append({
 		"vat_field": _("Box 1"),
-		"description": _("VAT due on sales and other outputs"),
+		"description": _("VAT due in the period on sales and other outputs"),
 		"amount": output_vat
 	})
 
 	# Box 2: VAT due on acquisitions from EU countries
-	eu_acquisitions_vat = get_box_2(company, from_date, to_date)
+	eu_acquisitions_vat = get_box_2(company, from_date, to_date, vat_accounts)
 	vat_return_data.append({
 		"vat_field": _("Box 2"),
-		"description": _("VAT due on acquisitions from EU countries"),
+		"description": _("VAT due in the period on the acquisitions from other EU Members States"),
 		"amount": eu_acquisitions_vat
 	})
 	
@@ -65,16 +65,16 @@ def get_data(filters):
 	total_vat_due = flt(output_vat) + flt(eu_acquisitions_vat)
 	vat_return_data.append({
 		"vat_field": _("Box 3"),
-		"description": _("Total VAT due (sum of boxes 1 and 2)"),
+		"description": _("Total VAT due"),
 		"amount": total_vat_due,
 		"bold": 1
 	})
 	
 	# Box 4: VAT reclaimed on purchases and other inputs
-	input_vat = get_box_4(company, from_date, to_date)
+	input_vat = get_box_4(company, from_date, to_date, vat_accounts)
 	vat_return_data.append({
 		"vat_field": _("Box 4"),
-		"description": _("VAT reclaimed on purchases and other inputs"),
+		"description": _("VAT reclaimed in the period for purchases and other inputs (including acquisitions from EU)"),
 		"amount": input_vat
 	})
 	
@@ -91,7 +91,7 @@ def get_data(filters):
 	total_sales = get_box_6(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 6"),
-		"description": _("Total value of sales and other outputs excluding VAT"),
+		"description": _("Total value of sales and other outputs excluding any VAT (including the amounts in boxes 8A, 8B, 9, 10 and 11B)"),
 		"amount": total_sales
 	})
 	
@@ -99,7 +99,7 @@ def get_data(filters):
 	total_purchases = get_box_7(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 7"),
-		"description": _("Total value of purchases and inputs excluding VAT"),
+		"description": _("Total value of purchases and other inputs excluding any VAT (including the amounts in box 11A and 11B)"),
 		"amount": total_purchases
 	})
 	
@@ -108,12 +108,12 @@ def get_data(filters):
 	eu_supplies_services = get_box_8b(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 8A"),
-		"description": _("Total value of supplies of goods to EU countries"),
+		"description": _("Total value of supply of goods and related services (excluding VAT) to other Member States"),
 		"amount": eu_supplies_goods
 	})
 	vat_return_data.append({
 		"vat_field": _("Box 8B"),
-		"description": _("Total value of supplies of services to EU countries"),
+		"description": _("Total value of services supplied (excluding VAT) to other Member States"),
 		"amount": eu_supplies_services
 	})
 	
@@ -121,7 +121,7 @@ def get_data(filters):
 	non_eu_exports = get_box_9(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 9"),
-		"description": _("Total value of exports to non-EU countries"),
+		"description": _("Total value of outputs on zero-rated supplies (other than those included in box 8A)"),
 		"amount": non_eu_exports
 	})
 	
@@ -129,7 +129,7 @@ def get_data(filters):
 	out_of_scope = get_box_10(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 10"),
-		"description": _("Total value of out-of-scope sales"),
+		"description": _("Total value of out of scope sales, with right of deduction of input tax (other than those included in box 8B)"),
 		"amount": out_of_scope
 	})
 	
@@ -138,38 +138,23 @@ def get_data(filters):
 	eu_acquisitions_services = get_box_11b(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 11A"),
-		"description": _("Total value of acquisitions of goods from EU countries"),
+		"description": _("Total value of all acquisitions of goods and related services (excluding any VAT) from other EU member States"),
 		"amount": eu_acquisitions_goods
 	})
 	vat_return_data.append({
 		"vat_field": _("Box 11B"),
-		"description": _("Total value of acquisitions of services from EU countries"),
+		"description": _("Total value of all services received (excluding any VAT)"),
 		"amount": eu_acquisitions_services
 	})
 	
 	return vat_return_data
 
-def get_box_1(company, from_date, to_date):
-	# Get the Cyprus tax accounts
-	tax_accounts = get_tax_accounts(company)
-	if not tax_accounts:
-		return 0
-	
-	# Get all output VAT accounts
-	output_vat_accounts = [
-		tax_accounts["vat"]
-	]
-	
-	# Filter out None values (accounts that might not exist)
-	output_vat_accounts = [acc for acc in output_vat_accounts if acc]
-	
-	if not output_vat_accounts:
-		return 0
+def get_box_1(company, from_date, to_date, vat_accounts):
 	
 	# Format for SQL IN clause - converting to a proper list of parameters
-	placeholder_list = ', '.join(['%s'] * len(output_vat_accounts))
+	placeholder_list = ', '.join(['%s'] * len(vat_accounts))
 	
-	# Query for VAT due on acquisitions, handling Debit Notes differently
+	# Query for VAT due on sales
 	query = """
 		SELECT SUM(
 			CASE 
@@ -189,7 +174,7 @@ def get_box_1(company, from_date, to_date):
 	""".format(placeholder_list)
 	
 	# Build parameters list
-	params = [from_date, to_date, company] + output_vat_accounts
+	params = [from_date, to_date, company] + vat_accounts
 	
 	# Execute query
 	output_vat_result = frappe.db.sql(query, params, as_dict=1)
@@ -197,25 +182,10 @@ def get_box_1(company, from_date, to_date):
 	
 	return output_vat
 
-def get_box_2(company, from_date, to_date):
-	# Get the Cyprus tax accounts
-	tax_accounts = get_tax_accounts(company)
-	if not tax_accounts:
-		return 0
-	
-	# Get all output VAT accounts
-	output_vat_accounts = [
-		tax_accounts["vat"]
-	]
-	
-	# Filter out None values (accounts that might not exist)
-	output_vat_accounts = [acc for acc in output_vat_accounts if acc]
-	
-	if not output_vat_accounts:
-		return 0
+def get_box_2(company, from_date, to_date, vat_accounts):
 	
 	# Format for SQL IN clause - converting to a proper list of parameters
-	placeholder_list = ', '.join(['%s'] * len(output_vat_accounts))
+	placeholder_list = ', '.join(['%s'] * len(vat_accounts))
 	
 	# Query for VAT due on acquisitions, handling Debit Notes differently
 	query = """
@@ -237,7 +207,7 @@ def get_box_2(company, from_date, to_date):
 	""".format(placeholder_list)
 	
 	# Build parameters list
-	params = [from_date, to_date, company] + output_vat_accounts
+	params = [from_date, to_date, company] + vat_accounts
 	
 	# Execute query
 	output_vat_result = frappe.db.sql(query, params, as_dict=1)
@@ -245,22 +215,7 @@ def get_box_2(company, from_date, to_date):
 	
 	return output_vat
 
-def get_box_4(company, from_date, to_date):
-	# Get the Cyprus tax accounts
-	tax_accounts = get_tax_accounts(company)
-	if not tax_accounts:
-		return 0
-	
-	# Get VAT account
-	vat_accounts = [
-		tax_accounts["vat"]
-	]
-	
-	# Filter out None values
-	vat_accounts = [acc for acc in vat_accounts if acc]
-	
-	if not vat_accounts:
-		return 0
+def get_box_4(company, from_date, to_date, vat_accounts):
 	
 	# Format for SQL IN clause
 	placeholder_list = ', '.join(['%s'] * len(vat_accounts))
@@ -537,3 +492,40 @@ def get_box_11b(company, from_date, to_date):
 	eu_services = frappe.db.sql(query, params, as_dict=1)
 	
 	return flt(eu_services[0].amount) if eu_services and eu_services[0].amount is not None else 0
+
+def get_vat_accounts_from_filter(company, vat_account):
+	"""
+	Get all tax accounts that are children of the selected vat_account
+	and have account_type = 'Tax'
+	
+	Parameters:
+	- company (str): Company for which to fetch accounts
+	- vat_account (str): Parent VAT account selected by user
+	
+	Returns:
+	- list: List of account names
+	"""
+	accounts = []
+	
+	# Check if selected account itself has account_type = 'Tax'
+	account_type = frappe.db.get_value("Account", vat_account, "account_type")
+	is_group = frappe.db.get_value("Account", vat_account, "is_group")
+	
+	if account_type == "Tax":
+		accounts.append(vat_account)
+	
+	# If the selected account is a group account, get its children with account_type = 'Tax'
+	if is_group:
+		children = frappe.db.sql("""
+			SELECT name
+			FROM `tabAccount`
+			WHERE parent_account = %s
+			AND company = %s
+			AND account_type = 'Tax'
+		""", (vat_account, company), as_dict=1)
+		
+		# Add all child tax accounts to the list
+		for child in children:
+			accounts.append(child.name)
+	
+	return accounts
