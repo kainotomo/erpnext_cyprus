@@ -69,6 +69,7 @@ frappe.ui.form.on('Company', {
                 );
             }, __('Cyprus Specifics'));
 
+            /*
             frm.add_custom_button(__('Create Sample Data'), function() {
                 frappe.confirm(
                     __('This will create sample data. Proceed?'),
@@ -124,6 +125,7 @@ frappe.ui.form.on('Company', {
                     }
                 );
             }, __('Cyprus Specifics'));
+            */
         }
     },
     
