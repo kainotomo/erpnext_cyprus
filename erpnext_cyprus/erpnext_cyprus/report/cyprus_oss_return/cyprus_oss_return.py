@@ -78,7 +78,6 @@ def get_data(filters):
 			AND si.company = %s
 			AND si.posting_date BETWEEN %s AND %s
 			AND si.total_taxes_and_charges != 0
-			AND (c.tax_id IS NULL OR c.tax_id = '')
 			AND addr.country IN %s
 		GROUP BY
 			addr.country
