@@ -74,13 +74,12 @@ def get_data(filters):
 		LEFT JOIN
 			`tabDynamic Link` dl ON dl.link_doctype = 'Customer' AND dl.link_name = si.customer AND dl.parenttype = 'Address'
 		LEFT JOIN
-			`tabAddress` addr ON addr.name = dl.parent AND addr.is_primary_address = 1
+			`tabAddress` addr ON addr.name = dl.parent
 		WHERE 
 			si.docstatus = 1
 			AND si.company = %s
 			AND si.posting_date BETWEEN %s AND %s
 			AND si.total_taxes_and_charges = 0
-			AND c.customer_group = 'Commercial'
 			AND c.tax_id IS NOT NULL AND c.tax_id != ''
 			AND addr.country IN %s
 		GROUP BY
