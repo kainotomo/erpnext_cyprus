@@ -21,7 +21,7 @@ def get_columns():
 			"fieldname": "description",
 			"label": _("Description"),
 			"fieldtype": "Data",
-			"width": 800
+			"width": 400
 		},
 		{
 			"fieldname": "amount",
@@ -49,7 +49,7 @@ def get_data(filters):
 	output_vat = get_box_1(company, from_date, to_date, vat_accounts)
 	vat_return_data.append({
 		"vat_field": _("Box 1"),
-		"description": _("VAT due in the period on sales and other outputs"),
+		"description": _("VAT due on sales and other outputs"),
 		"amount": output_vat
 	})
 
@@ -57,7 +57,7 @@ def get_data(filters):
 	eu_acquisitions_vat = get_box_2(company, from_date, to_date, vat_accounts)
 	vat_return_data.append({
 		"vat_field": _("Box 2"),
-		"description": _("VAT due in the period on the acquisitions from other EU Members States"),
+		"description": _("VAT due on acquisitions from EU countries"),
 		"amount": eu_acquisitions_vat
 	})
 	
@@ -65,7 +65,7 @@ def get_data(filters):
 	total_vat_due = flt(output_vat) + flt(eu_acquisitions_vat)
 	vat_return_data.append({
 		"vat_field": _("Box 3"),
-		"description": _("Total VAT due"),
+		"description": _("Total VAT due (sum of boxes 1 and 2)"),
 		"amount": total_vat_due,
 		"bold": 1
 	})
@@ -74,7 +74,7 @@ def get_data(filters):
 	input_vat = get_box_4(company, from_date, to_date, vat_accounts)
 	vat_return_data.append({
 		"vat_field": _("Box 4"),
-		"description": _("VAT reclaimed in the period for purchases and other inputs (including acquisitions from EU)"),
+		"description": _("VAT reclaimed on purchases and other inputs"),
 		"amount": input_vat
 	})
 	
@@ -91,7 +91,7 @@ def get_data(filters):
 	total_sales = get_box_6(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 6"),
-		"description": _("Total value of sales and other outputs excluding any VAT (including the amounts in boxes 8A, 8B, 9, 10 and 11B)"),
+		"description": _("Total value of sales and other outputs excluding VAT"),
 		"amount": total_sales
 	})
 	
@@ -99,7 +99,7 @@ def get_data(filters):
 	total_purchases = get_box_7(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 7"),
-		"description": _("Total value of purchases and other inputs excluding any VAT (including the amounts in box 11A and 11B)"),
+		"description": _("Total value of purchases and inputs excluding VAT"),
 		"amount": total_purchases
 	})
 	
@@ -108,12 +108,12 @@ def get_data(filters):
 	eu_supplies_services = get_box_8b(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 8A"),
-		"description": _("Total value of supply of goods and related services (excluding VAT) to other Member States"),
+		"description": _("Total value of supplies of goods to EU countries"),
 		"amount": eu_supplies_goods
 	})
 	vat_return_data.append({
 		"vat_field": _("Box 8B"),
-		"description": _("Total value of services supplied (excluding VAT) to other Member States"),
+		"description": _("Total value of supplies of services to EU countries"),
 		"amount": eu_supplies_services
 	})
 	
@@ -121,7 +121,7 @@ def get_data(filters):
 	non_eu_exports = get_box_9(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 9"),
-		"description": _("Total value of outputs on zero-rated supplies (other than those included in box 8A)"),
+		"description": _("Total value of exports to non-EU countries"),
 		"amount": non_eu_exports
 	})
 	
@@ -129,7 +129,7 @@ def get_data(filters):
 	out_of_scope = get_box_10(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 10"),
-		"description": _("Total value of out of scope sales, with right of deduction of input tax (other than those included in box 8B)"),
+		"description": _("Total value of out-of-scope sales"),
 		"amount": out_of_scope
 	})
 	
@@ -138,12 +138,12 @@ def get_data(filters):
 	eu_acquisitions_services = get_box_11b(company, from_date, to_date)
 	vat_return_data.append({
 		"vat_field": _("Box 11A"),
-		"description": _("Total value of all acquisitions of goods and related services (excluding any VAT) from other EU member States"),
+		"description": _("Total value of acquisitions of goods from EU countries"),
 		"amount": eu_acquisitions_goods
 	})
 	vat_return_data.append({
 		"vat_field": _("Box 11B"),
-		"description": _("Total value of all services received (excluding any VAT)"),
+		"description": _("Total value of acquisitions of services from EU countries"),
 		"amount": eu_acquisitions_services
 	})
 	
