@@ -175,8 +175,6 @@ class CustomCompany(Company):
 		from_detailed_data(company_name, cyprus_tax_templates)
 		update_regional_tax_settings("Cyprus", company_name)
 		setup_tax_rules(company_name)
-		frappe.msgprint("Cyprus tax templates applied successfully")
-
 	
 def get_eu_vat_rates():
 	"""
