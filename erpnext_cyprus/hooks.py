@@ -129,9 +129,9 @@ doctype_js = {"Company" : "public/js/company.js"}
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+    "Company": "erpnext_cyprus.overrides.company.CustomCompany"
+}
 
 # Document Events
 # ---------------
