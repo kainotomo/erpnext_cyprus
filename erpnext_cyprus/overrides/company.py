@@ -22,7 +22,7 @@ class CustomCompany(Company):
 					{
 						"account_head": {
 							"account_name": "VAT",
-							"account_number": "2310",
+							"account_number": "2320",
 							"root_type": "Liability",
 							"tax_rate": 19
 						},
@@ -54,7 +54,7 @@ class CustomCompany(Company):
 					{
 						"account_head": {
 							"account_name": "VAT OSS",
-							"account_number": "2320",
+							"account_number": "2321",
 							"root_type": "Liability",
 							"tax_rate": 20.00
 						},
@@ -80,7 +80,7 @@ class CustomCompany(Company):
 								{
 									"account_head": {
 										"account_name": "VAT",
-										"account_number": "2310",
+										"account_number": "2320",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -91,7 +91,7 @@ class CustomCompany(Company):
 								{
 									"account_head": {
 										"account_name": "VAT",
-										"account_number": "2310",
+										"account_number": "2320",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -113,7 +113,7 @@ class CustomCompany(Company):
 								{
 									"account_head": {
 										"account_name": "VAT",
-										"account_number": "2310",
+										"account_number": "2320",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -131,7 +131,7 @@ class CustomCompany(Company):
 								{
 									"tax_type": {
 										"account_name": "VAT",
-										"account_number": "2310",
+										"account_number": "2320",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -145,7 +145,7 @@ class CustomCompany(Company):
 								{
 									"tax_type": {
 										"account_name": "VAT",
-										"account_number": "2310",
+										"account_number": "2320",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -159,7 +159,7 @@ class CustomCompany(Company):
 								{
 									"tax_type": {
 										"account_name": "VAT",
-										"account_number": "2310",
+										"account_number": "2320",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
