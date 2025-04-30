@@ -1,6 +1,6 @@
 import frappe
 from erpnext.setup.doctype.company.company import Company
-from erpnext.setup.setup_wizard.operations.taxes_setup import setup_taxes_and_charges, from_detailed_data
+from erpnext.setup.setup_wizard.operations.taxes_setup import setup_taxes_and_charges, from_detailed_data, update_regional_tax_settings
 
 class CustomCompany(Company):
 	@frappe.whitelist()
@@ -172,8 +172,9 @@ class CustomCompany(Company):
 			}
 		}
 		
-		frappe.msgprint("Applying Cyprus tax templates")
 		from_detailed_data(company_name, cyprus_tax_templates)
+		update_regional_tax_settings(country, company_name)
+		frappe.msgprint("Cyprus tax templates applied successfully")
 
 	
 def get_eu_vat_rates():
