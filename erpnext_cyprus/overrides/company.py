@@ -174,6 +174,7 @@ class CustomCompany(Company):
 		
 		from_detailed_data(company_name, cyprus_tax_templates)
 		update_regional_tax_settings(country, company_name)
+		setup_tax_rules(company_name)
 		frappe.msgprint("Cyprus tax templates applied successfully")
 
 	
@@ -214,3 +215,156 @@ def get_eu_vat_rates():
 def get_eu_countries():
 	"""Return a list of EU countries"""
 	return list(get_eu_vat_rates().keys())
+
+def setup_tax_rules(company):
+	"""
+	Set up Cyprus-specific tax rules for automatic tax template selection
+	"""
+	rules_created = []
+	
+	# Get the actual template names first (since they include company abbreviations)
+	template_names = {}
+	
+	# Get sales tax templates
+	sales_templates = frappe.get_all(
+		"Sales Taxes and Charges Template",
+		filters={"company": company},
+		fields=["name", "title"]
+	)
+	for template in sales_templates:
+		template_names[template.title] = template.name
+	
+	# Get purchase tax templates
+	purchase_templates = frappe.get_all(
+		"Purchase Taxes and Charges Template",
+		filters={"company": company},
+		fields=["name", "title"]
+	)
+	for template in purchase_templates:
+		template_names[template.title] = template.name
+	
+	# Initialize tax rules list
+	tax_rules = []
+	
+	# Get EU VAT rates to create country-specific digital services rules
+	eu_vat_rates = get_eu_vat_rates()
+	
+	# First add individual country rules for digital services
+	for country, vat_rate in eu_vat_rates.items():
+		if country == "Cyprus":
+			# For Cyprus, use the standard template
+			continue
+			
+		template_title = f"OSS Digital Services - {country} ({vat_rate}%)"
+		template_name = template_names.get(template_title)
+		
+		if template_name:
+			rule = {
+				"doctype": "Tax Rule",
+				"tax_type": "Sales",
+				"customer_group": "Individual", 
+				"billing_country": country,
+				"sales_tax_template": template_name,
+				"priority": 2,
+				"use_for_shopping_cart": 1
+			}
+			tax_rules.append(rule)
+	
+	# Then add the standard rules    
+	standard_rules = [
+		# Default domestic rule
+		{
+			"doctype": "Tax Rule",
+			"tax_type": "Sales",
+			"billing_country": "Cyprus",
+			"sales_tax_template": template_names.get("Standard Domestic"),
+			"priority": 2,
+			"use_for_shopping_cart": 1
+		},
+		# EU B2B and other countries
+		{
+			"doctype": "Tax Rule",
+			"tax_type": "Sales",
+			"sales_tax_template": template_names.get("Zero-Rated"),
+			"priority": 1,
+			"use_for_shopping_cart": 1
+		},
+		
+		# PURCHASE RULES
+		# Domestic purchases rule
+		{
+			"doctype": "Tax Rule",
+			"tax_type": "Purchase",
+			"billing_country": "Cyprus",
+			"purchase_tax_template": template_names.get("Standard Domestic"),
+			"priority": 3
+		},
+		# EU commercial services rule
+		{
+			"doctype": "Tax Rule",
+			"tax_type": "Purchase",
+			"billing_country": "EU",
+			"purchase_tax_template": template_names.get("Reverse Charge"),
+			"priority": 2
+		},        
+		# Zero-rated purchases are handled by the default template
+		{
+			"doctype": "Tax Rule",
+			"tax_type": "Purchase",
+			"purchase_tax_template": template_names.get("Zero-Rated"),
+			"priority": 1,
+			"use_for_shopping_cart": 1
+		},
+	]
+	
+	# Combine all rules
+	tax_rules.extend(standard_rules)
+	
+	# Create each tax rule if it doesn't already exist
+	for rule_data in tax_rules:
+		# Add company to rule data
+		rule_data["company"] = company
+		
+		# Check for existing rule with similar criteria
+		filters = {
+			"tax_type": rule_data["tax_type"],
+			"company": company,
+			"priority": rule_data["priority"]
+		}
+		
+		if "billing_country" in rule_data:
+			filters["billing_country"] = rule_data["billing_country"]
+			
+		if "customer_group" in rule_data:
+			filters["customer_group"] = rule_data["customer_group"]
+			
+		existing_rule = frappe.db.exists("Tax Rule", filters)
+		
+		if not existing_rule:
+			# Special handling for EU country group
+			if rule_data.get("billing_country") == "EU":
+				# Create rules for each EU country
+				eu_countries = get_eu_countries()
+				for country in eu_countries:
+					country_rule = rule_data.copy()
+					country_rule["billing_country"] = country
+					
+					# Create the rule
+					try:
+						new_rule = frappe.get_doc(country_rule)
+						new_rule.insert()
+						rules_created.append(f"{country_rule['tax_type']} - {country} - Priority {country_rule['priority']}")
+						frappe.db.commit()
+					except Exception as e:
+						frappe.log_error(f"Error creating tax rule for {country}: {str(e)}")
+			else:
+				# Create the rule
+				try:
+					new_rule = frappe.get_doc(rule_data)
+					new_rule.insert()
+					rules_created.append(f"{rule_data['tax_type']} - {rule_data.get('billing_country', 'Any')} - Priority {rule_data['priority']}")
+					frappe.db.commit()
+				except Exception as e:
+					frappe.log_error(f"Error creating tax rule: {str(e)}")
+	
+	return rules_created
