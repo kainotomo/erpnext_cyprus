@@ -1,4 +1,5 @@
 import frappe
+import json
 from erpnext.setup.doctype.company.company import Company
 from erpnext.setup.setup_wizard.operations.taxes_setup import setup_taxes_and_charges, from_detailed_data, update_regional_tax_settings
 
@@ -175,6 +176,7 @@ class CustomCompany(Company):
 		from_detailed_data(company_name, cyprus_tax_templates)
 		update_regional_tax_settings("Cyprus", company_name)
 		setup_tax_rules(company_name)
+		make_salary_components(company_name)
 	
 def get_eu_vat_rates():
 	"""
@@ -366,3 +368,56 @@ def setup_tax_rules(company):
 					frappe.log_error(f"Error creating tax rule: {str(e)}")
 	
 	return rules_created
+
+def make_salary_components(company):
+	company_abbr = frappe.get_value("Company", company, "abbr")
+
+	account_payroll_payable = frappe.get_value('Account', {'account_name': 'Payroll Payable', 'company': company}, 'name')
+	account_income_tax = frappe.get_value('Account', {'account_name': 'Payroll Income Tax', 'company': company}, 'name')
+	account_salary = frappe.get_value('Account', {'account_name': 'Salary', 'company': company}, 'name')
+		
+	if not account_income_tax:
+		account = frappe.get_doc({
+			"doctype": "Account",
+			"account_name": "Payroll Income Tax",
+			"account_number": "2121",
+			"company": company,
+			"root_type": "Liability",
+			"is_group": 0,
+			"report_type": "Balance Sheet",
+			"parent_account": "Accounts Payable - " + company_abbr
+		})
+		account.insert(ignore_if_duplicate=True)
+		account.submit()
+		frappe.db.commit()
+		account_income_tax = account.name
+		
+
+	docs = []
+
+	file_path = frappe.get_app_path("erpnext_cyprus", "regional", "cyprus", "data", "salary_components.json")
+	file_content = read_data_file(file_path)
+	file_content = file_content.replace("ACCOUNT_SALARY", account_salary)
+	file_content = file_content.replace("ACCOUNT_PAYROLL_PAYABLE", account_payroll_payable)
+	file_content = file_content.replace("ACCOUNT_PAYROLL_INCOME_TAX", account_income_tax)
+	file_content = file_content.replace("E2C_COMPANY", company)
+	docs.extend(json.loads(file_content))
+
+	for d in docs:
+		try:
+			doc = frappe.get_doc(d)
+			doc.flags.ignore_permissions = True
+			doc.flags.ignore_mandatory = True
+			doc.insert(ignore_if_duplicate=True)
+		except frappe.NameError:
+			frappe.clear_messages()
+		except frappe.DuplicateEntryError:
+			frappe.clear_messages()
+
+def read_data_file(file_path):
+	try:
+		with open(file_path) as f:
+			return f.read()
+	except OSError:
+		return "{}"
+	

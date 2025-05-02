@@ -1,0 +1,236 @@
+[
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Basic Salary",
+        "salary_component_abbr": "BS",
+        "description": "The core salary paid to the employee.",
+        "type": "Earning",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 0,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "base * 1",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_SALARY",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Redundancy Fund",
+        "salary_component_abbr": "RF",
+        "description": "Employer's 1.2% contribution to the Redundancy Fund, capped at €5,551 per month.",
+        "type": "Earning",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 1,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "(BS if BS <= 5551 else 5551) * 0.012",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_SALARY",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Human Resource Fund",
+        "salary_component_abbr": "HR",
+        "description": "Employer's 0.5% contribution to the Training and Development Fund, capped at €5,551 per month.",
+        "type": "Earning",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 1,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "(BS if BS <= 5551 else 5551) * 0.005",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_SALARY",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "GESY",
+        "salary_component_abbr": "GESY",
+        "description": "Employer's 2.90% contribution to the General Health System, no cap.",
+        "type": "Earning",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 1,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "BS * 0.029",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_SALARY",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Social Cohesion Fund",
+        "salary_component_abbr": "SC",
+        "description": "Employer's 2.0% contribution to the Social Cohesion Fund, no cap.",
+        "type": "Earning",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 1,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "BS * 0.02",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_SALARY",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Social Insurance",
+        "salary_component_abbr": "SI",
+        "description": "Employer's 8.8% contribution to social insurance, capped at €5,551 per month.",
+        "type": "Earning",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 1,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "(BS if BS <= 5551 else 5551) * 0.088",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_SALARY",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Employee's Social Insurance",
+        "salary_component_abbr": "SI_E",
+        "description": "8.8% of total earnings, capped at €5,551 per month, withheld for social insurance.",
+        "type": "Deduction",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 0,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "(BS if BS <= 5551 else 5551) * 0.088",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_PAYROLL_PAYABLE",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Employee's GESY",
+        "salary_component_abbr": "GESY_E",
+        "description": "2.65% of total earnings withheld for the General Health System, no cap.",
+        "type": "Deduction",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 0,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "BS * 0.0265",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_PAYROLL_PAYABLE",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    },
+    {
+        "doctype": "Salary Component",
+        "salary_component": "Employee's Income Tax",
+        "salary_component_abbr": "IT_E",
+        "description": "Income Tax",
+        "type": "Deduction",
+        "depends_on_payment_days": 0,
+        "is_tax_applicable": 0,
+        "deduct_full_tax_on_selected_payroll_date": 0,
+        "variable_based_on_taxable_salary": 0,
+        "is_income_tax_component": 0,
+        "exempted_from_income_tax": 0,
+        "round_to_the_nearest_integer": 0,
+        "statistical_component": 0,
+        "do_not_include_in_total": 0,
+        "remove_if_zero_valued": 1,
+        "amount_based_on_formula": 1,
+        "formula": "((BS - 1625) if BS > 1625 else 0) * 0.2",
+        "accounts": [
+            {
+                "doctype": "Salary Component Account",
+                "account": "ACCOUNT_PAYROLL_INCOME_TAX",
+                "company": "E2C_COMPANY"
+            }
+        ]
+    }
+]
