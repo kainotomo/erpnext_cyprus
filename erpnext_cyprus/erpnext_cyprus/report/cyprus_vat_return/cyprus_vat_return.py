@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.utils import flt
-from erpnext_cyprus.utils.tax_utils import get_eu_countries
+from erpnext_cyprus.overrides.company import get_eu_countries
 
 def execute(filters=None):
 	return get_columns(), get_data(filters)
