@@ -71,7 +71,6 @@ Available documentation:
 - [Cyprus VAT Return Guide](documentation/cyprus_vat_return.md) - How to prepare and submit Cyprus VAT returns
 - [MOSS VAT Returns Guide](documentation/moss_vat_returns.md) - Guide for Mini One Stop Shop VAT reporting for digital services
 - [VIES Statement Guide](documentation/vies_statement.md) - How to properly record and report EU B2B transactions
-- Payroll setup
 
 ## Payroll Setup
 
