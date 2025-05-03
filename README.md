@@ -66,6 +66,7 @@ Available documentation:
 - [VAT Statement Guide](documentation/vat_statement.md) - How to properly mark transactions for accurate VAT reporting
 - [MOSS VAT Returns Guide](documentation/moss_vat_returns.md) - Guide for Mini One Stop Shop VAT reporting for digital services
 - [VIES Statement Guide](documentation/vies_statement.md) - How to properly record and report EU B2B transactions
+- Payroll setup
 
 ## Support
 
