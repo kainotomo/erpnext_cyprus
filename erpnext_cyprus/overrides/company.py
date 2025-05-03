@@ -372,6 +372,7 @@ def setup_tax_rules(company):
 def make_salary_components(company):
 	company_abbr = frappe.get_value("Company", company, "abbr")
 
+	account_accounts_payable = frappe.get_value('Account', {'account_name': 'Accounts Payable', 'company': company}, 'name')
 	account_payroll_payable = frappe.get_value('Account', {'account_name': 'Payroll Payable', 'company': company}, 'name')
 	account_income_tax = frappe.get_value('Account', {'account_name': 'Payroll Income Tax', 'company': company}, 'name')
 	account_salary = frappe.get_value('Account', {'account_name': 'Salary', 'company': company}, 'name')
@@ -385,7 +386,7 @@ def make_salary_components(company):
 			"root_type": "Liability",
 			"is_group": 0,
 			"report_type": "Balance Sheet",
-			"parent_account": "Accounts Payable - " + company_abbr
+			"parent_account": account_accounts_payable
 		})
 		account.insert(ignore_if_duplicate=True)
 		account.submit()
