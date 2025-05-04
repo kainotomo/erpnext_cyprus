@@ -151,30 +151,17 @@ def get_data(filters):
 	return vat_return_data
 
 def get_box_1(company, from_date, to_date, output_vat_account):
-	"""
-	Box 1: VAT due on sales and other outputs
-	This function calculates the total Output VAT collected on sales transactions,
-	properly accounting for refunds via Credit Notes.
-	
-	Parameters:
-	- company (str): Company for which to calculate VAT
-	- from_date (str): Start date for the calculation period
-	- to_date (str): End date for the calculation period
-	- output_vat_account (str): Output VAT account to use for calculation
-	
-	Returns:
-	- float: Total Output VAT amount (net of refunds)
-	"""
-	# Query for Output VAT from Sales Invoices (credits to the Output VAT account)
-	sales_vat_query = """
+	# Query for VAT due on sales, handling Credit Notes differently
+	query1 = """
 		SELECT SUM(
 			CASE 
-				WHEN gle.credit > 0 THEN gle.credit
-				WHEN gle.debit < 0 THEN -gle.debit
+				WHEN gle.voucher_subtype = 'Sales Invoice' THEN gle.credit
+				WHEN gle.voucher_subtype = 'Credit Note' THEN -gle.debit
 				ELSE 0
 			END
 		) as vat_amount
 		FROM `tabGL Entry` gle
+		LEFT JOIN `tabSales Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Sales Invoice'
 		WHERE gle.posting_date BETWEEN %s AND %s
 		AND gle.company = %s
 		AND gle.account = %s
@@ -183,168 +170,98 @@ def get_box_1(company, from_date, to_date, output_vat_account):
 		AND gle.voucher_type = 'Sales Invoice'
 	"""
 	
-	# Execute query for Sales Invoices
-	sales_vat_result = frappe.db.sql(sales_vat_query, [from_date, to_date, company, output_vat_account], as_dict=1)
+	# Build parameters list
+	params = [from_date, to_date, company, output_vat_account]
+	
+	# Execute query
+	sales_vat_result = frappe.db.sql(query1, params, as_dict=1)
 	sales_vat = flt(sales_vat_result[0].vat_amount) if sales_vat_result and sales_vat_result[0].vat_amount is not None else 0
-	
-	# Query for Output VAT refunds from Credit Notes (debits to the Output VAT account)
-	credit_note_query = """
-		SELECT SUM(
-			CASE 
-				WHEN gle.debit > 0 THEN gle.debit
-				WHEN gle.credit < 0 THEN -gle.credit
-				ELSE 0
-			END
-		) as vat_amount
-		FROM `tabGL Entry` gle
-		WHERE gle.posting_date BETWEEN %s AND %s
-		AND gle.company = %s
-		AND gle.account = %s
-		AND gle.is_cancelled = 0
-		AND gle.docstatus = 1
-		AND gle.voucher_type = 'Sales Invoice'
-		AND gle.voucher_no IN (
-			SELECT name 
-			FROM `tabSales Invoice` 
-			WHERE is_return = 1 
-			AND posting_date BETWEEN %s AND %s
-			AND company = %s
-			AND docstatus = 1
-		)
-	"""
-	
-	# Execute query for Credit Notes
-	cn_vat_result = frappe.db.sql(credit_note_query, [from_date, to_date, company, output_vat_account, from_date, to_date, company], as_dict=1)
-	cn_vat = flt(cn_vat_result[0].vat_amount) if cn_vat_result and cn_vat_result[0].vat_amount is not None else 0
-	
-	# Net Output VAT is Sales VAT minus Credit Note VAT
-	return sales_vat - cn_vat
 
-def get_box_2(company, from_date, to_date, output_vat_account):
-	"""
-	Box 2: VAT due on acquisitions from EU countries (reverse charge)
-	This function calculates the VAT due on reverse charge transactions from EU suppliers,
-	properly accounting for adjustments via Debit Notes.
-	
-	Parameters:
-	- company (str): Company for which to calculate VAT
-	- from_date (str): Start date for the calculation period
-	- to_date (str): End date for the calculation period
-	- output_vat_account (str): Output VAT account to use for reverse charge calculation
-	
-	Returns:
-	- float: Total reverse charge VAT amount (net of adjustments)
-	"""
-	# Get company abbreviation to identify reverse charge templates
-	company_abbr = frappe.db.get_value("Company", company, "abbr")
-	reverse_charge_template = f"Reverse Charge Services - {company_abbr}"
-	
-	# Query for VAT due on reverse charge purchases (credits to Output VAT)
-	rc_query = """
+	# Query for VAT due on Purchase Invoices, handling Debit Notes differently
+	query2 = """
 		SELECT SUM(
 			CASE 
-				WHEN gle.credit > 0 THEN gle.credit
-				WHEN gle.debit < 0 THEN -gle.debit
+				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.debit
+				WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.credit
 				ELSE 0
 			END
 		) as vat_amount
 		FROM `tabGL Entry` gle
-		JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name
+		LEFT JOIN `tabSales Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
 		WHERE gle.posting_date BETWEEN %s AND %s
 		AND gle.company = %s
 		AND gle.account = %s
 		AND gle.is_cancelled = 0
 		AND gle.docstatus = 1
 		AND gle.voucher_type = 'Purchase Invoice'
-		AND pi.taxes_and_charges = %s
-		AND pi.is_return = 0
 	"""
 	
-	# Execute query for reverse charge purchases
-	rc_result = frappe.db.sql(rc_query, [from_date, to_date, company, output_vat_account, reverse_charge_template], as_dict=1)
-	rc_vat = flt(rc_result[0].vat_amount) if rc_result and rc_result[0].vat_amount is not None else 0
+	# Build parameters list
+	params = [from_date, to_date, company, output_vat_account]
 	
-	# Query for adjustments to reverse charge via Debit Notes (debits to Output VAT)
-	rc_debit_note_query = """
-		SELECT SUM(
-			CASE 
-				WHEN gle.debit > 0 THEN gle.debit
-				WHEN gle.credit < 0 THEN -gle.credit
-				ELSE 0
-			END
-		) as vat_amount
-		FROM `tabGL Entry` gle
-		JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name
-		WHERE gle.posting_date BETWEEN %s AND %s
-		AND gle.company = %s
-		AND gle.account = %s
-		AND gle.is_cancelled = 0
-		AND gle.docstatus = 1
-		AND gle.voucher_type = 'Purchase Invoice'
-		AND pi.taxes_and_charges = %s
-		AND pi.is_return = 1
-	"""
-	
-	# Execute query for Debit Notes
-	rc_dn_result = frappe.db.sql(rc_debit_note_query, [from_date, to_date, company, output_vat_account, reverse_charge_template], as_dict=1)
-	rc_dn_vat = flt(rc_dn_result[0].vat_amount) if rc_dn_result and rc_dn_result[0].vat_amount is not None else 0
-	
-	# Net reverse charge VAT is the standard amount minus any debit note adjustments
-	return rc_vat - rc_dn_vat
-
-def get_box_4(company, from_date, to_date, input_vat_account):
-	"""
-	Box 4: VAT reclaimed on purchases and other inputs
-	This function calculates the Input VAT that can be reclaimed from purchases,
-	properly accounting for purchase returns and adjustments.
-	
-	Parameters:
-	- company (str): Company for which to calculate VAT
-	- from_date (str): Start date for the calculation period
-	- to_date (str): End date for the calculation period
-	- input_vat_account (str): Input VAT account to use for calculation
-	
-	Returns:
-	- float: Total reclaimable Input VAT amount (net of adjustments)
-	"""
-	# Query for Input VAT from regular purchases (debits to Input VAT)
-	purchase_vat_query = """
-		SELECT SUM(
-			CASE 
-				WHEN gle.debit > 0 THEN gle.debit
-				WHEN gle.credit < 0 THEN -gle.credit
-				ELSE 0
-			END
-		) as vat_amount
-		FROM `tabGL Entry` gle
-		WHERE gle.posting_date BETWEEN %s AND %s
-		AND gle.company = %s
-		AND gle.account = %s
-		AND gle.is_cancelled = 0
-		AND gle.docstatus = 1
-		AND gle.voucher_type = 'Purchase Invoice'
-		AND gle.voucher_no IN (
-			SELECT name 
-			FROM `tabPurchase Invoice` 
-			WHERE is_return = 0
-			AND posting_date BETWEEN %s AND %s
-			AND company = %s
-			AND docstatus = 1
-		)
-	"""
-	
-	# Execute query for purchase invoices
-	purchase_vat_result = frappe.db.sql(purchase_vat_query, [
-		from_date, to_date, company, input_vat_account, from_date, to_date, company
-	], as_dict=1)
+	# Execute query
+	purchase_vat_result = frappe.db.sql(query2, params, as_dict=1)
 	purchase_vat = flt(purchase_vat_result[0].vat_amount) if purchase_vat_result and purchase_vat_result[0].vat_amount is not None else 0
 	
-	# Query for Input VAT adjustments from Debit Notes (credits to Input VAT)
-	debit_note_query = """
+	return sales_vat + purchase_vat
+
+def get_box_2(company, from_date, to_date, output_vat_account):
+	# Query for VAT due on acquisitions, handling Debit Notes differently
+	query = """
 		SELECT SUM(
 			CASE 
-				WHEN gle.credit > 0 THEN gle.credit
-				WHEN gle.debit < 0 THEN -gle.debit
+				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.credit
+				WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.debit
+				ELSE 0
+			END
+		) as vat_amount
+		FROM `tabGL Entry` gle
+		LEFT JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
+		WHERE gle.posting_date BETWEEN %s AND %s
+		AND gle.company = %s
+		AND gle.account = %s
+		AND gle.is_cancelled = 0
+		AND gle.docstatus = 1
+		AND gle.voucher_type = 'Purchase Invoice'
+	"""
+	
+	# Build parameters list
+	params = [from_date, to_date, company, output_vat_account]
+	
+	# Execute query
+	output_vat_result = frappe.db.sql(query, params, as_dict=1)
+	output_vat = flt(output_vat_result[0].vat_amount) if output_vat_result and output_vat_result[0].vat_amount is not None else 0
+	
+	return output_vat
+
+def get_box_4(company, from_date, to_date, input_vat_account):
+	query1 = """
+		SELECT SUM(
+			CASE 
+				WHEN gle.voucher_subtype = 'Sales Invoice' THEN gle.debit
+				WHEN gle.voucher_subtype = 'Credit Note' THEN -gle.credit
+				ELSE 0
+			END
+		) as vat_amount
+		FROM `tabGL Entry` gle
+		WHERE gle.posting_date BETWEEN %s AND %s
+		AND gle.company = %s
+		AND gle.account = %s
+		AND gle.is_cancelled = 0
+		AND gle.docstatus = 1
+		AND gle.voucher_type = 'Sales Invoice'
+	"""
+	
+	params1 = [from_date, to_date, company, input_vat_account]
+	sales_vat_result = frappe.db.sql(query1, params1, as_dict=1)
+	sales_vat = flt(sales_vat_result[0].vat_amount) if sales_vat_result and sales_vat_result[0].vat_amount is not None else 0
+	
+	# Query for Purchase Invoices - reverse of Box 2
+	query2 = """
+		SELECT SUM(
+			CASE 
+				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN (gle.credit + gle.debit)
+				WHEN gle.voucher_subtype = 'Debit Note' THEN (-gle.debit - gle.credit)
 				ELSE 0
 			END
 		) as vat_amount
@@ -355,82 +272,15 @@ def get_box_4(company, from_date, to_date, input_vat_account):
 		AND gle.is_cancelled = 0
 		AND gle.docstatus = 1
 		AND gle.voucher_type = 'Purchase Invoice'
-		AND gle.voucher_no IN (
-			SELECT name 
-			FROM `tabPurchase Invoice` 
-			WHERE is_return = 1
-			AND posting_date BETWEEN %s AND %s
-			AND company = %s
-			AND docstatus = 1
-		)
 	"""
 	
-	# Execute query for debit notes
-	dn_vat_result = frappe.db.sql(debit_note_query, [
-		from_date, to_date, company, input_vat_account, from_date, to_date, company
-	], as_dict=1)
-	dn_vat = flt(dn_vat_result[0].vat_amount) if dn_vat_result and dn_vat_result[0].vat_amount is not None else 0
+	params2 = [from_date, to_date, company, input_vat_account]
 	
-	# Get company abbreviation to identify reverse charge templates
-	company_abbr = frappe.db.get_value("Company", company, "abbr")
-	reverse_charge_template = f"Reverse Charge Services - {company_abbr}"
+	purchase_vat_result = frappe.db.sql(query2, params2, as_dict=1)
+	purchase_vat = flt(purchase_vat_result[0].vat_amount) if purchase_vat_result and purchase_vat_result[0].vat_amount is not None else 0
 	
-	# Query for Input VAT from reverse charge transactions (debits to Input VAT)
-	rc_input_query = """
-		SELECT SUM(
-			CASE 
-				WHEN gle.debit > 0 THEN gle.debit
-				WHEN gle.credit < 0 THEN -gle.credit
-				ELSE 0
-			END
-		) as vat_amount
-		FROM `tabGL Entry` gle
-		JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name
-		WHERE gle.posting_date BETWEEN %s AND %s
-		AND gle.company = %s
-		AND gle.account = %s
-		AND gle.is_cancelled = 0
-		AND gle.docstatus = 1
-		AND gle.voucher_type = 'Purchase Invoice'
-		AND pi.taxes_and_charges = %s
-		AND pi.is_return = 0
-	"""
-	
-	# Execute query for reverse charge purchases (input VAT portion)
-	rc_input_result = frappe.db.sql(rc_input_query, [
-		from_date, to_date, company, input_vat_account, reverse_charge_template
-	], as_dict=1)
-	rc_input_vat = flt(rc_input_result[0].vat_amount) if rc_input_result and rc_input_result[0].vat_amount is not None else 0
-	
-	# Query for Input VAT adjustments from reverse charge Debit Notes (credits to Input VAT)
-	rc_input_dn_query = """
-		SELECT SUM(
-			CASE 
-				WHEN gle.credit > 0 THEN gle.credit
-				WHEN gle.debit < 0 THEN -gle.debit
-				ELSE 0
-			END
-		) as vat_amount
-		FROM `tabGL Entry` gle
-		JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name
-		WHERE gle.posting_date BETWEEN %s AND %s
-		AND gle.company = %s
-		AND gle.account = %s
-		AND gle.is_cancelled = 0
-		AND gle.docstatus = 1
-		AND pi.taxes_and_charges = %s
-		AND pi.is_return = 1
-	"""
-	
-	# Execute query for reverse charge debit notes (input VAT portion)
-	rc_input_dn_result = frappe.db.sql(rc_input_dn_query, [
-		from_date, to_date, company, input_vat_account, reverse_charge_template
-	], as_dict=1)
-	rc_input_dn_vat = flt(rc_input_dn_result[0].vat_amount) if rc_input_dn_result and rc_input_dn_result[0].vat_amount is not None else 0
-	
-	# Net Input VAT calculation:
-	# Regular Input VAT + Reverse Charge Input VAT - Debit Note adjustments - Reverse Charge Debit Note adjustments
-	return purchase_vat + rc_input_vat - dn_vat - rc_input_dn_vat
+	# Combine both VAT components
+	return sales_vat + purchase_vat
 
 def get_box_6(company, from_date, to_date):
 	# Part 1: Get regular sales excluding VAT directly from Sales Invoice table
