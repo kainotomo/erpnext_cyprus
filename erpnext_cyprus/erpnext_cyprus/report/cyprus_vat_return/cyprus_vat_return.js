@@ -52,10 +52,8 @@ frappe.query_reports["Cyprus VAT Return"] = {
         });
         
         // Set default accounts when report first loads
-        report.page.add_inner_message(__("Loading default VAT accounts..."));
         setTimeout(function() {
             set_default_vat_accounts(report);
-            report.page.clear_inner_message();
         }, 1000); // Give the report a second to fully initialize
     }
 };
