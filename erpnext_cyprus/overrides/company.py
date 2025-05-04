@@ -518,7 +518,7 @@ def cyprus_coa():
 			"root_type": "Asset",
 			"account_number": "1000",
 		},
-			_("Source of Funds (Liabilities)"): {
+		_("Source of Funds (Liabilities)"): {
 			_("Current Liabilities"): {
 				_("Accounts Payable"): {
 					_("Creditors"): {"account_type": "Payable", "account_number": "2110"},
