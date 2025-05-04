@@ -10,6 +10,18 @@ class CustomCompany(Company):
 
 		company_name = self.name
 		country = frappe.db.get_value("Company", company_name, "country")
+
+		# Remove existing templates
+		if not remove_existing_templates(company_name):
+			frappe.msgprint(
+				_("Tax templates already exist for this company. Please remove them manually."),
+				indicator="orange",
+				alert=True
+			)
+			return
+
+		# Validate tax accounts
+		validate_tax_accounts(company_name)
 		
 		# Regular setup for other countries
 		if country != "Cyprus":
@@ -23,14 +35,48 @@ class CustomCompany(Company):
 				"taxes": [
 					{
 						"account_head": {
-							"account_name": "VAT",
-							"account_number": "2320",
+							"account_name": _("Output VAT"),
+							"account_number": "2312",
 							"root_type": "Liability",
 							"tax_rate": 19
 						},
 						"description": "Standard Domestic VAT",
 						"charge_type": "On Net Total",
 						"rate": 19
+					}
+				]
+			},
+			{
+				"title": "Cyprus Reduced Rate (9%)",
+				"description": "For goods and services subject to reduced VAT rate",
+				"taxes": [
+					{
+						"account_head": {
+							"account_name": _("Output VAT"),
+							"account_number": "2312",
+							"root_type": "Liability",
+							"tax_rate": 9
+						},
+						"description": "Reduced Rate VAT",
+						"charge_type": "On Net Total",
+						"rate": 9
+					}
+				]
+			},
+			{
+				"title": "Cyprus Super Reduced Rate (5%)",
+				"description": "For goods and services subject to super-reduced VAT rate",
+				"taxes": [
+					{
+						"account_head": {
+							"account_name": _("Output VAT"),
+							"account_number": "2312",
+							"root_type": "Liability",
+							"tax_rate": 5
+						},
+						"description": "Super Reduced Rate VAT",
+						"charge_type": "On Net Total",
+						"rate": 5
 					}
 				]
 			},
@@ -55,8 +101,8 @@ class CustomCompany(Company):
 				"taxes": [
 					{
 						"account_head": {
-							"account_name": "VAT OSS",
-							"account_number": "2321",
+							"account_name": _("VAT OSS"),
+							"account_number": "2311",
 							"root_type": "Liability",
 							"tax_rate": 20.00
 						},
@@ -76,13 +122,13 @@ class CustomCompany(Company):
 					"sales_tax_templates": sales_tax_templates,
 					"purchase_tax_templates": [
 						{
-							"title": "Reverse Charge",
-							"description": "Purchases eligible for reverse charge VAT",
+							"title": "Reverse Charge Services",
+							"description": "For services purchased from EU suppliers subject to reverse charge",
 							"taxes": [
 								{
 									"account_head": {
-										"account_name": "VAT",
-										"account_number": "2320",
+										"account_name": _("Output VAT"),
+										"account_number": "2312",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -92,9 +138,9 @@ class CustomCompany(Company):
 								},
 								{
 									"account_head": {
-										"account_name": "VAT",
-										"account_number": "2320",
-										"root_type": "Liability",
+										"account_name": _("Input VAT"),
+										"account_number": "1520",
+										"root_type": "Asset",
 										"tax_rate": 19
 									},
 									"charge_type": "On Net Total",
@@ -114,8 +160,8 @@ class CustomCompany(Company):
 							"taxes": [
 								{
 									"account_head": {
-										"account_name": "VAT",
-										"account_number": "2320",
+										"account_name": _("Output VAT"),
+										"account_number": "2312",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -132,8 +178,8 @@ class CustomCompany(Company):
 							"taxes": [
 								{
 									"tax_type": {
-										"account_name": "VAT",
-										"account_number": "2320",
+										"account_name": _("Output VAT"),
+										"account_number": "2312",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -146,8 +192,8 @@ class CustomCompany(Company):
 							"taxes": [
 								{
 									"tax_type": {
-										"account_name": "VAT",
-										"account_number": "2320",
+										"account_name": _("Output VAT"),
+										"account_number": "2312",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -160,8 +206,8 @@ class CustomCompany(Company):
 							"taxes": [
 								{
 									"tax_type": {
-										"account_name": "VAT",
-										"account_number": "2320",
+										"account_name": _("Output VAT"),
+										"account_number": "2312",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
@@ -237,6 +283,57 @@ def get_eu_vat_rates():
 def get_eu_countries():
 	"""Return a list of EU countries"""
 	return list(get_eu_vat_rates().keys())
+
+def validate_tax_accounts(company):
+    required_accounts = [
+        {"number": "2310", "name": "VAT Payable"},
+        {"number": "2311", "name": "VAT OSS"},
+        {"number": "2312", "name": "Output VAT"},
+        {"number": "1520", "name": "Input VAT"}
+    ]
+    
+    missing_accounts = []
+    for account in required_accounts:
+        if not frappe.db.exists("Account", 
+            {"account_number": account["number"], "company": company}):
+            missing_accounts.append(f"{account['name']} ({account['number']})")
+    
+    if missing_accounts:
+        frappe.msgprint(
+            f"The following tax accounts are missing: {', '.join(missing_accounts)}. "
+            "Tax templates may not work correctly.",
+            indicator="orange",
+            alert=True
+        )
+
+def remove_existing_templates(company):
+    # Get existing templates
+    sales_templates = frappe.get_all(
+        "Sales Taxes and Charges Template",
+        filters={"company": company},
+        pluck="name"
+    )
+    purchase_templates = frappe.get_all(
+        "Purchase Taxes and Charges Template",
+        filters={"company": company},
+        pluck="name"
+    )
+    
+    # Optional: Confirm with user if in interactive mode
+    if not frappe.flags.in_install and len(sales_templates + purchase_templates) > 0:
+        if not frappe.confirm(
+            f"This will delete {len(sales_templates)} sales and {len(purchase_templates)} "
+            f"purchase tax templates for {company}. Continue?"):
+            return False
+    
+    # Delete templates
+    for template in sales_templates + purchase_templates:
+        frappe.delete_doc("Sales Taxes and Charges Template" 
+            if template in sales_templates 
+            else "Purchase Taxes and Charges Template", 
+            template, force=True)
+    
+    return True
 
 def setup_tax_rules(company):
 	"""
@@ -326,7 +423,7 @@ def setup_tax_rules(company):
 			"doctype": "Tax Rule",
 			"tax_type": "Purchase",
 			"billing_country": "EU",
-			"purchase_tax_template": template_names.get("Reverse Charge"),
+			"purchase_tax_template": template_names.get("Reverse Charge Services"),
 			"priority": 2
 		},        
 		# Zero-rated purchases are handled by the default template
@@ -392,30 +489,11 @@ def setup_tax_rules(company):
 	return rules_created
 
 def make_salary_components(company):
-	company_abbr = frappe.get_value("Company", company, "abbr")
 
-	account_accounts_payable = frappe.get_value('Account', {'account_name': 'Accounts Payable', 'company': company}, 'name')
-	account_payroll_payable = frappe.get_value('Account', {'account_name': 'Payroll Payable', 'company': company}, 'name')
-	account_income_tax = frappe.get_value('Account', {'account_name': 'Payroll Income Tax', 'company': company}, 'name')
-	account_salary = frappe.get_value('Account', {'account_name': 'Salary', 'company': company}, 'name')
-		
-	if not account_income_tax:
-		account = frappe.get_doc({
-			"doctype": "Account",
-			"account_name": "Payroll Income Tax",
-			"account_number": "2121",
-			"company": company,
-			"root_type": "Liability",
-			"is_group": 0,
-			"report_type": "Balance Sheet",
-			"parent_account": account_accounts_payable
-		})
-		account.insert(ignore_if_duplicate=True)
-		account.submit()
-		frappe.db.commit()
-		account_income_tax = account.name
-		
-
+	account_payroll_payable = frappe.get_value('Account', {'account_name': _("Payroll Payable"), 'company': company}, 'name')
+	account_income_tax = frappe.get_value('Account', {'account_name': _("Payroll Payable"), 'company': company}, 'name')
+	account_salary = frappe.get_value('Account', {'account_name': _("Salaries and Wages"), 'company': company}, 'name')
+	
 	docs = []
 
 	file_path = frappe.get_app_path("erpnext_cyprus", "regional", "cyprus", "data", "salary_components.json")
