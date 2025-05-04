@@ -181,8 +181,24 @@ class CustomCompany(Company):
 	
 	def create_default_accounts(self):
 		if self.country == "Cyprus":
-			self.chart_of_accounts = cyprus_coa()
-		super().create_default_accounts()
+			custom_chart = cyprus_coa()
+		
+		from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import create_charts
+
+		frappe.local.flags.ignore_root_company_validation = True
+		create_charts(self.name, None, self.existing_company, custom_chart)
+
+		self.db_set(
+			"default_receivable_account",
+			frappe.db.get_value(
+				"Account", {"company": self.name, "account_type": "Receivable", "is_group": 0}
+			),
+		)
+
+		self.db_set(
+			"default_payable_account",
+			frappe.db.get_value("Account", {"company": self.name, "account_type": "Payable", "is_group": 0}),
+		)
 
 def get_eu_vat_rates():
 	"""
