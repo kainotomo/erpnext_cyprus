@@ -160,8 +160,8 @@ class CustomCompany(Company):
 							"taxes": [
 								{
 									"account_head": {
-										"account_name": _("Output VAT"),
-										"account_number": "2312",
+										"account_name": _("Input VAT"),
+										"account_number": "1520",
 										"root_type": "Liability",
 										"tax_rate": 19
 									},
