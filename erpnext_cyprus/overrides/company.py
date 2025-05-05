@@ -11,15 +11,6 @@ class CustomCompany(Company):
 		company_name = self.name
 		country = frappe.db.get_value("Company", company_name, "country")
 
-		# Remove existing templates
-		if not remove_existing_templates(company_name):
-			frappe.msgprint(
-				_("Tax templates already exist for this company. Please remove them manually."),
-				indicator="orange",
-				alert=True
-			)
-			return
-
 		# Validate tax accounts
 		validate_tax_accounts(company_name)
 		
@@ -305,35 +296,6 @@ def validate_tax_accounts(company):
             indicator="orange",
             alert=True
         )
-
-def remove_existing_templates(company):
-    # Get existing templates
-    sales_templates = frappe.get_all(
-        "Sales Taxes and Charges Template",
-        filters={"company": company},
-        pluck="name"
-    )
-    purchase_templates = frappe.get_all(
-        "Purchase Taxes and Charges Template",
-        filters={"company": company},
-        pluck="name"
-    )
-    
-    # Optional: Confirm with user if in interactive mode
-    if not frappe.flags.in_install and len(sales_templates + purchase_templates) > 0:
-        if not frappe.confirm(
-            f"This will delete {len(sales_templates)} sales and {len(purchase_templates)} "
-            f"purchase tax templates for {company}. Continue?"):
-            return False
-    
-    # Delete templates
-    for template in sales_templates + purchase_templates:
-        frappe.delete_doc("Sales Taxes and Charges Template" 
-            if template in sales_templates 
-            else "Purchase Taxes and Charges Template", 
-            template, force=True)
-    
-    return True
 
 def setup_tax_rules(company):
 	"""
