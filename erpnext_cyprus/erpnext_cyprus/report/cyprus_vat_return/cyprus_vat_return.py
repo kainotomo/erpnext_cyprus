@@ -176,42 +176,16 @@ def get_box_1(company, from_date, to_date, output_vat_account):
 	# Execute query
 	sales_vat_result = frappe.db.sql(query1, params, as_dict=1)
 	sales_vat = flt(sales_vat_result[0].vat_amount) if sales_vat_result and sales_vat_result[0].vat_amount is not None else 0
-
-	# Query for VAT due on Purchase Invoices, handling Debit Notes differently
-	query2 = """
-		SELECT SUM(
-			CASE 
-				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.debit
-				WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.credit
-				ELSE 0
-			END
-		) as vat_amount
-		FROM `tabGL Entry` gle
-		LEFT JOIN `tabSales Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
-		WHERE gle.posting_date BETWEEN %s AND %s
-		AND gle.company = %s
-		AND gle.account = %s
-		AND gle.is_cancelled = 0
-		AND gle.docstatus = 1
-		AND gle.voucher_type = 'Purchase Invoice'
-	"""
 	
-	# Build parameters list
-	params = [from_date, to_date, company, output_vat_account]
-	
-	# Execute query
-	purchase_vat_result = frappe.db.sql(query2, params, as_dict=1)
-	purchase_vat = flt(purchase_vat_result[0].vat_amount) if purchase_vat_result and purchase_vat_result[0].vat_amount is not None else 0
-	
-	return sales_vat + purchase_vat
+	return sales_vat
 
 def get_box_2(company, from_date, to_date, output_vat_account):
 	# Query for VAT due on acquisitions, handling Debit Notes differently
 	query = """
 		SELECT SUM(
 			CASE 
-				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.credit
-				WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.debit
+				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.debit
+				WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.credit
 				ELSE 0
 			END
 		) as vat_amount
