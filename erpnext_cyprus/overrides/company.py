@@ -590,7 +590,6 @@ def cyprus_coa():
 					_("Social Insurance Contributions"): {"account_number": "2121"},
 					_("Payroll Income Tax"): {"account_number": "2122"},
 					_("GHS Contributions"): {"account_number": "2123"},
-					_("Provident Fund"): {"account_number": "2124"},
 					"account_number": "2120-2129",
 				},
 				_("Stock Liabilities"): {
