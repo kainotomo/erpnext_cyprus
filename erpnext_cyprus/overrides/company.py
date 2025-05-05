@@ -490,9 +490,11 @@ def setup_tax_rules(company):
 
 def make_salary_components(company):
 
-	account_payroll_payable = frappe.get_value('Account', {'account_name': _("Payroll Payable"), 'company': company}, 'name')
-	account_income_tax = frappe.get_value('Account', {'account_name': _("Payroll Payable"), 'company': company}, 'name')
 	account_salary = frappe.get_value('Account', {'account_name': _("Salaries and Wages"), 'company': company}, 'name')
+	account_payroll_payable = frappe.get_value('Account', {'account_name': _("Payroll Payable"), 'company': company}, 'name')
+	account_income_tax = frappe.get_value('Account', {'account_name': _("Payroll Income Tax"), 'company': company}, 'name')
+	account_social_insurance_contributions = frappe.get_value('Account', {'account_name': _("Social Insurance Contributions"), 'company': company}, 'name')
+	account_ghs_contributions = frappe.get_value('Account', {'account_name': _("GHS Contributions"), 'company': company}, 'name')
 	
 	docs = []
 
@@ -501,6 +503,8 @@ def make_salary_components(company):
 	file_content = file_content.replace("ACCOUNT_SALARY", account_salary)
 	file_content = file_content.replace("ACCOUNT_PAYROLL_PAYABLE", account_payroll_payable)
 	file_content = file_content.replace("ACCOUNT_PAYROLL_INCOME_TAX", account_income_tax)
+	file_content = file_content.replace("ACCOUNT_SOCIAL_INSURANCE_CONTRIBUTIONS", account_social_insurance_contributions)
+	file_content = file_content.replace("ACCOUNT_GHS_CONTRIBUTIONS", account_ghs_contributions)
 	file_content = file_content.replace("E2C_COMPANY", company)
 	docs.extend(json.loads(file_content))
 

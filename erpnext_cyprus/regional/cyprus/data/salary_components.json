@@ -79,8 +79,8 @@
     },
     {
         "doctype": "Salary Component",
-        "salary_component": "GESY",
-        "salary_component_abbr": "GESY",
+        "salary_component": "GHS",
+        "salary_component_abbr": "GHS",
         "description": "Employer's 2.90% contribution to the General Health System, no cap.",
         "type": "Earning",
         "depends_on_payment_days": 0,
@@ -176,15 +176,15 @@
         "accounts": [
             {
                 "doctype": "Salary Component Account",
-                "account": "ACCOUNT_PAYROLL_PAYABLE",
+                "account": "ACCOUNT_SOCIAL_INSURANCE_CONTRIBUTIONS",
                 "company": "E2C_COMPANY"
             }
         ]
     },
     {
         "doctype": "Salary Component",
-        "salary_component": "Employee's GESY",
-        "salary_component_abbr": "GESY_E",
+        "salary_component": "Employee's GHS",
+        "salary_component_abbr": "GHS_E",
         "description": "2.65% of total earnings withheld for the General Health System, no cap.",
         "type": "Deduction",
         "depends_on_payment_days": 0,
@@ -202,7 +202,7 @@
         "accounts": [
             {
                 "doctype": "Salary Component Account",
-                "account": "ACCOUNT_PAYROLL_PAYABLE",
+                "account": "ACCOUNT_GHS_CONTRIBUTIONS",
                 "company": "E2C_COMPANY"
             }
         ]
