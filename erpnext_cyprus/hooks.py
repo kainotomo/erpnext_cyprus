@@ -43,7 +43,7 @@ app_license = "gpl-3.0"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+# doctype_js = {"Company" : "public/js/company.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -129,21 +129,22 @@ app_license = "gpl-3.0"
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+    "Company": "erpnext_cyprus.overrides.company.CustomCompany"
+}
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Customer": {
+        "validate": "erpnext_cyprus.utils.customer_group_assignment.assign_customer_group_based_on_vat"
+    },
+    "Address": {
+        "after_insert": "erpnext_cyprus.utils.customer_group_assignment.assign_customer_territory_based_on_country"
+    },
+}
 
 # Scheduled Tasks
 # ---------------
