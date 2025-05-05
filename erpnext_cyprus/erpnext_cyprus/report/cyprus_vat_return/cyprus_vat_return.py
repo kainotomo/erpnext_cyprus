@@ -161,7 +161,6 @@ def get_box_1(company, from_date, to_date, output_vat_account):
 			END
 		) as vat_amount
 		FROM `tabGL Entry` gle
-		LEFT JOIN `tabSales Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Sales Invoice'
 		WHERE gle.posting_date BETWEEN %s AND %s
 		AND gle.company = %s
 		AND gle.account = %s
@@ -190,7 +189,6 @@ def get_box_2(company, from_date, to_date, output_vat_account):
 			END
 		) as vat_amount
 		FROM `tabGL Entry` gle
-		LEFT JOIN `tabPurchase Invoice` pi ON gle.voucher_no = pi.name AND gle.voucher_type = 'Purchase Invoice'
 		WHERE gle.posting_date BETWEEN %s AND %s
 		AND gle.company = %s
 		AND gle.account = %s
