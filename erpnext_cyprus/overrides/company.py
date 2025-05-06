@@ -458,6 +458,11 @@ def setup_tax_rules(company):
 def make_salary_components(company):
 
 	account_salary = frappe.get_value('Account', {'account_name': _("Salaries and Wages"), 'company': company}, 'name')
+	account_redundancy_fund = frappe.get_value('Account', {'account_name': _("Redundancy Fund"), 'company': company}, 'name')
+	account_human_resources_fund = frappe.get_value('Account', {'account_name': _("Human Resources Fund"), 'company': company}, 'name')
+	account_social_cohesion_fund = frappe.get_value('Account', {'account_name': _("Social Cohesion Fund"), 'company': company}, 'name')
+	account_social_insurance = frappe.get_value('Account', {'account_name': _("Social Insurance"), 'company': company}, 'name')
+	account_ghs = frappe.get_value('Account', {'account_name': _("GHS"), 'company': company}, 'name')
 	account_payroll_payable = frappe.get_value('Account', {'account_name': _("Payroll Payable"), 'company': company}, 'name')
 	account_income_tax = frappe.get_value('Account', {'account_name': _("Payroll Income Tax"), 'company': company}, 'name')
 	account_social_insurance_contributions = frappe.get_value('Account', {'account_name': _("Social Insurance Contributions"), 'company': company}, 'name')
@@ -467,11 +472,16 @@ def make_salary_components(company):
 
 	file_path = frappe.get_app_path("erpnext_cyprus", "regional", "cyprus", "data", "salary_components.json")
 	file_content = read_data_file(file_path)
-	file_content = file_content.replace("ACCOUNT_SALARY", account_salary)
 	file_content = file_content.replace("ACCOUNT_PAYROLL_PAYABLE", account_payroll_payable)
 	file_content = file_content.replace("ACCOUNT_PAYROLL_INCOME_TAX", account_income_tax)
 	file_content = file_content.replace("ACCOUNT_SOCIAL_INSURANCE_CONTRIBUTIONS", account_social_insurance_contributions)
 	file_content = file_content.replace("ACCOUNT_GHS_CONTRIBUTIONS", account_ghs_contributions)
+	file_content = file_content.replace("ACCOUNT_SALARY", account_salary)
+	file_content = file_content.replace("ACCOUNT_REDUNDANCY_FUND", account_redundancy_fund)
+	file_content = file_content.replace("ACCOUNT_HUMAN_RESOURCES_FUND", account_human_resources_fund)
+	file_content = file_content.replace("ACCOUNT_SOCIAL_COHESION_FUND", account_social_cohesion_fund)
+	file_content = file_content.replace("ACCOUNT_SOCIAL_INSURANCE", account_social_insurance)
+	file_content = file_content.replace("ACCOUNT_GHS", account_ghs)
 	file_content = file_content.replace("E2C_COMPANY", company)
 	docs.extend(json.loads(file_content))
 
@@ -709,7 +719,16 @@ def cyprus_coa():
 				"account_number": "8100",
 			},
 			_("Operating Expenses"): {
-				_("Salaries and Wages"): {"account_number": "8210"},
+				_("Staff Costs"): {
+					_("Salaries and Wages"): {"account_number": "8211"},
+					_("Social Insurance"): {"account_number": "8212"},
+					_("GHS"): {"account_number": "8213"},
+					_("Human Resources Fund"): {"account_number": "8214"},
+					_("Redundancy Fund"): {"account_number": "8215"},
+					_("Social Cohesion Fund"): {"account_number": "8216"},
+					_("Employee Benefits"): {"account_number": "8219"},
+					"account_number": "8210",
+				},
 				_("Employee Benefits"): {"account_number": "8220"},
 				_("Depreciation"): {"account_type": "Depreciation", "account_number": "8230"},
 				_("Amortization"): {"account_type": "Depreciation", "account_number": "8235"},
