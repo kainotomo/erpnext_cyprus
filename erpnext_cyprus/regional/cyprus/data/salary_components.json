@@ -46,14 +46,14 @@
         "accounts": [
             {
                 "doctype": "Salary Component Account",
-                "account": "ACCOUNT_SALARY",
+                "account": "ACCOUNT_REDUNDANCY_FUND",
                 "company": "E2C_COMPANY"
             }
         ]
     },
     {
         "doctype": "Salary Component",
-        "salary_component": "Human Resource Fund",
+        "salary_component": "Human Resources Fund",
         "salary_component_abbr": "HR",
         "description": "Employer's 0.5% contribution to the Training and Development Fund, capped at €5,551 per month.",
         "type": "Earning",
@@ -72,7 +72,7 @@
         "accounts": [
             {
                 "doctype": "Salary Component Account",
-                "account": "ACCOUNT_SALARY",
+                "account": "ACCOUNT_HUMAN_RESOURCES_FUND",
                 "company": "E2C_COMPANY"
             }
         ]
@@ -98,7 +98,7 @@
         "accounts": [
             {
                 "doctype": "Salary Component Account",
-                "account": "ACCOUNT_SALARY",
+                "account": "ACCOUNT_GHS",
                 "company": "E2C_COMPANY"
             }
         ]
@@ -124,7 +124,7 @@
         "accounts": [
             {
                 "doctype": "Salary Component Account",
-                "account": "ACCOUNT_SALARY",
+                "account": "ACCOUNT_SOCIAL_COHESION_FUND",
                 "company": "E2C_COMPANY"
             }
         ]
@@ -150,7 +150,7 @@
         "accounts": [
             {
                 "doctype": "Salary Component Account",
-                "account": "ACCOUNT_SALARY",
+                "account": "ACCOUNT_SOCIAL_INSURANCE",
                 "company": "E2C_COMPANY"
             }
         ]
