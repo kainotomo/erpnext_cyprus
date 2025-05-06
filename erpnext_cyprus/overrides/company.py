@@ -3,12 +3,40 @@ from frappe import _
 import json
 from erpnext.setup.doctype.company.company import Company
 from erpnext.setup.setup_wizard.operations.taxes_setup import setup_taxes_and_charges, from_detailed_data, update_regional_tax_settings
+from erpnext_cyprus.utils.customer_group_assignment import assign_customer_territory_based_on_country
 
 class CustomCompany(Company):
 	@frappe.whitelist()
 	def create_default_tax_template(self):
-
 		company_name = self.name
+		setup_tax_template(company_name)
+		setup_tax_rules(company_name)
+		make_salary_components(company_name)
+		assign_customer_group_territory()
+	
+	def create_default_accounts(self):
+		if self.country == "Cyprus":
+			custom_chart = cyprus_coa()
+		
+		from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import create_charts
+
+		frappe.local.flags.ignore_root_company_validation = True
+		create_charts(self.name, None, self.existing_company, custom_chart)
+
+		self.db_set(
+			"default_receivable_account",
+			frappe.db.get_value(
+				"Account", {"company": self.name, "account_type": "Receivable", "is_group": 0}
+			),
+		)
+
+		self.db_set(
+			"default_payable_account",
+			frappe.db.get_value("Account", {"company": self.name, "account_type": "Payable", "is_group": 0}),
+		)
+
+def setup_tax_template(company_name):
+
 		country = frappe.db.get_value("Company", company_name, "country")
 
 		# Validate tax accounts
@@ -213,29 +241,6 @@ class CustomCompany(Company):
 		
 		from_detailed_data(company_name, cyprus_tax_templates)
 		update_regional_tax_settings("Cyprus", company_name)
-		setup_tax_rules(company_name)
-		make_salary_components(company_name)
-	
-	def create_default_accounts(self):
-		if self.country == "Cyprus":
-			custom_chart = cyprus_coa()
-		
-		from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import create_charts
-
-		frappe.local.flags.ignore_root_company_validation = True
-		create_charts(self.name, None, self.existing_company, custom_chart)
-
-		self.db_set(
-			"default_receivable_account",
-			frappe.db.get_value(
-				"Account", {"company": self.name, "account_type": "Receivable", "is_group": 0}
-			),
-		)
-
-		self.db_set(
-			"default_payable_account",
-			frappe.db.get_value("Account", {"company": self.name, "account_type": "Payable", "is_group": 0}),
-		)
 
 def get_eu_vat_rates():
 	"""
@@ -276,26 +281,26 @@ def get_eu_countries():
 	return list(get_eu_vat_rates().keys())
 
 def validate_tax_accounts(company):
-    required_accounts = [
-        {"number": "2310", "name": "VAT Payable"},
-        {"number": "2311", "name": "VAT OSS"},
-        {"number": "2312", "name": "Output VAT"},
-        {"number": "1520", "name": "Input VAT"}
-    ]
-    
-    missing_accounts = []
-    for account in required_accounts:
-        if not frappe.db.exists("Account", 
-            {"account_number": account["number"], "company": company}):
-            missing_accounts.append(f"{account['name']} ({account['number']})")
-    
-    if missing_accounts:
-        frappe.msgprint(
-            f"The following tax accounts are missing: {', '.join(missing_accounts)}. "
-            "Tax templates may not work correctly.",
-            indicator="orange",
-            alert=True
-        )
+	required_accounts = [
+		{"number": "2310", "name": "VAT Payable"},
+		{"number": "2311", "name": "VAT OSS"},
+		{"number": "2312", "name": "Output VAT"},
+		{"number": "1520", "name": "Input VAT"}
+	]
+	
+	missing_accounts = []
+	for account in required_accounts:
+		if not frappe.db.exists("Account", 
+			{"account_number": account["number"], "company": company}):
+			missing_accounts.append(f"{account['name']} ({account['number']})")
+	
+	if missing_accounts:
+		frappe.msgprint(
+			f"The following tax accounts are missing: {', '.join(missing_accounts)}. "
+			"Tax templates may not work correctly.",
+			indicator="orange",
+			alert=True
+		)
 
 def setup_tax_rules(company):
 	"""
@@ -761,3 +766,79 @@ def cyprus_coa():
 			"account_number": "8000",
 		},
 	}
+
+def assign_customer_group_territory():
+	"""
+	Run assignment methods for all customers and their addresses
+	"""
+	print("\n=== Starting Customer Group and Territory Assignment ===\n")
+	
+	# Process all customers for VAT group assignment
+	customers = frappe.get_all("Customer", filters={"customer_name": ["!=", ""]}, fields=["name"])
+	count = 0
+	total = len(customers)
+	
+	for customer in customers:
+		try:
+			customer_doc = frappe.get_doc("Customer", customer.name)
+			assign_customer_group_based_on_vat(customer_doc)
+			customer_doc.save(ignore_permissions=True)
+			
+			count += 1                
+			if count % 100 == 0:
+				frappe.db.commit()
+				frappe.publish_progress(
+					percent=int(count * 100 / total),
+					title="Processing Customers",
+					description=f"Assigning customer groups ({count}/{total})"
+				)
+		except Exception as e:
+			frappe.log_error(f"Error processing customer {customer.name}: {str(e)}")
+	
+	frappe.db.commit()
+	
+	# Process all customer addresses for territory assignment
+	addresses = frappe.get_all(
+		"Address", 
+		filters=[["Dynamic Link", "link_doctype", "=", "Customer"]],
+		fields=["name"]
+	)
+	
+	count = 0
+	total = len(addresses)
+	
+	for address in addresses:
+		try:
+			address_doc = frappe.get_doc("Address", address.name)
+			assign_customer_territory_based_on_country(address_doc)
+			
+			count += 1
+			if count % 100 == 0:
+				frappe.db.commit()
+				frappe.publish_progress(
+					percent=int(count * 100 / total),
+					title="Processing Customers",
+					description=f"Assigning customer territory ({count}/{total})"
+				)
+		except Exception as e:
+			frappe.log_error(f"Error processing address {address.name}: {str(e)}")
+	
+	frappe.db.commit()
+	frappe.publish_progress(
+		percent=100,
+		title="Processing Customers",
+		description="Completed territory assignment for {total} addresses"
+	)
+
+def assign_customer_group_based_on_vat(doc, method=None):
+	"""
+	Assigns 'Commercial' group if tax_id is a valid VIES VAT number, else 'Individual'.
+	Only proceeds if tax_id field is modified (dirty) and not empty.
+	"""
+		
+	if doc.tax_id and doc.tax_id != "":
+		doc.customer_group = "Commercial"
+		doc.customer_type = "Company"
+	else:
+		doc.customer_group = "Individual"
+		doc.customer_type = "Individual"
