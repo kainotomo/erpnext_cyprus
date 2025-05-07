@@ -51,9 +51,13 @@ def assign_customer_group_based_on_vat(doc, method=None):
 	if is_valid_vies_vat(doc.tax_id):
 		doc.customer_group = "Commercial"
 		doc.customer_type = "Company"
+		if frappe.session.user != 'Administrator' and frappe.session.user != 'Guest' and frappe.db.get_value("User", frappe.session.user, "user_type") == "Website User":
+			frappe.msgprint("You have entered a valid VAT number!!!")
 	else:
 		doc.customer_group = "Individual"
 		doc.customer_type = "Individual"
+		if frappe.session.user != 'Administrator' and frappe.session.user != 'Guest' and frappe.db.get_value("User", frappe.session.user, "user_type") == "Website User":
+			frappe.msgprint("Invalid VAT number format. Please check the VAT number and try again.")
 
 def assign_customer_territory_based_on_country(doc, method=None):
 	"""
