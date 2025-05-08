@@ -183,8 +183,8 @@ def get_box_2(company, from_date, to_date, output_vat_account):
 	query = """
 		SELECT SUM(
 			CASE 
-				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.debit
-				WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.credit
+				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN gle.credit
+				WHEN gle.voucher_subtype = 'Debit Note' THEN -gle.debit
 				ELSE 0
 			END
 		) as vat_amount
@@ -232,8 +232,8 @@ def get_box_4(company, from_date, to_date, input_vat_account):
 	query2 = """
 		SELECT SUM(
 			CASE 
-				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN (gle.credit + gle.debit)
-				WHEN gle.voucher_subtype = 'Debit Note' THEN (-gle.debit - gle.credit)
+				WHEN gle.voucher_subtype = 'Purchase Invoice' THEN (gle.debit)
+				WHEN gle.voucher_subtype = 'Debit Note' THEN (-gle.credit)
 				ELSE 0
 			END
 		) as vat_amount

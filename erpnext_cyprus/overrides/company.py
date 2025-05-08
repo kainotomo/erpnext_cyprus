@@ -153,7 +153,7 @@ def setup_tax_template(company_name):
 									},
 									"charge_type": "On Net Total",
 									"rate": 19,
-									"add_deduct_tax": "Add"
+									"add_deduct_tax": "Deduct"
 								},
 								{
 									"account_head": {
@@ -164,7 +164,7 @@ def setup_tax_template(company_name):
 									},
 									"charge_type": "On Net Total",
 									"rate": 19,
-									"add_deduct_tax": "Deduct"
+									"add_deduct_tax": "Add"
 								}
 							]
 						},
