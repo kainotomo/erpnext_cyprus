@@ -27,36 +27,30 @@ frappe.ui.form.on('Bank Reconciliation Tool', {
                             // Show the Retrieve Bank Transactions button
                             frm.add_custom_button(__('Retrieve Bank Transactions'), function() {
                                 if(frm.doc.bank_statement_from_date && frm.doc.bank_statement_to_date) {
-                                    frappe.call({
-                                        method: "frappe.client.get",
-                                        args: {
-                                            doctype: "Hellenic Bank",
-                                            name: hellenic_bank_name
-                                        },
-                                        callback: function(r) {
-                                            if(r.message) {
-                                                // We have the Hellenic Bank document, now call its method
-                                                frappe.call({
-                                                    method: "erpnext_cyprus.erpnext_cyprus.doctype.hellenic_bank.hellenic_bank.HellenicBank.get_bank_transactions",
-                                                    args: {
-                                                        self: hellenic_bank_name, // This is the document name
-                                                        bank_account: frm.doc.bank_account,
-                                                        bank_statement_from_date: frm.doc.bank_statement_from_date,
-                                                        bank_statement_to_date: frm.doc.bank_statement_to_date
-                                                    },
-                                                    callback: function(response) {
-                                                        if(response.message && response.message.errors) {
-                                                            frappe.msgprint(__("Error retrieving transactions: {0}", 
-                                                                [response.message.errors]), __("Error"));
-                                                        } else {
-                                                            frappe.msgprint(__("Successfully retrieved bank transactions"));
-                                                            // Refresh the reconciliation tool to show new transactions
-                                                            frm.trigger("make_reconciliation_tool");
-                                                        }
-                                                    }
-                                                });
+                                    // Get the actual document first
+                                    frappe.model.with_doc('Hellenic Bank', hellenic_bank_name, function() {
+                                        var hellenic_bank_doc = frappe.model.get_doc('Hellenic Bank', hellenic_bank_name);
+                                        
+                                        // Now call the method directly on the document
+                                        frappe.call({
+                                            method: "get_bank_transactions",
+                                            doc: hellenic_bank_doc,
+                                            args: {
+                                                bank_account: frm.doc.bank_account,
+                                                bank_statement_from_date: frm.doc.bank_statement_from_date,
+                                                bank_statement_to_date: frm.doc.bank_statement_to_date
+                                            },
+                                            callback: function(response) {
+                                                if(response.message && response.message.errors) {
+                                                    frappe.msgprint(__("Error retrieving transactions: {0}", 
+                                                        [response.message.errors]), __("Error"));
+                                                } else {
+                                                    frappe.msgprint(__("Successfully retrieved bank transactions"));
+                                                    // Refresh the reconciliation tool to show new transactions
+                                                    frm.trigger("make_reconciliation_tool");
+                                                }
                                             }
-                                        }
+                                        });
                                     });
                                 } else {
                                     frappe.msgprint(__("Please select From Date and To Date"));

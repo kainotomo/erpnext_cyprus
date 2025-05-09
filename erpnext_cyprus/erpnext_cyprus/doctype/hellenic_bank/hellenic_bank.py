@@ -139,8 +139,7 @@ class HellenicBank(Document):
 		dateFrom = datetime.strptime(bank_statement_from_date, '%Y-%m-%d').strftime('%Y%m%d0000')
 		dateTo = datetime.strptime(bank_statement_to_date, '%Y-%m-%d').strftime('%Y%m%d2359')
 
-		self.refresh_token()
-		authorization_code = json.loads(self.authorization_code)
+		authorization_code = self.refresh_token()
 		url = self.get_base_url_api() + "/v1/b2b/account/report"
 		payload = {
 			"dateTo": dateTo,
