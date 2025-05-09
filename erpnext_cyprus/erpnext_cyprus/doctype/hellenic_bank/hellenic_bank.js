@@ -10,7 +10,7 @@ frappe.ui.form.on('Hellenic Bank', {
 					method: "initiate_web_application_flow",
 					doc: frm.doc,
 					callback: function (r) {
-						window.open(r.message, "_blank");
+						window.open(r.message);
 					},
 				});
 			});

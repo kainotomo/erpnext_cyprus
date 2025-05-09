@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 import base64
 import requests
@@ -26,9 +27,13 @@ class HellenicBank(Document):
 	def validate(self):
 		base_url = frappe.utils.get_url()
 		callback_path = (
-			"/api/method/frappe.integrations.doctype.erpnext_cyprus.erpnext_cyprus.callback/" + self.name
+			"/api/method/erpnext_cyprus.erpnext_cyprus.doctype.hellenic_bank.hellenic_bank.callback/" + self.name
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
+
+		# run if client_secrent is changed
+		string_to_encode = self.client_id + ':' + self.get_password("client_secret")
+		self.encoded_auth = base64.b64encode(string_to_encode.encode("utf-8")).decode("utf-8")
 
 	def get_base_url_auth(self):
 		return "https://sandbox-oauth.hellenicbank.com" if self.is_sandbox else "https://oauthprod.hellenicbank.com"
@@ -49,6 +54,49 @@ class HellenicBank(Document):
 		}
 		authorization_url += "?" + urlencode(query_params)
 		return authorization_url
+
+@frappe.whitelist(methods=["GET"], allow_guest=True)
+def callback(code=None, state=None):
+	"""Handle client's code.
+
+	Called during the oauthorization flow by the remote oAuth2 server to
+	transmit a code that can be used by the local server to obtain an access
+	token.
+	"""
+
+	if frappe.session.user == "Guest":
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = "/login?" + urlencode({"redirect-to": frappe.request.url})
+		return
+
+	path = frappe.request.path[1:].split("/")
+	if len(path) != 4 or not path[3]:
+		frappe.throw(_("Invalid Parameters."))
+
+	hellenic_bank = frappe.get_doc("Hellenic Bank", path[3])
+
+	if state != hellenic_bank.state:
+		frappe.throw(_("Invalid token state! Check if the token has been created by the OAuth user."))
+
+	url = get_base_url_auth(hellenic_bank) + "/token/exchange"
+	payload = {
+		"grant_type": "authorization_code",
+		"redirect_uri": hellenic_bank.redirect_uri,
+		"code": code
+	}
+	headers = {
+		"Authorization": "Basic " + hellenic_bank.encoded_auth
+	}
+
+	response = requests.post(url, data=payload, headers=headers)
+	if (response.status_code != 200):
+		frappe.throw(response.text)
+	frappe.db.set_value('Hellenic Bank', hellenic_bank.name, 'authorization_code', response.text)
+	frappe.db.set_value('Hellenic Bank', hellenic_bank.name, 'code', code)
+	frappe.db.commit()
+
+	frappe.local.response["type"] = "redirect"
+	frappe.local.response["location"] = hellenic_bank.get_url()
 
 def base64_encode(string):
     string_bytes = string.encode('utf-8')  # Convert string to bytes using UTF-8 encoding

@@ -17,6 +17,7 @@
   "column_break_gpgr",
   "client_secret",
   "is_sandbox",
+  "encoded_auth",
   "section_break_uftz",
   "redirect_uri",
   "state",
@@ -114,11 +115,18 @@
    "label": "State",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "encoded_auth",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Encoded Auth",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 11:25:20.086187",
+ "modified": "2025-05-09 14:18:15.058778",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Hellenic Bank",
