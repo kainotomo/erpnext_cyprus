@@ -111,26 +111,6 @@ def get_base_url_api(hellenic_bank):
 	return "https://sandbox-apis.hellenicbank.com" if hellenic_bank.is_sandbox else "https://apisprod.hellenicbank.com"
 
 @frappe.whitelist()
-def get_authorization_code():
-	hellenic_bank = frappe.get_doc("Hellenic Bank")
-	url = get_base_url_auth(hellenic_bank) + "/token/exchange"
-	payload = {
-		"grant_type": "authorization_code",
-		"redirect_uri": frappe.utils.get_url() + "/app/hellenic-bank",
-		"code": hellenic_bank.code
-	}
-	string_to_encode = hellenic_bank.client_id + ':' + hellenic_bank.get_password("client_secret")
-	headers = {
-		"Authorization": "Basic " + base64.b64encode(string_to_encode.encode("utf-8")).decode("utf-8")
-	}
-
-	response = requests.post(url, data=payload, headers=headers)
-	if (response.status_code != 200):
-		frappe.throw(response.text)
-	frappe.db.set_value('Hellenic Bank', hellenic_bank.name, 'authorization_code', response.text)
-	return response.json()
-
-@frappe.whitelist()
 def refresh_token():
 	hellenic_bank = frappe.get_doc("Hellenic Bank")
 	authorization_code = json.loads(hellenic_bank.authorization_code)
