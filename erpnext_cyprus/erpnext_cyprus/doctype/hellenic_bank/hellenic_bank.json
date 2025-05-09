@@ -19,6 +19,7 @@
   "is_sandbox",
   "section_break_uftz",
   "redirect_uri",
+  "state",
   "code",
   "authorization_code"
  ],
@@ -105,11 +106,19 @@
    "fieldtype": "Data",
    "label": "Redirect URI",
    "read_only": 1
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "State",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 11:01:13.631225",
+ "modified": "2025-05-09 11:25:20.086187",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Hellenic Bank",

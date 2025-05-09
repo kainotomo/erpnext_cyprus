@@ -19,6 +19,7 @@
   "is_sandbox",
   "section_break_wgnu",
   "redirect_uri",
+  "state",
   "access_token_1",
   "access_token_2",
   "code",
@@ -118,11 +119,18 @@
    "fieldtype": "Data",
    "label": "Redirect URI",
    "read_only": 1
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "State",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 10:50:28.192375",
+ "modified": "2025-05-09 11:25:44.758867",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Bank Of Cyprus",

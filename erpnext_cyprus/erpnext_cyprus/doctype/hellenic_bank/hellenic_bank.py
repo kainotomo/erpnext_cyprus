@@ -11,12 +11,44 @@ from urllib.parse import urlencode, urljoin
 
 class HellenicBank(Document):
 
+	scopes = [
+		"b2b.account.details",
+		"b2b.credit.transfer.mass",
+		"b2b.account.list",
+		"b2b.report.account.statements",
+		"b2b.credit.transfer.cancel",
+		"b2b.report.credit.transfer.single",
+		"b2b.credit.transfer.single",
+		"b2b.funds.availability",
+		"b2b.report.credit.transfer.mass"
+		]
+
 	def validate(self):
 		base_url = frappe.utils.get_url()
 		callback_path = (
 			"/api/method/frappe.integrations.doctype.erpnext_cyprus.erpnext_cyprus.callback/" + self.name
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
+
+	def get_base_url_auth(self):
+		return "https://sandbox-oauth.hellenicbank.com" if self.is_sandbox else "https://oauthprod.hellenicbank.com"
+
+	@frappe.whitelist()
+	def initiate_web_application_flow(self, user=None, success_uri=None):
+		"""Return an authorization URL for the user. Save state in Token Cache."""
+		user = user or frappe.session.user		
+		authorization_url = self.get_base_url_auth() + "/oauth2/auth"
+		state = base64_encode(frappe.generate_hash(length=10))
+		frappe.db.set_value('Hellenic Bank', self.name, 'state', state)
+		query_params = {
+			"response_type": "code",
+			"client_id": self.client_id,
+			"redirect_uri": self.redirect_uri,
+			"scope": " ".join(self.scopes),
+			"state": state
+		}
+		authorization_url += "?" + urlencode(query_params)
+		return authorization_url
 
 def base64_encode(string):
     string_bytes = string.encode('utf-8')  # Convert string to bytes using UTF-8 encoding

@@ -14,6 +14,26 @@ frappe.ui.form.on('Hellenic Bank', {
 					},
 				});
 			});
+
+			frm.add_custom_button(__('Create Accounts'), function () {
+				frappe.confirm('Are you sure you want to proceed?', function() {
+					frappe.call({
+						method: "erpnext_cyprus.erpnext_cyprus.doctype.hellenic_bank.hellenic_bank.create_accounts",
+						args: {
+							// your arguments here
+						},
+						callback: function(response) {
+							if (response.message.errors === null) {
+								frappe.msgprint("You succesfully created the bank accounts.");
+							} else {
+								frappe.msgprint("Something went wrong.", 'Error');
+							}
+						}
+					});		
+				}, function() {
+					// action to perform if No is selected
+				});			
+			});
 		}
 
 		frm.add_custom_button(__('Authorize'), function () {
@@ -29,26 +49,6 @@ frappe.ui.form.on('Hellenic Bank', {
 				window.location.href = href;
 				frappe.validated = true;
 			}
-		});
-
-		frm.add_custom_button(__('Create Accounts'), function () {
-			frappe.confirm('Are you sure you want to proceed?', function() {
-				frappe.call({
-					method: "cyprus_banks.cyprus_banks.doctype.hellenic_bank.hellenic_bank.create_accounts",
-					args: {
-						// your arguments here
-					},
-					callback: function(response) {
-						if (response.message.errors === null) {
-							frappe.msgprint("You succesfully created the bank accounts.");
-						} else {
-							frappe.msgprint("Something went wrong.", 'Error');
-						}
-					}
-				});		
-			}, function() {
-				// action to perform if No is selected
-			});			
 		});
 
 		let urlParams = new URLSearchParams(window.location.search);
