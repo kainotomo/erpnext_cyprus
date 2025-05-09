@@ -4,6 +4,18 @@
 frappe.ui.form.on('Hellenic Bank', {
 	refresh: function (frm) {
 
+		if (!frm.is_new()) {
+			frm.add_custom_button(__("Connect to {}", [frm.doc.title]), async () => {
+				frappe.call({
+					method: "initiate_web_application_flow",
+					doc: frm.doc,
+					callback: function (r) {
+						window.open(r.message, "_blank");
+					},
+				});
+			});
+		}
+
 		frm.add_custom_button(__('Authorize'), function () {
 			let urlParams = new URLSearchParams(window.location.search);
 			if (urlParams.get('state') === null) {

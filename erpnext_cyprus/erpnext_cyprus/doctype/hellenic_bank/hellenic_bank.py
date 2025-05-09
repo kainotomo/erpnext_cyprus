@@ -7,13 +7,16 @@ import base64
 import requests
 import json
 from datetime import datetime
+from urllib.parse import urlencode, urljoin
 
 class HellenicBank(Document):
 
-	def onload(self):
-		return
-
-	pass
+	def validate(self):
+		base_url = frappe.utils.get_url()
+		callback_path = (
+			"/api/method/frappe.integrations.doctype.erpnext_cyprus.erpnext_cyprus.callback/" + self.name
+		)
+		self.redirect_uri = urljoin(base_url, callback_path)
 
 def base64_encode(string):
     string_bytes = string.encode('utf-8')  # Convert string to bytes using UTF-8 encoding
