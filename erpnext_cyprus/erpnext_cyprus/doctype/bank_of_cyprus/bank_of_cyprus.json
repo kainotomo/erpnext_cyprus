@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-06-26 10:48:52.785921",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "parent_account",
+  "bank",
+  "is_sandbox",
+  "user_id",
+  "client_id",
+  "client_secret",
+  "access_token_1",
+  "subscription_id",
+  "code",
+  "access_token_2"
+ ],
+ "fields": [
+  {
+   "fieldname": "parent_account",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Parent Account",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bank",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Bank",
+   "options": "Bank",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_sandbox",
+   "fieldtype": "Check",
+   "label": "Is Sandbox"
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Client Id",
+   "reqd": 1
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "label": "Client Secret",
+   "reqd": 1
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Code"
+  },
+  {
+   "fieldname": "subscription_id",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Subscription Id"
+  },
+  {
+   "fieldname": "user_id",
+   "fieldtype": "Data",
+   "label": "User Id",
+   "reqd": 1
+  },
+  {
+   "fieldname": "access_token_1",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Access Token 1"
+  },
+  {
+   "fieldname": "access_token_2",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Access Token 2"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2023-07-05 09:00:12.023558",
+ "modified_by": "Administrator",
+ "module": "Cyprus Banks",
+ "name": "Bank Of Cyprus",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
