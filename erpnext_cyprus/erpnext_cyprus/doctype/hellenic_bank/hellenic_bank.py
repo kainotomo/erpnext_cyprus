@@ -132,6 +132,63 @@ class HellenicBank(Document):
 				
 		return response_json
 
+	@frappe.whitelist()
+	def get_bank_transactions(self, bank_account, bank_statement_from_date, bank_statement_to_date):
+
+		bank_account_doc = frappe.get_doc("Bank Account", bank_account)
+		dateFrom = datetime.strptime(bank_statement_from_date, '%Y-%m-%d').strftime('%Y%m%d0000')
+		dateTo = datetime.strptime(bank_statement_to_date, '%Y-%m-%d').strftime('%Y%m%d2359')
+
+		self.refresh_token()
+		authorization_code = json.loads(self.authorization_code)
+		url = self.get_base_url_api() + "/v1/b2b/account/report"
+		payload = {
+			"dateTo": dateTo,
+			"dateFrom": dateFrom,
+			"account": bank_account_doc.iban
+		}
+		headers = {
+			"Authorization": "Bearer " + authorization_code["access_token"],
+			"x-client-id": self.client_id	
+		}
+
+		response = requests.get(url, params=payload, headers=headers)
+		response_json = response.json()
+		if (response.status_code != 200):
+			return response_json
+		
+		transactions = response_json["payload"]["transactions"]
+		for transaction in transactions:
+			filters = {
+				'date': transaction["transactionValueDate"],
+				'reference_number': transaction["customerReference"]
+			}
+			amount = transaction["transactionAmount"]
+			if amount > 0:
+				filters["deposit"] = abs(amount)
+			else:
+				filters["withdrawal"] = abs(amount)
+			existing = frappe.db.get_list('Bank Transaction', filters=filters)
+
+			if (len(existing) == 0):
+				bank_transaction = frappe.get_doc({
+					"doctype": "Bank Transaction",
+					"bank_account": bank_account,
+					"status": "Pending",
+					"date": transaction["transactionValueDate"],
+					"reference_number": transaction["customerReference"],
+					"description": transaction["paymentNotes"],
+				})
+				if amount > 0:
+					bank_transaction.deposit = abs(amount)
+				else:
+					bank_transaction.withdrawal = abs(amount)
+
+				bank_transaction.insert()
+				bank_transaction.submit()
+				
+		return response_json
+	
 @frappe.whitelist(methods=["GET"], allow_guest=True)
 def callback(code=None, state=None):
 	"""Handle client's code.
@@ -174,64 +231,6 @@ def callback(code=None, state=None):
 
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = hellenic_bank.get_url()
-
-@frappe.whitelist()
-def get_bank_transactions(bank_account, bank_statement_from_date, bank_statement_to_date):
-
-	bank_account_doc = frappe.get_doc("Bank Account", bank_account)
-	dateFrom = datetime.strptime(bank_statement_from_date, '%Y-%m-%d').strftime('%Y%m%d0000')
-	dateTo = datetime.strptime(bank_statement_to_date, '%Y-%m-%d').strftime('%Y%m%d2359')
-
-	refresh_token()
-	hellenic_bank = frappe.get_doc("Hellenic Bank")
-	authorization_code = json.loads(hellenic_bank.authorization_code)
-	url = get_base_url_api(hellenic_bank) + "/v1/b2b/account/report"
-	payload = {
-		"dateTo": dateTo,
-		"dateFrom": dateFrom,
-		"account": bank_account_doc.iban
-	}
-	headers = {
-		"Authorization": "Bearer " + authorization_code["access_token"],
-		"x-client-id": hellenic_bank.client_id	
-	}
-
-	response = requests.get(url, params=payload, headers=headers)
-	response_json = response.json()
-	if (response.status_code != 200):
-		return response_json
-	
-	transactions = response_json["payload"]["transactions"]
-	for transaction in transactions:
-		filters = {
-			'date': transaction["transactionValueDate"],
-			'reference_number': transaction["customerReference"]
-		}
-		amount = transaction["transactionAmount"]
-		if amount > 0:
-			filters["deposit"] = abs(amount)
-		else:
-			filters["withdrawal"] = abs(amount)
-		existing = frappe.db.get_list('Bank Transaction', filters=filters)
-
-		if (len(existing) == 0):
-			bank_transaction = frappe.get_doc({
-				"doctype": "Bank Transaction",
-				"bank_account": bank_account,
-				"status": "Pending",
-				"date": transaction["transactionValueDate"],
-				"reference_number": transaction["customerReference"],
-				"description": transaction["paymentNotes"],
-			})
-			if amount > 0:
-				bank_transaction.deposit = abs(amount)
-			else:
-				bank_transaction.withdrawal = abs(amount)
-
-			bank_transaction.insert()
-			bank_transaction.submit()
-			
-	return response_json
 
 @frappe.whitelist()
 def single_payment(bank_account, party_bank_account, paid_amount, reference_no, reference_date, party_name):

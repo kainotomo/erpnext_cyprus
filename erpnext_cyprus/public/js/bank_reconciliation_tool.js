@@ -1,0 +1,71 @@
+frappe.ui.form.on('Bank Reconciliation Tool', {
+    refresh: function (frm) {
+        frm.trigger('check_hellenic_bank');
+    },
+    
+    bank_account: function(frm) {
+        frm.trigger('check_hellenic_bank');
+    },
+    
+    check_hellenic_bank: function(frm) {
+        // Clear any existing Hellenic Bank buttons
+        frm.remove_custom_button(__('Retrieve Bank Transactions'), "Hellenic Bank");
+        
+        if(frm.doc.bank_account) {
+            // Get the bank of the selected bank account
+            frappe.db.get_value('Bank Account', frm.doc.bank_account, 'bank', function(r) {
+                if(r && r.bank) {
+                    // Find the specific Hellenic Bank document that serves this bank
+                    frappe.db.get_list('Hellenic Bank', {
+                        filters: {'bank': r.bank},
+                        fields: ['name'],
+                        limit: 1
+                    }).then(function(hellenic_banks) {
+                        if(hellenic_banks && hellenic_banks.length > 0) {
+                            const hellenic_bank_name = hellenic_banks[0].name;
+                            
+                            // Show the Retrieve Bank Transactions button
+                            frm.add_custom_button(__('Retrieve Bank Transactions'), function() {
+                                if(frm.doc.bank_statement_from_date && frm.doc.bank_statement_to_date) {
+                                    frappe.call({
+                                        method: "frappe.client.get",
+                                        args: {
+                                            doctype: "Hellenic Bank",
+                                            name: hellenic_bank_name
+                                        },
+                                        callback: function(r) {
+                                            if(r.message) {
+                                                // We have the Hellenic Bank document, now call its method
+                                                frappe.call({
+                                                    method: "erpnext_cyprus.erpnext_cyprus.doctype.hellenic_bank.hellenic_bank.HellenicBank.get_bank_transactions",
+                                                    args: {
+                                                        self: hellenic_bank_name, // This is the document name
+                                                        bank_account: frm.doc.bank_account,
+                                                        bank_statement_from_date: frm.doc.bank_statement_from_date,
+                                                        bank_statement_to_date: frm.doc.bank_statement_to_date
+                                                    },
+                                                    callback: function(response) {
+                                                        if(response.message && response.message.errors) {
+                                                            frappe.msgprint(__("Error retrieving transactions: {0}", 
+                                                                [response.message.errors]), __("Error"));
+                                                        } else {
+                                                            frappe.msgprint(__("Successfully retrieved bank transactions"));
+                                                            // Refresh the reconciliation tool to show new transactions
+                                                            frm.trigger("make_reconciliation_tool");
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    frappe.msgprint(__("Please select From Date and To Date"));
+                                }
+                            }, __("Hellenic Bank"));
+                        }
+                    });
+                }
+            });
+        }
+    }
+});
