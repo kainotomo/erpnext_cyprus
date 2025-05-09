@@ -35,15 +35,24 @@ class HellenicBank(Document):
 		string_to_encode = self.client_id + ':' + self.get_password("client_secret")
 		self.encoded_auth = base64.b64encode(string_to_encode.encode("utf-8")).decode("utf-8")
 
+	def base64_encode(self, string):
+		string_bytes = string.encode('utf-8')  # Convert string to bytes using UTF-8 encoding
+		encoded_bytes = base64.b64encode(string_bytes)  # Base64 encode the bytes
+		encoded_string = encoded_bytes.decode('utf-8')  # Convert the encoded bytes back to a string
+		return encoded_string
+
 	def get_base_url_auth(self):
 		return "https://sandbox-oauth.hellenicbank.com" if self.is_sandbox else "https://oauthprod.hellenicbank.com"
+
+	def get_base_url_api(self):
+		return "https://sandbox-apis.hellenicbank.com" if self.is_sandbox else "https://apisprod.hellenicbank.com"
 
 	@frappe.whitelist()
 	def initiate_web_application_flow(self, user=None, success_uri=None):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
 		user = user or frappe.session.user		
 		authorization_url = self.get_base_url_auth() + "/oauth2/auth"
-		state = base64_encode(frappe.generate_hash(length=10))
+		state = self.base64_encode(frappe.generate_hash(length=10))
 		frappe.db.set_value('Hellenic Bank', self.name, 'state', state)
 		query_params = {
 			"response_type": "code",
@@ -54,6 +63,74 @@ class HellenicBank(Document):
 		}
 		authorization_url += "?" + urlencode(query_params)
 		return authorization_url
+	
+	def refresh_token(self):
+		authorization_code = json.loads(self.authorization_code)
+
+		# Check if the token is expired
+		now = datetime.now()
+		expires_at = datetime.fromtimestamp(authorization_code["expires_at"] / 1000)
+		if now > expires_at:
+			url = self.get_base_url_auth() + "/token"
+			payload = {
+				"grant_type": "refresh_token",
+				"refresh_token": authorization_code["refresh_token"]
+			}
+			string_to_encode = self.client_id + ':' + self.get_password("client_secret")
+			headers = {
+				"Authorization": "Basic " + base64.b64encode(string_to_encode.encode("utf-8")).decode("utf-8")
+			}
+
+			response = requests.post(url, data=payload, headers=headers)
+			response_json = response.json()
+			if (response.status_code != 200):
+				frappe.throw(response_json["error"] + " - Authorize and try again")
+			frappe.db.set_value('Hellenic Bank', self.name, 'authorization_code', response.text)
+			frappe.db.commit()
+			return response.json()
+		else:
+			return authorization_code
+		
+	@frappe.whitelist()
+	def create_accounts(self):
+		authorization_code = self.refresh_token()
+		url = self.get_base_url_api() + "/v1/b2b/account/list"
+		payload = {}
+		headers = {
+			"Authorization": "Bearer " + authorization_code["access_token"],
+			"x-client-id": self.client_id	
+		}
+
+		response = requests.get(url, params=payload, headers=headers)
+		response_json = response.json()
+		if (response.status_code != 200):
+			return response_json
+		
+		accounts = response_json["payload"]["accounts"]
+		for account in accounts:
+			if not frappe.db.exists('Bank Account', account["accountName"] + " - " + self.bank):
+				new_account = frappe.get_doc({
+					'doctype': 'Account',
+					'account_name': account["accountName"],
+					'parent_account': self.parent_account,
+					'account_type': 'Bank',
+					'account_currency': account["accountCurrencyCodes"],
+				})
+				new_account.insert()
+
+				bank_account = frappe.get_doc({
+					'doctype': 'Bank Account',
+					'account_name': account["accountName"],
+					'account': new_account.name,
+					'is_company_account': True,
+					'bank': self.bank,
+					'bank_account_no': account["accountNumber"],
+					'currency': account["accountCurrencyCodes"],
+					'iban': account["iban"],
+				})
+				bank_account.insert()
+				
+		return response_json
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
 def callback(code=None, state=None):
@@ -78,7 +155,7 @@ def callback(code=None, state=None):
 	if state != hellenic_bank.state:
 		frappe.throw(_("Invalid token state! Check if the token has been created by the OAuth user."))
 
-	url = get_base_url_auth(hellenic_bank) + "/token/exchange"
+	url = hellenic_bank.get_base_url_auth() + "/token/exchange"
 	payload = {
 		"grant_type": "authorization_code",
 		"redirect_uri": hellenic_bank.redirect_uri,
@@ -97,89 +174,6 @@ def callback(code=None, state=None):
 
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = hellenic_bank.get_url()
-
-def base64_encode(string):
-    string_bytes = string.encode('utf-8')  # Convert string to bytes using UTF-8 encoding
-    encoded_bytes = base64.b64encode(string_bytes)  # Base64 encode the bytes
-    encoded_string = encoded_bytes.decode('utf-8')  # Convert the encoded bytes back to a string
-    return encoded_string
-
-def get_base_url_auth(hellenic_bank):
-	return "https://sandbox-oauth.hellenicbank.com" if hellenic_bank.is_sandbox else "https://oauthprod.hellenicbank.com"
-
-def get_base_url_api(hellenic_bank):
-	return "https://sandbox-apis.hellenicbank.com" if hellenic_bank.is_sandbox else "https://apisprod.hellenicbank.com"
-
-@frappe.whitelist()
-def refresh_token():
-	hellenic_bank = frappe.get_doc("Hellenic Bank")
-	authorization_code = json.loads(hellenic_bank.authorization_code)
-
-	# Check if the token is expired
-	now = datetime.now()
-	expires_at = datetime.fromtimestamp(authorization_code["expires_at"] / 1000)
-	if now > expires_at:
-		url = get_base_url_auth(hellenic_bank) + "/token"
-		payload = {
-			"grant_type": "refresh_token",
-			"refresh_token": authorization_code["refresh_token"]
-		}
-		string_to_encode = hellenic_bank.client_id + ':' + hellenic_bank.get_password("client_secret")
-		headers = {
-			"Authorization": "Basic " + base64.b64encode(string_to_encode.encode("utf-8")).decode("utf-8")
-		}
-
-		response = requests.post(url, data=payload, headers=headers)
-		response_json = response.json()
-		if (response.status_code != 200):
-			frappe.throw(response_json["error"] + " - Authorize and try again")
-		frappe.db.set_value('Hellenic Bank', hellenic_bank.name, 'authorization_code', response.text)
-		return response.json()
-	else:
-		return authorization_code
-
-@frappe.whitelist()
-def create_accounts():
-	refresh_token()
-	hellenic_bank = frappe.get_doc("Hellenic Bank")
-	authorization_code = json.loads(hellenic_bank.authorization_code)
-	url = get_base_url_api(hellenic_bank) + "/v1/b2b/account/list"
-	payload = {}
-	headers = {
-		"Authorization": "Bearer " + authorization_code["access_token"],
-		"x-client-id": hellenic_bank.client_id	
-	}
-
-	response = requests.get(url, params=payload, headers=headers)
-	response_json = response.json()
-	if (response.status_code != 200):
-		return response_json
-	
-	accounts = response_json["payload"]["accounts"]
-	for account in accounts:
-		if not frappe.db.exists('Bank Account', account["accountName"] + " - " + hellenic_bank.bank):
-			new_account = frappe.get_doc({
-				'doctype': 'Account',
-				'account_name': account["accountName"],
-				'parent_account': hellenic_bank.parent_account,
-				'account_type': 'Bank',
-				'account_currency': account["accountCurrencyCodes"],
-			})
-			new_account.insert()
-
-			bank_account = frappe.get_doc({
-				'doctype': 'Bank Account',
-				'account_name': account["accountName"],
-				'account': new_account.name,
-				'is_company_account': True,
-				'bank': hellenic_bank.bank,
-				'bank_account_no': account["accountNumber"],
-				'currency': account["accountCurrencyCodes"],
-				'iban': account["iban"],
-			})
-			bank_account.insert()
-			
-	return response_json
 
 @frappe.whitelist()
 def get_bank_transactions(bank_account, bank_statement_from_date, bank_statement_to_date):
