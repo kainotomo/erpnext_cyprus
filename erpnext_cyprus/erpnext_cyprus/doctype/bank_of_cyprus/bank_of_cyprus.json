@@ -7,16 +7,22 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "title",
+  "column_break_mouq",
   "parent_account",
   "bank",
-  "is_sandbox",
-  "user_id",
+  "section_break_hugv",
   "client_id",
+  "user_id",
+  "column_break_hubw",
   "client_secret",
+  "is_sandbox",
+  "section_break_wgnu",
+  "redirect_uri",
   "access_token_1",
-  "subscription_id",
+  "access_token_2",
   "code",
-  "access_token_2"
+  "subscription_id"
  ],
  "fields": [
   {
@@ -52,6 +58,7 @@
    "fieldname": "client_secret",
    "fieldtype": "Password",
    "label": "Client Secret",
+   "mandatory_depends_on": "eval:doc.redirect_uri",
    "reqd": 1
   },
   {
@@ -83,14 +90,41 @@
    "fieldtype": "JSON",
    "hidden": 1,
    "label": "Access Token 2"
+  },
+  {
+   "fieldname": "section_break_wgnu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_mouq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_hugv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_hubw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "redirect_uri",
+   "fieldtype": "Data",
+   "label": "Redirect URI",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "issingle": 1,
  "links": [],
- "modified": "2023-07-05 09:00:12.023558",
+ "modified": "2025-05-09 10:50:28.192375",
  "modified_by": "Administrator",
- "module": "Cyprus Banks",
+ "module": "Erpnext Cyprus",
  "name": "Bank Of Cyprus",
  "owner": "Administrator",
  "permissions": [
@@ -105,6 +139,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

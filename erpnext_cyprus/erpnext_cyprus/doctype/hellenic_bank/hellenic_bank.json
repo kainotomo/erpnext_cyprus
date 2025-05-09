@@ -7,11 +7,18 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "title",
+  "disabled",
+  "column_break_bvyu",
   "parent_account",
   "bank",
-  "is_sandbox",
+  "section_break_afjo",
   "client_id",
+  "column_break_gpgr",
   "client_secret",
+  "is_sandbox",
+  "section_break_uftz",
+  "redirect_uri",
   "code",
   "authorization_code"
  ],
@@ -33,6 +40,7 @@
    "fieldname": "client_secret",
    "fieldtype": "Password",
    "label": "Client Secret",
+   "mandatory_depends_on": "eval:doc.redirect_uri",
    "reqd": 1
   },
   {
@@ -62,14 +70,49 @@
    "label": "Parent Account",
    "options": "Account",
    "reqd": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_bvyu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_afjo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_gpgr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_uftz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "redirect_uri",
+   "fieldtype": "Data",
+   "label": "Redirect URI",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "issingle": 1,
  "links": [],
- "modified": "2023-06-26 07:14:47.381074",
+ "modified": "2025-05-09 10:45:20.194029",
  "modified_by": "Administrator",
- "module": "Cyprus Banks",
+ "module": "Erpnext Cyprus",
  "name": "Hellenic Bank",
  "owner": "Administrator",
  "permissions": [
@@ -84,7 +127,10 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "title"
 }

@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"oN-X6Oc0lN\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cyprus Localization</span>\",\"col\":12}},{\"id\":\"AhNfV37IdT\",\"type\":\"card\",\"data\":{\"card_name\":\"Monthly Reports\",\"col\":4}},{\"id\":\"Dr70CviUBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Quarterly Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"oN-X6Oc0lN\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cyprus Localization</span>\",\"col\":12}},{\"id\":\"AhNfV37IdT\",\"type\":\"card\",\"data\":{\"card_name\":\"Monthly Reports\",\"col\":4}},{\"id\":\"Dr70CviUBW\",\"type\":\"card\",\"data\":{\"card_name\":\"Quarterly Reports\",\"col\":4}},{\"id\":\"xRxnhei4xL\",\"type\":\"card\",\"data\":{\"card_name\":\"Bank Integration\",\"col\":4}}]",
  "creation": "2024-10-03 06:37:39.602574",
  "custom_blocks": [],
  "docstatus": 0,
@@ -60,9 +60,38 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bank Integration",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bank Of Cyprus",
+   "link_count": 0,
+   "link_to": "Bank Of Cyprus",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hellenic Bank",
+   "link_count": 0,
+   "link_to": "Hellenic Bank",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-04-29 07:58:31.083255",
+ "modified": "2025-05-09 10:35:05.540442",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Cyprus Localization",
