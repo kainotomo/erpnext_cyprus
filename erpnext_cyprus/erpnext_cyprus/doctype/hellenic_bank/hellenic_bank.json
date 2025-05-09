@@ -20,6 +20,7 @@
   "encoded_auth",
   "section_break_uftz",
   "redirect_uri",
+  "token_status",
   "state",
   "code",
   "authorization_code"
@@ -122,11 +123,16 @@
    "hidden": 1,
    "label": "Encoded Auth",
    "read_only": 1
+  },
+  {
+   "fieldname": "token_status",
+   "fieldtype": "HTML",
+   "label": "Token Status"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 14:18:15.058778",
+ "modified": "2025-05-09 15:07:22.208620",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Hellenic Bank",
