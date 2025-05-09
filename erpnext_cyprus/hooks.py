@@ -45,6 +45,7 @@ app_license = "gpl-3.0"
 # include js in doctype views
 doctype_js = {
     "Bank Reconciliation Tool": "public/js/bank_reconciliation_tool.js",
+    "Payment Entry": "public/js/payment_entry.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

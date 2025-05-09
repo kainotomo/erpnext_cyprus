@@ -188,6 +188,73 @@ class HellenicBank(Document):
 				
 		return response_json
 	
+	@frappe.whitelist()
+	def single_payment(self, bank_account, party_bank_account, paid_amount, reference_no, reference_date, party_name):
+
+		debtorBank = frappe.db.get_value('Bank Account', bank_account, 'bank')
+		debtorBic = frappe.db.get_value('Bank', debtorBank, 'swift_number')
+		debtorAccount = frappe.db.get_value('Bank Account', bank_account, 'iban')
+
+		beneficiaryBank = frappe.db.get_value('Bank Account', party_bank_account, 'bank')
+		beneficiaryBankBic = frappe.db.get_value('Bank', beneficiaryBank, 'swift_number')
+		beneficiaryAccount = frappe.db.get_value('Bank Account', party_bank_account, 'iban') 
+
+		self.refresh_token()
+		authorization_code = json.loads(self.authorization_code)
+		url = self.get_base_url_api() + "/v1/b2b/credit/transfer"
+		payload = {
+			"executionDate": reference_date,
+			"amount": paid_amount,
+			"debtorAccount": debtorAccount,
+			"beneficiaryAccount": beneficiaryAccount,
+			"beneficiaryName": party_name,
+			"currency": "EUR",
+			"debtorBic": debtorBic,
+			"beneficiaryBankBic": beneficiaryBankBic,
+			"customerReference": reference_no,
+			"paymentNotes": reference_no
+		}
+		headers = {
+			"Authorization": "Bearer " + authorization_code["access_token"],
+			"x-client-id": self.client_id,
+			'Content-Type': 'application/json'
+		}
+
+		response = requests.post(url, json=payload, headers=headers)
+		response_json = response.json()
+		if (response.status_code != 200):
+			error_message = "Error processing payment"
+			
+			try:
+				if "errors" in response_json and response_json["errors"]:
+					errors = []
+					for error in response_json["errors"]:
+						if "message" in error and error["message"]:
+							errors.append(error["message"])
+						elif "code" in error:
+							errors.append(f"Error code: {error['code']}")
+						
+						# Handle the nested params structure
+						if "params" in error and error["params"]:
+							for param_group in error["params"]:
+								for param in param_group:
+									if "errorCode" in param and "field" in param and "exposedName" in param["field"]:
+										field_name = param["field"]["exposedName"]
+										error_code = param["errorCode"]
+										errors.append(f"Field '{field_name}': {error_code}")
+					
+					if errors:
+						error_message = "Payment errors:\n• " + "\n• ".join(errors)
+				elif "payload" in response_json and "message" in response_json["payload"]:
+					error_message = response_json["payload"]["message"]
+			except Exception as e:
+				frappe.log_error(f"Error parsing Hellenic Bank response: {str(e)}\nResponse: {response_json}", 
+								 "Hellenic Bank API Error")
+			
+			frappe.throw(error_message)
+		
+		return response_json
+
 @frappe.whitelist(methods=["GET"], allow_guest=True)
 def callback(code=None, state=None):
 	"""Handle client's code.
@@ -230,42 +297,3 @@ def callback(code=None, state=None):
 
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = hellenic_bank.get_url()
-
-@frappe.whitelist()
-def single_payment(bank_account, party_bank_account, paid_amount, reference_no, reference_date, party_name):
-
-	debtorBank = frappe.db.get_value('Bank Account', bank_account, 'bank')
-	debtorBic = frappe.db.get_value('Bank', debtorBank, 'swift_number')
-	debtorAccount = frappe.db.get_value('Bank Account', bank_account, 'iban')
-
-	beneficiaryBank = frappe.db.get_value('Bank Account', party_bank_account, 'bank')
-	beneficiaryBankBic = frappe.db.get_value('Bank', beneficiaryBank, 'swift_number')
-	beneficiaryAccount = frappe.db.get_value('Bank Account', party_bank_account, 'iban') 
-
-	refresh_token()
-	hellenic_bank = frappe.get_doc("Hellenic Bank")
-	authorization_code = json.loads(hellenic_bank.authorization_code)
-	url = get_base_url_api(hellenic_bank) + "/v1/b2b/credit/transfer"
-	payload = {
-		"executionDate": reference_date,
-		"amount": paid_amount,
-		"debtorAccount": debtorAccount,
-		"beneficiaryAccount": beneficiaryAccount,
-		"beneficiaryName": party_name,
-		"currency": "EUR",
-		"debtorBic": debtorBic,
-		"beneficiaryBankBic": beneficiaryBankBic,
-		"customerReference": reference_no,
-		"paymentNotes": reference_no
-	}
-	headers = {
-		"Authorization": "Bearer " + authorization_code["access_token"],
-		"x-client-id": hellenic_bank.client_id,
-		'Content-Type': 'application/json'
-	}
-
-	response = requests.post(url, json=payload, headers=headers)
-	response_json = response.json()
-	if (response.status_code != 200):
-		frappe.throw(response_json["payload"]["message"])
-	return response_json

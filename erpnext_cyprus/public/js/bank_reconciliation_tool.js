@@ -40,6 +40,8 @@ frappe.ui.form.on('Bank Reconciliation Tool', {
                                                 bank_statement_from_date: frm.doc.bank_statement_from_date,
                                                 bank_statement_to_date: frm.doc.bank_statement_to_date
                                             },
+                                            freeze: true,
+                                            freeze_message: __('Retrieving transactions from Hellenic Bank...'),
                                             callback: function(response) {
                                                 if(response.message && response.message.errors) {
                                                     frappe.msgprint(__("Error retrieving transactions: {0}", 
