@@ -55,7 +55,11 @@ frappe.ui.form.on('Payment Entry', {
                                             freeze_message: __('Processing payment via Hellenic Bank...'),
                                             callback: function(response) {
                                                 if(response.message && !response.message.errors) {
-                                                    frappe.msgprint(__("Payment successfully processed through Hellenic Bank"));
+                                                    frappe.msgprint(response.message, __("Error"));
+                                                    frm.reload_doc();
+                                                }
+                                                if(response.message.payload && !response.message.errors) {
+                                                    frappe.msgprint(response.message.payload, __("Success"));
                                                     frm.reload_doc();
                                                 }
                                             }
