@@ -17,7 +17,7 @@ frappe.ui.form.on('Bank Reconciliation Tool', {
                 if(r && r.bank) {
                     // Find the specific Hellenic Bank document that serves this bank
                     frappe.db.get_list('Hellenic Bank', {
-                        filters: {'bank': r.bank},
+                        filters: {'bank': r.bank, 'disabled': 0},
                         fields: ['name'],
                         limit: 1
                     }).then(function(hellenic_banks) {

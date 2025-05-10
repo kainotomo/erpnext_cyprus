@@ -21,7 +21,7 @@ frappe.ui.form.on('Payment Entry', {
                 if(r && r.bank) {
                     // Check if this bank is linked to any Hellenic Bank doctype
                     frappe.db.get_list('Hellenic Bank', {
-                        filters: {'bank': r.bank},
+                        filters: {'bank': r.bank, 'disabled': 0},
                         fields: ['name'],
                         limit: 1
                     }).then(function(hellenic_banks) {
