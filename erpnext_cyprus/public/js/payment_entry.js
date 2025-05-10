@@ -15,7 +15,7 @@ frappe.ui.form.on('Payment Entry', {
         // Clear any existing Hellenic Bank buttons
         frm.remove_custom_button(__('Wire Transfer'), "Hellenic Bank");
         
-        if(frm.doc.bank_account && frm.doc.party_bank_account) {
+        if(frm.doc.bank_account && frm.doc.party_bank_account && frm.doc.docstatus == 1) {
             // Get the bank of the selected bank account
             frappe.db.get_value('Bank Account', frm.doc.bank_account, 'bank', function(r) {
                 if(r && r.bank) {
