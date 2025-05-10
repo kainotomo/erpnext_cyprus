@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "allow_payments",
   "disabled",
   "column_break_bvyu",
   "parent_account",
@@ -128,11 +129,19 @@
    "fieldname": "token_status",
    "fieldtype": "HTML",
    "label": "Token Status"
+  },
+  {
+   "default": "0",
+   "description": "Check this to allow wire transfers",
+   "fieldname": "allow_payments",
+   "fieldtype": "Check",
+   "label": "Allow Payments",
+   "read_only_depends_on": "eval:!doc.__islocal"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 15:07:22.208620",
+ "modified": "2025-05-10 07:04:04.973429",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Hellenic Bank",

@@ -12,17 +12,21 @@ from urllib.parse import urlencode, urljoin
 
 class HellenicBank(Document):
 
-	scopes = [
-		"b2b.account.details",
-		"b2b.credit.transfer.mass",
-		"b2b.account.list",
-		"b2b.report.account.statements",
-		"b2b.credit.transfer.cancel",
-		"b2b.report.credit.transfer.single",
-		"b2b.credit.transfer.single",
-		"b2b.funds.availability",
-		"b2b.report.credit.transfer.mass"
-		]
+	scopes = {
+		"read": [
+			"b2b.account.details",
+			"b2b.account.list",
+			"b2b.report.account.statements",
+		],
+		"write": [
+			"b2b.funds.availability",
+			"b2b.credit.transfer.mass",
+			"b2b.credit.transfer.cancel",
+			"b2b.report.credit.transfer.single",
+			"b2b.credit.transfer.single",
+			"b2b.report.credit.transfer.mass"
+		],
+	}
 
 	def validate(self):
 		base_url = frappe.utils.get_url()
@@ -54,11 +58,15 @@ class HellenicBank(Document):
 		authorization_url = self.get_base_url_auth() + "/oauth2/auth"
 		state = self.base64_encode(frappe.generate_hash(length=10))
 		frappe.db.set_value('Hellenic Bank', self.name, 'state', state)
+		if self.allow_payments:
+			scopes = self.scopes["write"] + self.scopes["read"]
+		else:
+			scopes = self.scopes["read"]
 		query_params = {
 			"response_type": "code",
 			"client_id": self.client_id,
 			"redirect_uri": self.redirect_uri,
-			"scope": " ".join(self.scopes),
+			"scope": " ".join(scopes),
 			"state": state
 		}
 		authorization_url += "?" + urlencode(query_params)
@@ -256,7 +264,7 @@ class HellenicBank(Document):
 		return response_json
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
-def callback(code=None, state=None):
+def callback(code=None, state=None, error=None):
 	"""Handle client's code.
 
 	Called during the oauthorization flow by the remote oAuth2 server to
@@ -274,6 +282,11 @@ def callback(code=None, state=None):
 		frappe.throw(_("Invalid Parameters."))
 
 	hellenic_bank = frappe.get_doc("Hellenic Bank", path[3])
+
+	if error:
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = hellenic_bank.get_url()
+		return
 
 	if state != hellenic_bank.state:
 		frappe.throw(_("Invalid token state! Check if the token has been created by the OAuth user."))
