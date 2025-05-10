@@ -44,7 +44,7 @@
    "fieldname": "client_secret",
    "fieldtype": "Password",
    "label": "Client Secret",
-   "mandatory_depends_on": "eval:doc.redirect_uri"
+   "reqd": 1
   },
   {
    "fieldname": "code",
@@ -141,7 +141,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-10 07:04:04.973429",
+ "modified": "2025-05-10 07:21:44.935823",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Hellenic Bank",
