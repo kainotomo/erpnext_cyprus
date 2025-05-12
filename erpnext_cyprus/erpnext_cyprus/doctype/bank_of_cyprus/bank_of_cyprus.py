@@ -7,75 +7,106 @@ import requests
 import json
 from datetime import datetime
 import uuid
+from urllib.parse import urlencode, urljoin
+import base64
 
 class BankOfCyprus(Document):
-	pass
-
-def get_base_url(bank_of_cyprus):
-	return "https://sandbox-apis.bankofcyprus.com/df-boc-org-sb/sb/psd2" if bank_of_cyprus.is_sandbox else "https://apis.bankofcyprus.com/df-boc-org-prd/prod/psd2"
-
-def create_subscription():
-	bank_of_cyprus = frappe.get_doc("Bank Of Cyprus")
-
-	access_token_1 = json.loads(bank_of_cyprus.access_token_1)
-	url = get_base_url(bank_of_cyprus) + "/v1/subscriptions"
-	payload = {
-		"accounts": {
-			"transactionHistory": True,
-			"balance": True,
-			"details": True,
-			"checkFundsAvailability": True
-		},
-		"payments": {
-			"limit": 99999999,
-			"currency": "string",
-			"amount":99999999
-		},
-			"customerInformation": {
-			"personalInformation":True,
-			"identification":True,
-			"address":True,
-			"telephone":True,
-			"pepinformation":True,
-			"reviewInformation":True
-		}
-	}
-	headers = {
-		"Accept": "application/json",
-		"Content-Type": "application/json",
-		"Authorization": "Bearer " + access_token_1["access_token"],
-		"originUserId": bank_of_cyprus.user_id,
-		"timeStamp": datetime.utcnow().isoformat(),
-		"journeyId": str(uuid.uuid4()),
-		"app_name": "ERPNext Integration"
-	}
-	response = requests.post(url, json=payload, headers=headers)
-	if (response.status_code != 200 and response.status_code != 201):
-		frappe.throw("Something went wrong with Bank Of Cyprus authorization")
-	frappe.db.set_value('Bank Of Cyprus', bank_of_cyprus.name, 'subscription_id', response.text)
-	return response.json()
-
-@frappe.whitelist()
-def get_access_token_1():
-	bank_of_cyprus = frappe.get_doc("Bank Of Cyprus")
-
-	url = get_base_url(bank_of_cyprus) + "/oauth2/token"
-	payload = {
-		"grant_type": "client_credentials",
-		"scope": "TPPOAuth2Security",
-		"client_id": bank_of_cyprus.client_id,
-		"client_secret": bank_of_cyprus.get_password("client_secret")
-	}
-	headers = {
-		"Accept": "application/json",
-		"Content-Type": "application/x-www-form-urlencoded"
-	}
-	response = requests.post(url, data=payload, headers=headers)
-	if (response.status_code != 200):
-		return response.json()
-	frappe.db.set_value('Bank Of Cyprus', bank_of_cyprus.name, 'access_token_1', response.text)
 	
-	return create_subscription()
+	def validate(self):
+		base_url = frappe.utils.get_url()
+		callback_path = (
+			"/api/method/erpnext_cyprus.erpnext_cyprus.doctype.bank_of_cyprus.bank_of_cyprus.callback/" + self.name
+		)
+		self.redirect_uri = urljoin(base_url, callback_path)
+
+	def get_base_url(self):
+		return "https://sandbox-apis.bankofcyprus.com/df-boc-org-sb/sb/psd2" if self.is_sandbox else "https://apis.bankofcyprus.com/df-boc-org-prd/prod/psd2"
+
+	def base64_encode(self, string):
+		string_bytes = string.encode('utf-8')  # Convert string to bytes using UTF-8 encoding
+		encoded_bytes = base64.b64encode(string_bytes)  # Base64 encode the bytes
+		encoded_string = encoded_bytes.decode('utf-8')  # Convert the encoded bytes back to a string
+		return encoded_string
+
+	def get_access_token_1(self):
+
+		url = self.get_base_url() + "/oauth2/token"
+		payload = {
+			"grant_type": "client_credentials",
+			"scope": "TPPOAuth2Security",
+			"client_id": self.client_id,
+			"client_secret": self.get_password("client_secret")
+		}
+		headers = {
+			"Accept": "application/json",
+			"Content-Type": "application/x-www-form-urlencoded"
+		}
+		response = requests.post(url, data=payload, headers=headers)
+		if (response.status_code != 200):
+			return response.json()
+		frappe.db.set_value('Bank Of Cyprus', self.name, 'access_token_1', response.text)
+		self.access_token_1 = response.text
+		
+		return self.create_subscription()
+	
+	def create_subscription(self):
+
+		access_token_1 = json.loads(self.access_token_1)
+		url = self.get_base_url() + "/v1/subscriptions"
+		payload = {
+			"accounts": {
+				"transactionHistory": True,
+				"balance": True,
+				"details": True,
+				"checkFundsAvailability": True
+			},
+			"payments": {
+				"limit": 99999999,
+				"currency": "string",
+				"amount":99999999
+			},
+				"customerInformation": {
+				"personalInformation":True,
+				"identification":True,
+				"address":True,
+				"telephone":True,
+				"pepinformation":True,
+				"reviewInformation":True
+			}
+		}
+		headers = {
+			"Accept": "application/json",
+			"Content-Type": "application/json",
+			"Authorization": "Bearer " + access_token_1["access_token"],
+			"timeStamp": datetime.utcnow().isoformat(),
+			"journeyId": str(uuid.uuid4()),
+			"app_name": "ERPNext Integration"
+		}
+		response = requests.post(url, json=payload, headers=headers)
+		if (response.status_code != 200 and response.status_code != 201):
+			frappe.throw("Something went wrong with Bank Of Cyprus authorization")
+		frappe.db.set_value('Bank Of Cyprus', self.name, 'subscription_id', response.text)
+		return response.json()
+	
+	@frappe.whitelist()
+	def initiate_web_application_flow(self):
+		"""Return an authorization URL. Save state in Token Cache."""
+
+		subscription_id = self.get_access_token_1()['subscriptionId']
+
+		authorization_url = self.get_base_url() + "/oauth2/authorize"
+		state = self.base64_encode(frappe.generate_hash(length=10))
+		frappe.db.set_value('Hellenic Bank', self.name, 'state', state)
+		query_params = {
+			"response_type": "code",
+			"redirect_uri": self.redirect_uri,
+			"scope": "UserOAuth2Security",
+			"client_id": self.client_id,
+			"subscriptionId": subscription_id,
+			"state": state
+		}
+		authorization_url += "?" + urlencode(query_params)
+		return authorization_url
 
 @frappe.whitelist()
 def get_access_token_2():

@@ -4,84 +4,48 @@
 frappe.ui.form.on('Bank Of Cyprus', {
 	refresh: function (frm) {
 
-		frm.add_custom_button(__('Authorize'), function () {
-			frappe.call({
-				method: "cyprus_banks.cyprus_banks.doctype.bank_of_cyprus.bank_of_cyprus.get_access_token_1",
-				args: {
-					// your arguments here
-				},
-				callback: function (response) {
-					if (response.message.errors) {
-						frappe.msgprint("Something went wrong.", 'Error');
-					} else {
-						let urlParams = new URLSearchParams(window.location.search);
-						if (urlParams.get('state') === null) {
-							let is_sandbox = frm.get_field('is_sandbox').value;
-							let base_url = is_sandbox ? "https://sandbox-apis.bankofcyprus.com/df-boc-org-sb/sb/psd2/oauth2/authorize" : "https://apis.bankofcyprus.com/df-boc-org-prd/prod/psd2/oauth2/authorize";
-							let client_id = frm.get_field('client_id').value;
-							let href = base_url + "?response_type=code" +
-								"&redirect_uri=" + window.location.href +
-								"&scope=UserOAuth2Security" +
-								"&client_id=" + client_id +
-								"&subscriptionid=" + response.message.subscriptionId;
-							window.location.href = href;
-							frappe.validated = true;
-						}
-					}
-				}
-			});
-		});
+		if (!frm.is_new()) {
+			// Update token status display
+			
+			update_token_status(frm);
 
-		frm.add_custom_button(__('Create Accounts'), function () {
-			frappe.confirm('Are you sure you want to proceed?', function () {
+			frm.add_custom_button(__("Connect to {}", [frm.doc.title]), async () => {
 				frappe.call({
-					method: "cyprus_banks.cyprus_banks.doctype.bank_of_cyprus.bank_of_cyprus.create_accounts",
-					args: {
-						// your arguments here
+					method: "initiate_web_application_flow",
+					doc: frm.doc,
+					callback: function (r) {
+						window.open(r.message);
 					},
-					callback: function (response) {
-						if (response.message.errors) {
-							frappe.msgprint("Something went wrong.", 'Error');
-						} else {
-							frappe.msgprint("You succesfully created the bank accounts.");
-						}
-					}
 				});
-			}, function () {
-				// action to perform if No is selected
 			});
-		});
 
-		let urlParams = new URLSearchParams(window.location.search);
-		let new_code = urlParams.get('code');
-		if (new_code !== null) {
-			frappe.db.get_single_value('Bank Of Cyprus', 'code')
-				.then(function (old_code) {
-					if (new_code !== old_code) {
-						frappe.db.set_value('Bank Of Cyprus', frm.doc.name, 'code', new_code)
-							.then(r => {
-								let doc = r.message;
-								frappe.call({
-									method: "cyprus_banks.cyprus_banks.doctype.bank_of_cyprus.bank_of_cyprus.get_access_token_2",
-									args: {
-										// your arguments here
-									},
-									callback: function(response) {
-										if ('error' in response.message) {
-											frappe.msgprint(response.message.error);
-										} else {
-											frappe.msgprint("You succesfully created a new subscription.");
-										}
-									}
-								});								
-							})
-					}
+			if (frm.doc.authorization_code) {
+				frm.add_custom_button(__('Create Accounts'), function () {
+					frappe.confirm('Are you sure you want to proceed?', function() {
+						frappe.call({
+							method: "create_accounts",
+							doc: frm.doc,
+							callback: function(response) {
+								if (response.message.errors === null) {
+									frappe.msgprint("You succesfully created the bank accounts.");
+								} else {
+									frappe.msgprint("Something went wrong.", 'Error');
+								}
+							}
+						});		
+					}, function() {
+						// action to perform if No is selected
+					});			
 				});
+			}			
 		}
 
 	},
-	onload: function (frm) {
-		frm.set_query('parent_account', function (doc) {
+	onload: function(frm) {
+		// Update token status display
+		update_token_status(frm);
+
+		frm.set_query('parent_account', function(doc) {
 			return {
 				filters: {
 					"is_group": 1,
@@ -91,3 +55,28 @@ frappe.ui.form.on('Bank Of Cyprus', {
 		});
 	}
 });
+
+// Function to format and display token status in HTML
+function update_token_status(frm) {
+	let token_status_html = "";
+	
+	// If no authorization code exists, show warning
+	if (!frm.doc.authorization_code) {
+		token_status_html = `
+			<div class="alert alert-danger">
+				<i class="fa fa-exclamation-triangle"></i>
+				<strong>No authorization code available.</strong> Please connect to get a token.
+			</div>
+		`;
+	} else {
+		token_status_html = `
+			<div class="alert alert-success">
+				Authorization code is available!!!<br/>
+				If you are dealing with any issues try to connect again.
+			</div>
+		`;
+	}
+	
+	// Update the token_status field with our formatted HTML
+	frm.set_df_property("token_status", "options", token_status_html);
+}

@@ -52,9 +52,8 @@ class HellenicBank(Document):
 		return "https://sandbox-apis.hellenicbank.com" if self.is_sandbox else "https://apisprod.hellenicbank.com"
 
 	@frappe.whitelist()
-	def initiate_web_application_flow(self, user=None, success_uri=None):
-		"""Return an authorization URL for the user. Save state in Token Cache."""
-		user = user or frappe.session.user		
+	def initiate_web_application_flow(self):
+		"""Return an authorization URL. Save state in Token Cache."""
 		authorization_url = self.get_base_url_auth() + "/oauth2/auth"
 		state = self.base64_encode(frappe.generate_hash(length=10))
 		frappe.db.set_value('Hellenic Bank', self.name, 'state', state)

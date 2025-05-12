@@ -8,17 +8,19 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "allow_payments",
+  "disabled",
   "column_break_mouq",
   "parent_account",
   "bank",
   "section_break_hugv",
   "client_id",
-  "user_id",
   "column_break_hubw",
   "client_secret",
   "is_sandbox",
   "section_break_wgnu",
   "redirect_uri",
+  "token_status",
   "state",
   "access_token_1",
   "access_token_2",
@@ -75,12 +77,6 @@
    "label": "Subscription Id"
   },
   {
-   "fieldname": "user_id",
-   "fieldtype": "Data",
-   "label": "User Id",
-   "reqd": 1
-  },
-  {
    "fieldname": "access_token_1",
    "fieldtype": "JSON",
    "hidden": 1,
@@ -126,11 +122,29 @@
    "hidden": 1,
    "label": "State",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Check this to allow wire transfers",
+   "fieldname": "allow_payments",
+   "fieldtype": "Check",
+   "label": "Allow Payments"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "token_status",
+   "fieldtype": "HTML",
+   "label": "Token Status"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-09 11:25:44.758867",
+ "modified": "2025-05-10 10:30:34.849928",
  "modified_by": "Administrator",
  "module": "Erpnext Cyprus",
  "name": "Bank Of Cyprus",
