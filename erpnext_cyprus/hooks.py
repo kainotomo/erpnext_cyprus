@@ -147,6 +147,9 @@ doc_events = {
     "Address": {
         "after_insert": "erpnext_cyprus.utils.customer_group_assignment.assign_customer_territory_based_on_country"
     },
+    "Sales Invoice": {
+        "before_print": "erpnext_cyprus.utils.sales_invoice_print.before_print"
+    }
 }
 
 # Scheduled Tasks
