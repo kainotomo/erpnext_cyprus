@@ -8,6 +8,7 @@ ERPNext extension for companies in Cyprus.
 - VAT reporting for Cyprus (standard VAT returns, MOSS, and VIES statements)
 - Localized accounting features
 - Additional reports for Cyprus regulatory requirements
+- Cyprus banks integration
 
 ## Installation
 
@@ -71,6 +72,7 @@ Available documentation:
 - [Cyprus VAT Return Guide](documentation/cyprus_vat_return.md) - How to prepare and submit Cyprus VAT returns
 - [MOSS VAT Returns Guide](documentation/moss_vat_returns.md) - Guide for Mini One Stop Shop VAT reporting for digital services
 - [VIES Statement Guide](documentation/vies_statement.md) - How to properly record and report EU B2B transactions
+- [Banks integration](documentation/banks_integration.md) - How to integrate Cyprus banks
 
 ## Payroll Setup
 
