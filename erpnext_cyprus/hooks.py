@@ -11,15 +11,12 @@ app_license = "gpl-3.0"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "erpnext_cyprus",
-# 		"logo": "/assets/erpnext_cyprus/logo.png",
-# 		"title": "Erpnext Cyprus",
-# 		"route": "/erpnext_cyprus",
-# 		"has_permission": "erpnext_cyprus.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+    {
+    	"name": "erpnext_cyprus",
+		"title": "Cyprus Localization",
+ 	}
+]
 
 # Includes in <head>
 # ------------------
